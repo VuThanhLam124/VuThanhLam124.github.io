@@ -3,51 +3,473 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lâm's AI Research Blog chia sẻ nghiên cứu về Generative AI, Flow Matching, Diffusion Models và các hệ thống VLM.">
-    <meta name="keywords" content="Generative AI, Flow Matching, Diffusion Models, VLM, Machine Learning, Research">
+    <meta name="description" content="Lâm's AI Research Hub - Blog nghiên cứu chuyên sâu về Generative AI, Flow Matching, Diffusion Models và Vision-Language Models">
+    <meta name="keywords" content="AI Research, Flow Matching, Diffusion Models, Generative AI, VLM, Machine Learning, Deep Learning">
     <meta name="author" content="ThanhLamDev">
-    <title>Lâm's Research Hub • Generative AI & Data Science</title>
+    <title>Lâm's AI Research Hub • Trang chủ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans+Condensed:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/main.css">
+    
+    <style>
+        /* Enhanced homepage styles */
+        .hero-banner {
+            background: var(--gradient-hero);
+            padding: 5rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(11,115,183,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>') center/cover;
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: var(--color-muted);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        
+        .cta-button {
+            padding: 1rem 2rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-primary {
+            background: var(--color-primary);
+            color: white;
+            border: 2px solid var(--color-primary);
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+        
+        .cta-secondary:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .features-section {
+            padding: 5rem 0;
+            background: var(--color-bg);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .feature-card {
+            background: var(--color-layer);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            text-align: center;
+            transition: var(--transition);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--color-text);
+        }
+        
+        .feature-description {
+            color: var(--color-muted);
+            line-height: 1.6;
+        }
+        
+        .recent-posts {
+            padding: 5rem 0;
+            background: var(--color-layer-subtle);
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--color-text);
+        }
+        
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--color-muted);
+        }
+        
+        .navigation {
+            background: var(--color-layer);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: var(--color-primary);
+        }
+        
+        .nav-links a.active {
+            color: var(--color-primary);
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="page-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar__header">
-                <a class="sidebar__brand" href="#home">
-                    <span class="brand-mark">TL</span>
-                    <div>
-                        <p class="brand-kicker">ThanhLamDev</p>
-                        <h1 class="brand-title">AI Research Hub</h1>
-                        <p class="brand-subtitle">Generative AI • Flow Matching • Diffusion Systems</p>
-                    </div>
-                </a>
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                🤖 ThanhLamDev
+            </a>
+            <div class="nav-links">
+                <a href="/" class="active">Trang chủ</a>
+                <a href="/content.html">Nội dung</a>
+                <a href="#about">Về tôi</a>
+                <a href="#code">Code Lab</a>
             </div>
-            <div class="sidebar__section">
-                <h2 class="sidebar__heading">Bài viết mới</h2>
-                <ul class="sidebar-list" id="sidebar-latest"></ul>
-            </div>
-            <div class="sidebar__section">
-                <h2 class="sidebar__heading">Chủ đề nổi bật</h2>
-                <div class="sidebar-tag-cloud" id="sidebar-topics"></div>
-            </div>
-            <div class="sidebar__section">
-                <h2 class="sidebar__heading">Liên kết nhanh</h2>
-                <ul class="sidebar-links">
-                    <li><a href="#home">🏠 Trang chủ</a></li>
-                    <li><a href="#posts">📚 Bài viết</a></li>
-                    <li><a href="#categories">🗂️ Chủ đề</a></li>
-                    <li><a href="#code">💻 Code Lab</a></li>
-                    <li><a href="#about">👤 Về tôi</a></li>
-                </ul>
-            </div>
-        </aside>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
+                🌙 Dark Mode
+            </button>
+        </div>
+    </nav>
 
-        <main class="main-area">
-            <header class="topbar">
-                <div class="topbar__left">
+    <main>
+        <section class="hero-banner">
+            <div class="hero-content">
+                <h1 class="hero-title">AI Research Hub</h1>
+                <p class="hero-subtitle">
+                    Khám phá thế giới Generative AI với nghiên cứu chuyên sâu về Flow Matching, 
+                    Diffusion Models, và Vision-Language Systems. Từ lý thuyết toán học đến implementation thực tế.
+                </p>
+                
+                <div class="hero-cta">
+                    <a href="/content.html" class="cta-button cta-primary">
+                        📚 Khám phá nội dung
+                    </a>
+                    <a href="#recent-posts" class="cta-button cta-secondary">
+                        📖 Bài viết mới nhất
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🌊</span>
+                    <h3 class="feature-title">Flow Matching</h3>
+                    <p class="feature-description">
+                        Khám phá cutting-edge technique trong generative modeling với 
+                        continuous normalizing flows và optimal transport theory.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">✨</span>
+                    <h3 class="feature-title">Diffusion Models</h3>
+                    <p class="feature-description">
+                        Deep dive vào DDPM, DDIM, score-based models và các advanced 
+                        sampling techniques cho high-quality generation.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">👁️</span>
+                    <h3 class="feature-title">Vision-Language</h3>
+                    <p class="feature-description">
+                        Nghiên cứu multimodal AI từ CLIP đến LLaVA, khám phá 
+                        cách AI hiểu và reasoning trên cả image và text.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">💻</span>
+                    <h3 class="feature-title">Hands-on Code</h3>
+                    <p class="feature-description">
+                        Complete implementations, notebooks, và production-ready 
+                        code examples với PyTorch và modern ML stack.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="recent-posts" id="recent-posts">
+            <div class="section-header">
+                <h2 class="section-title">Bài viết mới nhất</h2>
+                <p class="section-subtitle">
+                    Những nghiên cứu và tutorial mới nhất về AI và Machine Learning
+                </p>
+            </div>
+            
+            <div class="posts-grid" id="homepage-posts">
+                <!-- Posts will be loaded dynamically -->
+            </div>
+        </section>
+
+        <section class="about-section" id="about">
+            <div class="section-header">
+                <h2 class="section-title">Về ThanhLamDev</h2>
+                <div style="max-width: 800px; margin: 0 auto; text-align: left;">
+                    <p style="font-size: 1.1rem; line-height: 1.7; color: var(--color-text); margin-bottom: 2rem;">
+                        Tôi là ML Engineer chuyên sâu về Generative AI và Vision-Language Systems. 
+                        Với passion về research và engineering, tôi tập trung vào việc bridge gap 
+                        giữa cutting-edge research papers và practical production systems.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                        <div>
+                            <h4 style="color: var(--color-primary); margin-bottom: 1rem;">� Chuyên môn</h4>
+                            <ul style="color: var(--color-muted); line-height: 1.8;">
+                                <li>Flow Matching & Diffusion Models</li>
+                                <li>Vision-Language Models</li>
+                                <li>Multimodal AI Systems</li>
+                                <li>MLOps & Production AI</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--color-primary); margin-bottom: 1rem;">�️ Tech Stack</h4>
+                            <ul style="color: var(--color-muted); line-height: 1.8;">
+                                <li>PyTorch, TensorFlow</li>
+                                <li>Transformers, Diffusers</li>
+                                <li>Docker, Kubernetes</li>
+                                <li>Python, CUDA</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <a href="mailto:vuthanhlam848@gmail.com" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">� Email</a>
+                        <a href="https://linkedin.com/in/thanhlamdev848" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">💼 LinkedIn</a>
+                        <a href="https://github.com/VuThanhLam124" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">💻 GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="background: var(--color-layer); border-top: 1px solid var(--color-border); padding: 3rem 0; text-align: center;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+            <p style="color: var(--color-muted); margin-bottom: 1rem;">
+                © <span id="current-year">2025</span> ThanhLamDev • AI Research Hub
+            </p>
+            <p style="color: var(--color-muted); font-size: 0.9rem;">
+                Nghiên cứu và chia sẻ kiến thức AI chuyên sâu cho cộng đồng Việt Nam
+            </p>
+        </div>
+    </footer>
+
+    <script src="/assets/js/main.js" defer></script>
+    <script>
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.getElementById('theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                toggle.textContent = '🌙 Dark Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️ Light Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load theme and initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const toggle = document.getElementById('theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️ Light Mode';
+            }
+            
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Load recent posts if BlogApp is available
+            if (typeof BlogApp !== 'undefined') {
+                loadRecentPostsForHomepage();
+            }
+        });
+
+        // Load recent posts for homepage
+        async function loadRecentPostsForHomepage() {
+            try {
+                const response = await fetch('/api/posts.json');
+                const data = await response.json();
+                const recentPosts = data.posts.slice(0, 3); // Get 3 most recent
+                
+                const container = document.getElementById('homepage-posts');
+                if (container && recentPosts.length > 0) {
+                    container.innerHTML = recentPosts.map(post => `
+                        <article style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
+                            <div style="margin-bottom: 1rem;">
+                                <span style="color: var(--color-primary); font-size: 0.9rem; font-weight: 500;">${post.category}</span>
+                                <span style="color: var(--color-muted); font-size: 0.9rem; margin-left: 1rem;">${post.readingTime} phút đọc</span>
+                            </div>
+                            <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--color-text);">
+                                <a href="/posts/2025/${post.slug}" style="color: inherit; text-decoration: none;">${post.title}</a>
+                            </h3>
+                            <p style="color: var(--color-muted); line-height: 1.6; margin-bottom: 1.5rem;">${post.excerpt}</p>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                ${post.tags.map(tag => `<span style="background: var(--color-badge); color: var(--color-primary); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.8rem;">${tag}</span>`).join('')}
+                            </div>
+                        </article>
+                    `).join('');
+                }
+            } catch (error) {
+                console.log('Could not load recent posts');
+            }
+        }
+
+        // Call the function when page loads
+        loadRecentPostsForHomepage();
+    </script>
+</body>
+</html>
                     <button class="icon-button" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
                     <nav class="topbar__nav">
                         <a href="#home">Home</a>

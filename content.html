@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blog nghiên cứu AI chuyên sâu về Generative AI, Flow Matching, Diffusion Models và Vision-Language Models">
+    <meta name="keywords" content="AI Research, Flow Matching, Diffusion Models, Generative AI, VLM, Machine Learning">
+    <meta name="author" content="ThanhLamDev">
+    <title>Lâm's AI Research Hub • Chuyên sâu Generative AI & Deep Learning</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    
+    <style>
+        /* Override styles for content-focused layout */
+        .hero-section {
+            background: var(--gradient-hero);
+            padding: 60px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--color-text);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--color-muted);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--color-muted);
+            margin-top: 0.5rem;
+        }
+        
+        .content-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .topic-section {
+            margin: 4rem 0;
+            padding: 3rem;
+            background: var(--color-layer);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+        }
+        
+        .topic-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .topic-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--color-text);
+            margin-bottom: 2rem;
+        }
+        
+        .posts-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .posts-list li {
+            margin-bottom: 0.75rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+        
+        .posts-list li::before {
+            content: counter(post-counter);
+            counter-increment: post-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--color-primary);
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .topic-section {
+            counter-reset: post-counter;
+        }
+        
+        .post-link {
+            color: var(--color-text);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .post-link:hover {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        .post-meta {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            margin-left: 1rem;
+        }
+        
+        .topic-badge {
+            background: var(--color-badge);
+            color: var(--color-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .navigation {
+            background: var(--color-layer);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover {
+            color: var(--color-primary);
+        }
+        
+        .theme-toggle {
+            background: var(--color-primary-soft);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1rem;
+            color: var(--color-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .theme-toggle:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .topic-section {
+                padding: 2rem;
+                margin: 2rem 0;
+            }
+            
+            .content-section {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">🤖 ThanhLamDev</a>
+            <div class="nav-links">
+                <a href="/">Trang chủ</a>
+                <a href="/content">Nội dung</a>
+                <a href="/about">Về tôi</a>
+                <a href="/code">Code Lab</a>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
+                🌙 Dark Mode
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="content-section">
+                <h1 class="hero-title">AI Research Hub</h1>
+                <p class="hero-subtitle">
+                    Chào mừng bạn đến với blog nghiên cứu AI chuyên sâu. Như chúng ta đã biết, Generative AI đang trở thành xu hướng quan trọng nhất trong thập kỷ này. 
+                    Từ Flow Matching cho đến Diffusion Models, từ Vision-Language Models đến các hệ thống đa phương thức - tất cả đều đang thay đổi cách chúng ta tương tác với AI.
+                    <br><br>
+                    Tại Việt Nam, cộng đồng nghiên cứu Generative AI vẫn còn khá mới mẻ. Blog này được xây dựng nhằm chia sẻ kiến thức chuyên sâu, 
+                    từ lý thuyết toán học đến implementation thực tế, giúp các bạn nghiên cứu viên và kỹ sư AI có nguồn tài liệu chất lượng.
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-posts">7+</span>
+                        <div class="stat-label">Bài viết chuyên sâu</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">4</span>
+                        <div class="stat-label">Chủ đề chính</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15+</span>
+                        <div class="stat-label">Code examples</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="content-section">
+            <!-- Flow Matching Section -->
+            <section class="topic-section">
+                <h2 class="topic-title">
+                    🌊 Flow Matching & Continuous Normalizing Flows
+                    <span class="topic-badge">Cutting-edge</span>
+                </h2>
+                <p class="topic-description">
+                    Flow Matching là một trong những breakthrough quan trọng nhất trong Generative AI hiện đại. Khác với Diffusion Models truyền thống, 
+                    Flow Matching học trực tiếp vector field để transport từ noise distribution đến data distribution thông qua optimal transport paths. 
+                    Điều này mang lại tốc độ sampling nhanh hơn và training stability cao hơn. Trong series này, chúng ta sẽ khám phá từ lý thuyết toán học 
+                    cho đến implementation hoàn chỉnh với PyTorch.
+                </p>
+                <ol class="posts-list">
+                    <li>
+                        <a href="/posts/2025/flow-matching-theory" class="post-link">
+                            Flow Matching: Từ lý thuyết đến thực hành với PyTorch
+                            <span class="post-meta">• 15 phút đọc • Lý thuyết + Code</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/flow-matching-readme" class="post-link">
+                            Flow Matching Implementation Guide
+                            <span class="post-meta">• 12 phút đọc • Hands-on Tutorial</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/rectified-flows" class="post-link">
+                            Rectified Flow: Straight Paths in Flow Matching
+                            <span class="post-meta">• 18 phút đọc • Advanced Theory</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/flow-matching-optimization" class="post-link">
+                            Optimization Techniques for Flow Matching
+                            <span class="post-meta">• 20 phút đọc • Performance Tuning</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Diffusion Models Section -->
+            <section class="topic-section">
+                <h2 class="topic-title">
+                    ✨ Diffusion Models & DDPM
+                    <span class="topic-badge">Foundation</span>
+                </h2>
+                <p class="topic-description">
+                    Diffusion Models đã trở thành backbone của nhiều hệ thống AI generative nổi tiếng như DALL-E, Midjourney, và Stable Diffusion. 
+                    Từ DDPM gốc đến các variants hiện đại như DDIM, DPM-Solver, và Karras scheduling - mỗi technique đều mang lại improvements đáng kể 
+                    về chất lượng và tốc độ generation. Series này sẽ đi sâu vào mathematical foundations và practical implementations.
+                </p>
+                <ol class="posts-list">
+                    <li>
+                        <a href="/posts/2025/ddpm-explained" class="post-link">
+                            DDPM Explained: Toán học đằng sau Diffusion Models
+                            <span class="post-meta">• 22 phút đọc • Mathematical Deep Dive</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/ddim-sampling" class="post-link">
+                            DDIM: Deterministic Sampling for Faster Generation
+                            <span class="post-meta">• 16 phút đọc • Sampling Techniques</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/score-matching" class="post-link">
+                            Score-based Generative Models và SDE Framework
+                            <span class="post-meta">• 25 phút đọc • Advanced Theory</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/diffusion-guidance" class="post-link">
+                            Classifier-free Guidance và Conditional Generation
+                            <span class="post-meta">• 19 phút đọc • Conditional Models</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Vision-Language Models Section -->
+            <section class="topic-section">
+                <h2 class="topic-title">
+                    👁️ Vision-Language Models (VLM)
+                    <span class="topic-badge">Multimodal</span>
+                </h2>
+                <p class="topic-description">
+                    VLM đại diện cho future của AI - khả năng hiểu và reasoning đồng thời trên cả visual và textual information. 
+                    Từ CLIP với contrastive learning cho đến LLaVA với instruction following, từ Flamingo với few-shot capabilities 
+                    đến GPT-4V với advanced reasoning - VLM đang mở ra endless possibilities cho multimodal applications. 
+                    Series này explore architectures, training strategies, và practical applications.
+                </p>
+                <ol class="posts-list">
+                    <li>
+                        <a href="/posts/2025/vlm-clip-llava" class="post-link">
+                            Vision-Language Models: CLIP, LLaVA và beyond
+                            <span class="post-meta">• 18 phút đọc • Architecture Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/clip-training" class="post-link">
+                            CLIP Training: Contrastive Learning at Scale
+                            <span class="post-meta">• 21 phút đọc • Training Deep Dive</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/llava-instruction-tuning" class="post-link">
+                            LLaVA: Instruction Tuning for Multimodal Understanding
+                            <span class="post-meta">• 17 phút đọc • Fine-tuning Guide</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/vlm-evaluation" class="post-link">
+                            Evaluating Vision-Language Models: Metrics & Benchmarks
+                            <span class="post-meta">• 14 phút đọc • Evaluation Methods</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Advanced Topics Section -->
+            <section class="topic-section">
+                <h2 class="topic-title">
+                    🚀 Advanced Topics & Systems
+                    <span class="topic-badge">Research</span>
+                </h2>
+                <p class="topic-description">
+                    Khám phá các chủ đề tiên tiến trong AI research: từ Transformer architectures và attention mechanisms 
+                    đến production deployment và MLOps cho AI systems. Bao gồm cả theoretical advances và practical engineering 
+                    challenges khi scale AI models to production environments.
+                </p>
+                <ol class="posts-list">
+                    <li>
+                        <a href="/posts/2025/transformer-attention-mechanisms" class="post-link">
+                            Attention Mechanisms trong Transformers: Self, Cross, và Multi-Head
+                            <span class="post-meta">• 16 phút đọc • Architecture Deep Dive</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/pytorch-flow-matching-tutorial" class="post-link">
+                            PyTorch Implementation Guide cho Generative Models
+                            <span class="post-meta">• 25 phút đọc • Complete Tutorial</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/generative-ai-overview" class="post-link">
+                            Generative AI Landscape 2025: Trends và Future Directions
+                            <span class="post-meta">• 20 phút đọc • Industry Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/ai-systems-production" class="post-link">
+                            Deploying AI Systems to Production: MLOps Best Practices
+                            <span class="post-meta">• 23 phút đọc • Production Guide</span>
+                        </a>
+                    </li>
+                </ol>
+            </section>
+        </div>
+    </main>
+
+    <footer style="background: var(--color-layer); border-top: 1px solid var(--color-border); padding: 3rem 0; margin-top: 4rem; text-align: center;">
+        <div class="content-section">
+            <p style="color: var(--color-muted); margin-bottom: 1rem;">
+                © <span id="current-year">2025</span> ThanhLamDev • Nghiên cứu và chia sẻ kiến thức AI chuyên sâu
+            </p>
+            <p style="color: var(--color-muted); font-size: 0.9rem;">
+                📧 <a href="mailto:vuthanhlam848@gmail.com" style="color: var(--color-primary);">vuthanhlam848@gmail.com</a> • 
+                🌐 <a href="https://linkedin.com/in/thanhlamdev848" style="color: var(--color-primary);">LinkedIn</a> • 
+                💻 <a href="https://github.com/VuThanhLam124" style="color: var(--color-primary);">GitHub</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.getElementById('theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                toggle.textContent = '🌙 Dark Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️ Light Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const toggle = document.getElementById('theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️ Light Mode';
+            }
+            
+            // Update year
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
