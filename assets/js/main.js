@@ -45,12 +45,59 @@ class BlogSystem {
             const response = await fetch('/api/posts.json');
             const data = await response.json();
             this.posts = data.posts || [];
+            
+            // Load actual content from markdown files
+            await this.loadPostContents();
+            
             this.buildSearchIndex();
             this.renderPosts();
         } catch (error) {
             console.log('Using placeholder posts data');
             this.loadPlaceholderPosts();
         }
+    }
+
+    async loadPostContents() {
+        for (let post of this.posts) {
+            try {
+                // Try to load markdown content
+                const markdownPath = `/posts/2025/${post.slug}.md`;
+                const response = await fetch(markdownPath);
+                if (response.ok) {
+                    const content = await response.text();
+                    post.content = this.parseMarkdown(content);
+                    post.hasRealContent = true;
+                }
+            } catch (error) {
+                console.log(`Could not load content for ${post.slug}`);
+                post.hasRealContent = false;
+            }
+        }
+    }
+
+    parseMarkdown(content) {
+        // Extract front matter and content
+        const frontMatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+        const match = content.match(frontMatterRegex);
+        
+        if (match) {
+            const markdownContent = match[2];
+            // Simple markdown parsing for excerpt
+            const firstParagraph = markdownContent
+                .split('\n\n')[0]
+                .replace(/^#+\s+/gm, '') // Remove headers
+                .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+                .replace(/\*(.*?)\*/g, '$1') // Remove italic
+                .replace(/`(.*?)`/g, '$1') // Remove inline code
+                .trim();
+            
+            return {
+                full: markdownContent,
+                excerpt: firstParagraph.substring(0, 200) + '...'
+            };
+        }
+        
+        return { full: content, excerpt: content.substring(0, 200) + '...' };
     }
 
     loadPlaceholderPosts() {
@@ -112,21 +159,29 @@ class BlogSystem {
         const endIndex = startIndex + this.postsPerPage;
         const paginatedPosts = posts.slice(startIndex, endIndex);
 
-        container.innerHTML = paginatedPosts.map(post => `
+        container.innerHTML = paginatedPosts.map(post => {
+            // Use real content excerpt if available
+            const displayExcerpt = post.hasRealContent && post.content ? 
+                post.content.excerpt : post.excerpt;
+            
+            return `
             <article class="post-item" data-slug="${post.slug}">
                 <div class="post-meta">
                     <span>📅 ${this.formatDate(post.date)}</span>
                     <span>🏷️ ${post.category}</span>
                     <span>⏱️ ${post.readingTime} min read</span>
                     ${post.featured ? '<span class="featured-badge">⭐ Featured</span>' : ''}
+                    ${post.hasRealContent ? '<span class="content-badge">📄 Full Content</span>' : '<span class="preview-badge">👁️ Preview</span>'}
                 </div>
                 <h3 class="post-title">${post.title}</h3>
-                <p class="post-excerpt">${post.excerpt}</p>
+                <p class="post-excerpt">${displayExcerpt}</p>
                 <div class="post-tags">
                     ${post.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join('')}
                 </div>
+                ${post.hasRealContent ? '<div class="read-more">Click to read full article →</div>' : '<div class="coming-soon">Coming soon...</div>'}
             </article>
-        `).join('');
+            `;
+        }).join('');
 
         // Add click handlers
         this.attachPostClickHandlers();
@@ -153,8 +208,10 @@ class BlogSystem {
         const post = this.posts.find(p => p.slug === slug);
         if (!post) return;
 
-        let content = post.content;
-        if (!content) {
+        let content;
+        if (post.hasRealContent && post.content) {
+            content = this.markdownToHtml(post.content.full);
+        } else {
             content = await this.loadPostContent(slug);
         }
 
@@ -168,6 +225,7 @@ class BlogSystem {
                             <span>📅 ${this.formatDate(post.date)}</span>
                             <span>👤 ${post.author}</span>
                             <span>⏱️ ${post.readingTime} min read</span>
+                            <span>🏷️ ${post.category}</span>
                         </div>
                         <div class="post-tags">
                             ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
@@ -181,12 +239,61 @@ class BlogSystem {
 
     async loadPostContent(slug) {
         try {
-            const response = await fetch(`/posts/${slug}.md`);
-            const markdown = await response.text();
-            return this.markdownToHtml(markdown);
+            // Try different paths
+            const paths = [
+                `/posts/2025/${slug}.md`,
+                `/posts/${slug}.md`,
+                `/code/flow-matching/${slug}.py`
+            ];
+            
+            for (const path of paths) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        const content = await response.text();
+                        if (path.endsWith('.py')) {
+                            return `<pre><code class="language-python">${this.escapeHtml(content)}</code></pre>`;
+                        } else {
+                            return this.markdownToHtml(content);
+                        }
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            throw new Error('Content not found');
         } catch (error) {
             return this.getPlaceholderContent(this.posts.find(p => p.slug === slug));
         }
+    }
+
+    markdownToHtml(markdown) {
+        // Remove front matter if present
+        const contentWithoutFrontMatter = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
+        
+        // Simple markdown to HTML conversion
+        let html = contentWithoutFrontMatter
+            // Headers
+            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+            // Bold and italic
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // Code blocks
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            // Line breaks
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        
+        return `<p>${html}</p>`;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     getPlaceholderContent(post) {
@@ -243,8 +350,47 @@ class BlogSystem {
 
     filterByTag(tag) {
         const filtered = this.posts.filter(post => post.tags.includes(tag));
+        this.currentPage = 1; // Reset to first page
         this.renderPosts(filtered);
         this.updateSearchStats(filtered.length, `tag: ${tag}`);
+    }
+
+    // Search functionality
+    search(query) {
+        if (!query.trim()) {
+            this.currentPage = 1;
+            this.renderPosts();
+            this.updateSearchStats(this.posts.length, '');
+            return;
+        }
+
+        const searchTerms = query.toLowerCase().split(' ');
+        const filtered = this.posts.filter(post => {
+            const searchableText = (
+                post.title + ' ' +
+                post.excerpt + ' ' +
+                post.category + ' ' +
+                post.tags.join(' ') + ' ' +
+                (post.content?.full || '')
+            ).toLowerCase();
+
+            return searchTerms.every(term => searchableText.includes(term));
+        });
+
+        this.currentPage = 1;
+        this.renderPosts(filtered);
+        this.updateSearchStats(filtered.length, `search: "${query}"`);
+    }
+
+    updateSearchStats(count, context) {
+        const stats = document.getElementById('search-stats');
+        if (stats) {
+            if (context) {
+                stats.textContent = `Found ${count} posts for ${context}`;
+            } else {
+                stats.textContent = `Showing ${count} posts`;
+            }
+        }
     }
 
     // Pagination
@@ -348,6 +494,20 @@ class BlogSystem {
             });
         }
 
+        // Modal close on backdrop click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.closeModal();
+            }
+        });
+
+        // Escape key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeModal();
+            }
+        });
+
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -405,7 +565,36 @@ class BlogSystem {
             timeout = setTimeout(later, wait);
         };
     }
+
+    // Modal functions
+    openModal(content) {
+        const modal = document.getElementById('post-modal') || this.createModal();
+        modal.innerHTML = content;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    closeModal() {
+        const modal = document.getElementById('post-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    createModal() {
+        const modal = document.createElement('div');
+        modal.id = 'post-modal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+        return modal;
+    }
 }
+
+// Initialize the blog system when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.blogSystem = new BlogSystem();
+});
 
 // Initialize blog system when DOM is loaded
 let blogSystem;
