@@ -186,6 +186,10 @@ class BlogSystem {
         // Add click handlers
         this.attachPostClickHandlers();
         this.renderPagination(posts.length);
+        
+        // Update stats
+        this.updateStats(posts);
+        this.updateTagCloud();
     }
 
     attachPostClickHandlers() {
@@ -391,6 +395,45 @@ class BlogSystem {
                 stats.textContent = `Showing ${count} posts`;
             }
         }
+    }
+
+    updateStats(posts = null) {
+        const postsToCount = posts || this.posts;
+        const totalPosts = document.getElementById('total-posts');
+        const totalTime = document.getElementById('total-reading-time');
+        
+        if (totalPosts) {
+            totalPosts.textContent = postsToCount.length;
+        }
+        
+        if (totalTime) {
+            const totalReadingTime = postsToCount.reduce((sum, post) => sum + (post.readingTime || 0), 0);
+            totalTime.textContent = `${totalReadingTime} min`;
+        }
+    }
+
+    updateTagCloud() {
+        const tagCloud = document.getElementById('tag-cloud');
+        if (!tagCloud) return;
+
+        // Count tag frequencies
+        const tagCounts = {};
+        this.posts.forEach(post => {
+            post.tags.forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+        });
+
+        // Sort tags by frequency
+        const sortedTags = Object.entries(tagCounts)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 15); // Show top 15 tags
+
+        tagCloud.innerHTML = sortedTags.map(([tag, count]) => 
+            `<span class="tag" onclick="blogSystem.filterByTag('${tag}')" title="${count} posts">
+                ${tag} (${count})
+            </span>`
+        ).join('');
     }
 
     // Pagination
