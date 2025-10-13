@@ -1,0 +1,151 @@
+{
+  "posts": [
+    {
+      "slug": "flow-matching-theory",
+      "title": "Flow Matching: Từ lý thuyết đến thực hành với PyTorch",
+      "date": "2025-10-13",
+      "category": "Flow Matching",
+      "tags": ["Flow Matching", "PyTorch", "Generative AI", "Theory"],
+      "excerpt": "Deep dive vào Flow Matching theory, so sánh với Score-based Diffusion Models, và complete implementation từ scratch. Phân tích Rectified Flow và các sampling techniques hiện đại.",
+      "author": "ThanhLamDev",
+      "readingTime": 15,
+      "featured": true,
+      "publishedAt": "2025-10-13T10:00:00Z",
+      "updatedAt": "2025-10-13T10:00:00Z",
+      "image": "/assets/images/flow-matching.jpg",
+      "description": "Comprehensive guide to Flow Matching for generative modeling"
+    },
+    {
+      "slug": "ddpm-explained",
+      "title": "DDPM Explained: Toán học đằng sau Diffusion Models",
+      "date": "2025-10-12",
+      "category": "DDPM",
+      "tags": ["DDPM", "Diffusion", "Mathematics", "Deep Learning"],
+      "excerpt": "Phân tích chi tiết forward process, reverse process, training objective và sampling algorithms. So sánh DDPM vs DDIM vs DPM-Solver với practical benchmarks.",
+      "author": "ThanhLamDev",
+      "readingTime": 12,
+      "featured": false,
+      "publishedAt": "2025-10-12T14:00:00Z",
+      "updatedAt": "2025-10-12T14:00:00Z",
+      "image": "/assets/images/ddpm.jpg",
+      "description": "Mathematical foundations of Denoising Diffusion Probabilistic Models"
+    },
+    {
+      "slug": "vlm-clip-llava",
+      "title": "Vision-Language Models: CLIP, LLaVA và beyond",
+      "date": "2025-10-11",
+      "category": "VLM",
+      "tags": ["VLM", "CLIP", "LLaVA", "Multimodal", "Computer Vision"],
+      "excerpt": "Khám phá kiến trúc và training strategies của VLMs hiện đại. Hands-on với multimodal fine-tuning và evaluation metrics cho practical applications.",
+      "author": "ThanhLamDev",
+      "readingTime": 18,
+      "featured": true,
+      "publishedAt": "2025-10-11T09:00:00Z",
+      "updatedAt": "2025-10-11T09:00:00Z",
+      "image": "/assets/images/vlm.jpg",
+      "description": "Deep dive into Vision-Language Models and multimodal AI"
+    },
+    {
+      "slug": "generative-ai-overview",
+      "title": "Generative AI Landscape 2025: GANs, VAEs, và Diffusion Models",
+      "date": "2025-10-10",
+      "category": "Generative AI",
+      "tags": ["GANs", "VAEs", "Diffusion", "Generative AI", "Survey"],
+      "excerpt": "Tổng quan toàn diện về các approaches trong Generative AI. So sánh performance, use cases và future directions của từng method với real-world examples.",
+      "author": "ThanhLamDev",
+      "readingTime": 20,
+      "featured": false,
+      "publishedAt": "2025-10-10T16:00:00Z",
+      "updatedAt": "2025-10-10T16:00:00Z",
+      "image": "/assets/images/generative-ai.jpg",
+      "description": "Comprehensive survey of generative AI methods and applications"
+    },
+    {
+      "slug": "pytorch-flow-matching-tutorial",
+      "title": "Implementing Flow Matching từ đầu với PyTorch",
+      "date": "2025-10-09",
+      "category": "Tutorial",
+      "tags": ["PyTorch", "Flow Matching", "Implementation", "Tutorial"],
+      "excerpt": "Hướng dẫn code chi tiết để hiểu rõ cơ chế hoạt động của Flow Matching. Từ basic concepts đến advanced optimization techniques với practical examples.",
+      "author": "ThanhLamDev",
+      "readingTime": 25,
+      "featured": true,
+      "publishedAt": "2025-10-09T11:00:00Z",
+      "updatedAt": "2025-10-09T11:00:00Z",
+      "image": "/assets/images/pytorch-tutorial.jpg",
+      "description": "Step-by-step PyTorch implementation of Flow Matching"
+    },
+    {
+      "slug": "transformer-attention-mechanisms",
+      "title": "Attention Mechanisms trong Transformers: Self, Cross, và Multi-Head",
+      "date": "2025-10-08",
+      "category": "Transformers",
+      "tags": ["Transformers", "Attention", "NLP", "Architecture"],
+      "excerpt": "Deep dive vào attention mechanisms - core component của Transformers. Phân tích mathematical foundations và practical implementations cho NLP và Computer Vision.",
+      "author": "ThanhLamDev",
+      "readingTime": 16,
+      "featured": false,
+      "publishedAt": "2025-10-08T13:00:00Z",
+      "updatedAt": "2025-10-08T13:00:00Z",
+      "image": "/assets/images/attention.jpg",
+      "description": "Understanding attention mechanisms in transformer architectures"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Flow Matching",
+      "slug": "flow-matching",
+      "description": "Advanced generative modeling với continuous normalizing flows",
+      "color": "#3B82F6",
+      "postCount": 2
+    },
+    {
+      "name": "DDPM",
+      "slug": "ddpm",
+      "description": "Denoising Diffusion Probabilistic Models và applications",
+      "color": "#EF4444",
+      "postCount": 1
+    },
+    {
+      "name": "VLM",
+      "slug": "vlm",
+      "description": "Vision-Language Models và multimodal AI",
+      "color": "#10B981",
+      "postCount": 1
+    },
+    {
+      "name": "Generative AI",
+      "slug": "generative-ai",
+      "description": "Tổng quan về các phương pháp sinh dữ liệu",
+      "color": "#8B5CF6",
+      "postCount": 1
+    },
+    {
+      "name": "Tutorial",
+      "slug": "tutorial",
+      "description": "Hands-on tutorials và implementations",
+      "color": "#F59E0B",
+      "postCount": 1
+    },
+    {
+      "name": "Transformers",
+      "slug": "transformers",
+      "description": "Transformer architectures và applications",
+      "color": "#EC4899",
+      "postCount": 1
+    }
+  ],
+  "tags": [
+    "Flow Matching", "PyTorch", "Generative AI", "DDPM", "Diffusion", 
+    "VLM", "CLIP", "LLaVA", "Mathematics", "Deep Learning", "Theory",
+    "Implementation", "Tutorial", "Computer Vision", "NLP", "Transformers",
+    "Attention", "Multimodal", "GANs", "VAEs", "Survey", "Architecture"
+  ],
+  "meta": {
+    "totalPosts": 6,
+    "lastUpdated": "2025-10-13T10:00:00Z",
+    "version": "1.0.0",
+    "author": "ThanhLamDev",
+    "description": "AI Research Blog focusing on Generative AI, Flow Matching, DDPM, and VLM research"
+  }
+}
