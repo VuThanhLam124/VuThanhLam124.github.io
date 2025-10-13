@@ -15,6 +15,10 @@
     
     <style>
         /* Override styles for content-focused layout */
+        html {
+            scroll-behavior: smooth;
+        }
+        
         .hero-section {
             background: var(--gradient-hero);
             padding: 60px 0;
@@ -164,6 +168,37 @@
             z-index: 100;
         }
         
+        .secondary-nav {
+            background: linear-gradient(135deg, rgba(11, 115, 183, 0.05), rgba(11, 115, 183, 0.1));
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 0;
+        }
+        
+        .secondary-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .secondary-nav a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+        }
+        
+        .secondary-nav a:hover {
+            color: var(--color-primary);
+            background: rgba(11, 115, 183, 0.1);
+        }
+        
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -249,6 +284,16 @@
                 justify-content: center;
             }
             
+            .secondary-nav-container {
+                gap: 1rem;
+                padding: 0 1rem;
+            }
+            
+            .secondary-nav a {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
             .topic-section {
                 padding: 2rem;
                 margin: 2rem 0;
@@ -275,6 +320,15 @@
             </button>
         </div>
     </nav>
+
+    <div class="secondary-nav">
+        <div class="secondary-nav-container">
+            <a href="#flow-based">🌊 Flow-based Models</a>
+            <a href="#diffusion">✨ Diffusion Models</a>
+            <a href="#vlm">👁️ Vision-Language</a>
+            <a href="#advanced">🚀 Advanced Topics</a>
+        </div>
+    </div>
 
     <main>
         <section class="hero-section">
@@ -307,7 +361,7 @@
 
         <div class="content-section">
             <!-- Flow-based Models Section -->
-            <section class="topic-section">
+            <section class="topic-section" id="flow-based">
                 <h2 class="topic-title">
                     🌊 Flow-based Models
                     <span class="topic-badge">Cutting-edge</span>
@@ -372,7 +426,7 @@
             </section>
 
             <!-- Diffusion Models Section -->
-            <section class="topic-section">
+            <section class="topic-section" id="diffusion">
                 <h2 class="topic-title">
                     ✨ Diffusion Models & Score-based Generation
                     <span class="topic-badge">Foundation</span>
@@ -443,7 +497,7 @@
             </section>
 
             <!-- Vision-Language Models Section -->
-            <section class="topic-section">
+            <section class="topic-section" id="vlm">
                 <h2 class="topic-title">
                     👁️ Vision-Language Models (VLM)
                     <span class="topic-badge">Multimodal</span>
@@ -503,7 +557,7 @@
             </section>
 
             <!-- Advanced Topics Section -->
-            <section class="topic-section">
+            <section class="topic-section" id="advanced">
                 <h2 class="topic-title">
                     🚀 Advanced Topics & Systems
                     <span class="topic-badge">Research</span>
