@@ -228,15 +228,6 @@
             background: var(--color-primary);
         }
         
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.5rem;
@@ -256,7 +247,7 @@
                 gap: 1rem;
             }
             
-            .features-grid, .posts-grid {
+            .features-grid {
                 grid-template-columns: 1fr;
                 padding: 0 1rem;
             }
@@ -354,165 +345,44 @@
             </div>
         </section>
 
-        <section class="about-section" id="about" style="padding: 5rem 0; background: var(--color-bg);">
+        <section class="about-section" id="about">
             <div class="section-header">
                 <h2 class="section-title">Về ThanhLamDev</h2>
-            </div>
-            
-            <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
-                <!-- Profile Header with Image -->
-                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 3rem; margin-bottom: 4rem; align-items: start;">
-                    <div style="text-align: center;">
-                        <img src="/assets/image/My.png" alt="ThanhLamDev Portrait" 
-                             style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 4px solid var(--color-primary); box-shadow: var(--shadow-lg); margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.5rem; color: var(--color-text); margin-bottom: 0.5rem;">Vũ Thanh Lâm</h3>
-                        <p style="color: var(--color-muted); font-size: 1.1rem; margin-bottom: 1rem;">ML Engineer & AI Researcher</p>
-                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
-                            <a href="mailto:vuthanhlam848@gmail.com" style="color: var(--color-primary); text-decoration: none; font-size: 1.5rem;" title="Email">📧</a>
-                            <a href="https://linkedin.com/in/thanhlamdev848" target="_blank" style="color: var(--color-primary); text-decoration: none; font-size: 1.5rem;" title="LinkedIn">💼</a>
-                            <a href="https://github.com/VuThanhLam124" target="_blank" style="color: var(--color-primary); text-decoration: none; font-size: 1.5rem;" title="GitHub">💻</a>
-                            <a href="https://scholar.google.com/citations?user=YOUR_ID" target="_blank" style="color: var(--color-primary); text-decoration: none; font-size: 1.5rem;" title="Google Scholar">🎓</a>
+                <div style="max-width: 800px; margin: 0 auto; text-align: left;">
+                    <p style="font-size: 1.1rem; line-height: 1.7; color: var(--color-text); margin-bottom: 2rem;">
+                        Tôi là ML Engineer chuyên sâu về Generative AI và Vision-Language Systems. 
+                        Với passion về research và engineering, tôi tập trung vào việc bridge gap 
+                        giữa cutting-edge research papers và practical production systems.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                        <div>
+                            <h4 style="color: var(--color-primary); margin-bottom: 1rem;">� Chuyên môn</h4>
+                            <ul style="color: var(--color-muted); line-height: 1.8;">
+                                <li>Flow Matching & Diffusion Models</li>
+                                <li>Vision-Language Models</li>
+                                <li>Multimodal AI Systems</li>
+                                <li>MLOps & Production AI</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 style="color: var(--color-primary); margin-bottom: 1rem;">�️ Tech Stack</h4>
+                            <ul style="color: var(--color-muted); line-height: 1.8;">
+                                <li>PyTorch, TensorFlow</li>
+                                <li>Transformers, Diffusers</li>
+                                <li>Docker, Kubernetes</li>
+                                <li>Python, CUDA</li>
+                            </ul>
                         </div>
                     </div>
                     
-                    <div>
-                        <p style="font-size: 1.1rem; line-height: 1.7; color: var(--color-text); margin-bottom: 2rem;">
-                            Tôi là ML Engineer chuyên sâu về Generative AI và Vision-Language Systems. 
-                            Với passion về research và engineering, tôi tập trung vào việc bridge gap 
-                            giữa cutting-edge research papers và practical production systems. Mục tiêu 
-                            của tôi khi xây dựng blog này để tóm tắt paper liên quan, chia sẻ kết quả nghiên cứu và code implementations của tôi.
-                        </p>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
-                            <div>
-                                <h4 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1.2rem;">🎯 Chuyên môn</h4>
-                                <ul style="color: var(--color-muted); line-height: 1.8; list-style: none; padding: 0;">
-                                    <li>• Flow Matching & Diffusion Models</li>
-                                    <li>• Vision-Language Models (CLIP, LLaVA)</li>
-                                    <li>• Multimodal AI Systems</li>
-                                    <li>• MLOps & Production AI</li>
-                                    <li>• Generative AI Applications</li>
-                                </ul>
-                            </div>
-                            
-                            <div>
-                                <h4 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1.2rem;">🛠️ Tech Stack</h4>
-                                <ul style="color: var(--color-muted); line-height: 1.8; list-style: none; padding: 0;">
-                                    <li>• PyTorch, TensorFlow</li>
-                                    <li>• Transformers, Diffusers, LangChain</li>
-                                    <li>• Docker, Kubernetes, MLflow</li>
-                                    <li>• Python, CUDA, C++</li>
-                                    <li>• AWS, GCP, Hugging Face</li>
-                                </ul>
-                            </div>
-                        </div>
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <a href="mailto:vuthanhlam848@gmail.com" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">� Email</a>
+                        <a href="https://linkedin.com/in/thanhlamdev848" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">💼 LinkedIn</a>
+                        <a href="https://github.com/VuThanhLam124" style="color: var(--color-primary); text-decoration: none; margin: 0 1rem;">💻 GitHub</a>
                     </div>
                 </div>
-                
-                <!-- Research & Publications -->
-                <!-- <div style="margin-bottom: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        📄 Publications & Research
-                    </h3>
-                </div> -->
-                
-                <!-- Awards & Recognition -->
-                <!-- <div style="margin-bottom: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        🏆 Awards & Recognition
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🥇</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">Best Paper Award</h4>
-                            <p style="color: var(--color-muted);">CVPR 2024 Vietnam Workshop</p>
-                        </div>
-                        
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">AI Challenge Winner</h4>
-                            <p style="color: var(--color-muted);">Zalo AI Challenge 2023 - Top 3</p>
-                        </div>
-                        
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">💡</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">Research Grant</h4>
-                            <p style="color: var(--color-muted);">VinAI Research Grant 2024</p>
-                        </div>
-                    </div>
-                </div> -->
-                
-                <!-- Experience -->
-                <!-- <div>
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        💼 Experience
-                    </h3>
-                    <div style="display: grid; gap: 2rem;">
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🤖</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">Senior ML Engineer</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2023 - Present</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">VinAI Research</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Leading Generative AI projects, focusing on Flow Matching và Diffusion Models. 
-                                    Developed production-ready multimodal systems serving millions of users.
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🔬</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">AI Research Engineer</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2021 - 2023</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">FPT AI Center</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Research and development of Vision-Language Models for Vietnamese. 
-                                    Built CLIP-based systems for e-commerce search and recommendation.
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🎓</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">ML Engineer Intern</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2020 - 2021</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">Zalo AI</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Worked on computer vision projects for object detection và image classification. 
-                                    Contributed to Zalo's AI-powered features.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
-                
-                <!-- Education -->
-                <!-- <div style="margin-top: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        🎓 Education
-                    </h3>
-                    <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                        <h4 style="color: var(--color-text); font-size: 1.2rem; margin-bottom: 0.5rem;">
-                            M.Sc. in Computer Science (AI Specialization)
-                        </h4>
-                        <p style="color: var(--color-primary); margin-bottom: 0.5rem;">
-                            Vietnam National University, Hanoi (VNU) • 2022 - 2024
-                        </p>
-                        <p style="color: var(--color-text); line-height: 1.6;">
-                            Thesis: "Efficient Training Methods for Large-Scale Vision-Language Models" 
-                            • GPA: 3.9/4.0 • Outstanding Graduate Award
-                        </p>
-                    </div>
-                </div> -->
             </div>
         </section>
     </main>
@@ -559,8 +429,10 @@
             
             document.getElementById('current-year').textContent = new Date().getFullYear();
             
-            // Load recent posts
-            loadRecentPostsForHomepage();
+            // Load recent posts if BlogApp is available
+            if (typeof BlogApp !== 'undefined') {
+                loadRecentPostsForHomepage();
+            }
         });
 
         // Load recent posts for homepage
@@ -573,9 +445,7 @@
                 const container = document.getElementById('homepage-posts');
                 if (container && recentPosts.length > 0) {
                     container.innerHTML = recentPosts.map(post => `
-                        <article style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border); transition: var(--transition);" 
-                                 onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='var(--shadow-md)'" 
-                                 onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <article style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--color-border);">
                             <div style="margin-bottom: 1rem;">
                                 <span style="color: var(--color-primary); font-size: 0.9rem; font-weight: 500;">${post.category}</span>
                                 <span style="color: var(--color-muted); font-size: 0.9rem; margin-left: 1rem;">${post.readingTime} phút đọc</span>
@@ -594,6 +464,119 @@
                 console.log('Could not load recent posts');
             }
         }
+
+        // Call the function when page loads
+        loadRecentPostsForHomepage();
     </script>
+</body>
+</html>
+                    <button class="icon-button" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                    <nav class="topbar__nav">
+                        <a href="#home">Home</a>
+                        <a href="#posts">Posts</a>
+                        <a href="#categories">Topics</a>
+                        <a href="#code">Code</a>
+                        <a href="#about">About</a>
+                    </nav>
+                </div>
+                <div class="topbar__actions">
+                    <div class="stat-chip">
+                        <span id="total-posts">0</span>
+                        <span>Bài viết</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span id="total-reading-time">0</span>
+                        <span>Phút đọc</span>
+                    </div>
+                    <button class="theme-toggle" id="theme-toggle" type="button">🌙</button>
+                </div>
+            </header>
+
+            <section class="hero" id="home">
+                <div class="hero__content">
+                    <p class="hero__eyebrow">AI Systems • Research Notes • Engineering</p>
+                    <h2>Generative AI, Flow Matching & Diffusion Systems</h2>
+                    <p>Blog chia sẻ nghiên cứu thực chiến, ghi chép kỹ thuật và walkthrough chi tiết về những mô hình tạo sinh hiện đại. Lấy cảm hứng từ cách tổ chức của Khanh's Blog nhưng được tái thiết kế để linh hoạt, mở rộng dễ dàng và hỗ trợ thêm trải nghiệm tìm kiếm nhanh.</p>
+                    <div class="hero__actions">
+                        <a class="primary-button" href="#posts">Khám phá bài viết</a>
+                        <a class="ghost-button" href="#code">Tới kho code</a>
+                    </div>
+                </div>
+                <div class="hero__feature" id="featured-highlight">
+                    <!-- Featured post injected by JS -->
+                </div>
+            </section>
+
+            <section class="filters" id="posts">
+                <div class="filters__header">
+                    <div class="search">
+                        <input id="search-input" type="search" placeholder="🔍 Tìm kiếm bài viết, chủ đề, tags..." aria-label="Tìm kiếm bài viết">
+                    </div>
+                    <p class="search-stats" id="search-stats">Đang hiển thị tất cả bài viết</p>
+                </div>
+                <div class="filter-groups">
+                    <div class="chip-group" id="category-filter"></div>
+                    <div class="chip-group" id="tag-filter"></div>
+                </div>
+            </section>
+
+            <section class="posts-section">
+                <h2 class="section-title">📝 Tất cả bài viết</h2>
+                <div class="posts-grid" id="posts-grid"></div>
+                <div class="pagination" id="pagination"></div>
+            </section>
+
+            <section class="topics-section" id="categories">
+                <h2 class="section-title">🗂️ Khám phá theo chủ đề</h2>
+                <div class="category-grid" id="category-grid"></div>
+            </section>
+
+            <section class="code-section" id="code">
+                <h2 class="section-title">💻 Code Lab</h2>
+                <p>Bộ sưu tập notebooks, scripts và mini-projects phục vụ nghiên cứu Flow Matching, Diffusion Models, Vision-Language và các hệ thống học sâu khác.</p>
+                <div class="code-links">
+                    <a class="code-card" href="https://github.com/VuThanhLam124" target="_blank" rel="noopener">
+                        <h3>GitHub</h3>
+                        <p>Kho code chính thức &amp; demo.</p>
+                    </a>
+                    <a class="code-card" href="/code/flow-matching/" target="_blank" rel="noopener">
+                        <h3>Flow Matching Lab</h3>
+                        <p>Implementations, benchmarks, training scripts.</p>
+                    </a>
+                    <a class="code-card" href="/code/vlm/" target="_blank" rel="noopener">
+                        <h3>VLM Playground</h3>
+                        <p>Fine-tuning CLIP, LLaVA và các mô hình đa phương thức.</p>
+                    </a>
+                </div>
+            </section>
+
+            <section class="about-section" id="about">
+                <h2 class="section-title">👤 Về Thanh Lâm</h2>
+                <div class="about-card">
+                    <p>Tôi là ML Engineer tập trung vào Generative AI và Vision-Language Systems. Blog là nơi tôi ghi chép lại kết quả nghiên cứu, kiến trúc hệ thống và chia sẻ code chất lượng sản xuất.</p>
+                    <ul class="about-list">
+                        <li>🎯 Trọng tâm: Flow Matching, Diffusion, Multimodal Systems</li>
+                        <li>🧪 Phương pháp: kết hợp lý thuyết với engineering practice</li>
+                        <li>📨 Liên hệ: <a href="mailto:vuthanhlam848@gmail.com">vuthanhlam848@gmail.com</a></li>
+                        <li>🌐 LinkedIn: <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank" rel="noopener">thanhlamdev848</a></li>
+                    </ul>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <p>© <span id="current-year"></span> ThanhLamDev • Made for the AI research community.</p>
+            </footer>
+        </main>
+    </div>
+
+    <div id="post-modal" class="modal" aria-hidden="true">
+        <div class="modal__overlay" data-close-modal></div>
+        <div class="modal__dialog" role="dialog" aria-modal="true">
+            <button class="modal__close" type="button" data-close-modal aria-label="Đóng bài viết">&times;</button>
+            <div class="modal__content" id="modal-content"></div>
+        </div>
+    </div>
+
+    <script src="/assets/js/main.js" defer></script>
 </body>
 </html>
