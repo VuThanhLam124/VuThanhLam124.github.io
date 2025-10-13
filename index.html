@@ -161,30 +161,45 @@
             border: 1px solid var(--border-color);
         }
 
+        /* FIXED: Smaller section title */
         .section-title {
             color: var(--highlight-color);
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.4rem;
+        }
+
+        /* FIXED: Topic counter reset properly */
+        .posts-section {
+            counter-reset: topic-counter;
         }
 
         /* Topic Sections */
         .topic-section {
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
+            counter-increment: topic-counter;
+            counter-reset: post-counter;
         }
 
         .topic-header {
             color: var(--text-primary);
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             margin-bottom: 0.8rem;
-            padding: 0.5rem 0;
+            padding: 0.4rem 0;
             border-left: 4px solid var(--highlight-color);
             padding-left: 1rem;
             background: var(--secondary-bg);
             border-radius: 0 6px 6px 0;
+        }
+
+        /* FIXED: Proper numbering */
+        .topic-header::before {
+            content: counter(topic-counter) ". ";
+            color: var(--highlight-color);
+            font-weight: 700;
         }
 
         /* Post List */
@@ -194,13 +209,25 @@
         }
 
         .post-item {
-            margin-bottom: 0.5rem;
-            padding: 0.4rem 0;
-            border-bottom: 1px solid rgba(var(--border-color), 0.3);
+            margin-bottom: 0.4rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            counter-increment: post-counter;
         }
 
         .post-item:last-child {
             border-bottom: none;
+        }
+
+        /* FIXED: Proper numbering for posts */
+        .post-item::before {
+            content: counter(topic-counter) "." counter(post-counter) " ";
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            min-width: 2.5rem;
+            display: inline-block;
         }
 
         .post-link {
@@ -209,7 +236,7 @@
             align-items: center;
             color: var(--text-primary);
             text-decoration: none;
-            padding: 0.4rem 0.8rem;
+            padding: 0.3rem 0.6rem;
             border-radius: 6px;
             transition: all 0.3s ease;
             font-size: 0.9rem;
@@ -259,41 +286,6 @@
             color: #3b82f6;
         }
 
-        /* Numbering */
-        .topic-section {
-            counter-reset: post-counter;
-        }
-
-        .post-item {
-            counter-increment: post-counter;
-        }
-
-        .post-item::before {
-            content: counter(topic-counter) "." counter(post-counter);
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-right: 0.5rem;
-            min-width: 2rem;
-            display: inline-block;
-        }
-
-        .topic-section:nth-child(1) { counter-reset: topic-counter 0; }
-        .topic-section:nth-child(2) { counter-reset: topic-counter 1; }
-        .topic-section:nth-child(3) { counter-reset: topic-counter 2; }
-        .topic-section:nth-child(4) { counter-reset: topic-counter 3; }
-        .topic-section:nth-child(5) { counter-reset: topic-counter 4; }
-
-        .topic-section {
-            counter-increment: topic-counter;
-        }
-
-        .topic-header::before {
-            content: counter(topic-counter) ". ";
-            color: var(--highlight-color);
-            font-weight: 700;
-        }
-
         /* Sidebar */
         .sidebar {
             display: flex;
@@ -321,7 +313,7 @@
             justify-content: space-between;
             padding: 0.3rem 0;
             font-size: 0.85rem;
-            border-bottom: 1px solid rgba(var(--border-color), 0.3);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .stats-item:last-child {
@@ -337,7 +329,7 @@
             font-weight: 500;
         }
 
-        /* Tags */
+        /* FIXED: Clickable tags */
         .tag-cloud {
             display: flex;
             flex-wrap: wrap;
@@ -353,11 +345,34 @@
             text-decoration: none;
             transition: all 0.3s ease;
             border: 1px solid var(--border-color);
+            cursor: pointer;
         }
 
         .tag:hover {
             background: var(--highlight-color);
             color: var(--primary-bg);
+        }
+
+        /* FIXED: Clickable recent posts */
+        .recent-post {
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        .recent-post a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.3s ease;
+        }
+
+        .recent-post a:hover {
+            color: var(--highlight-color);
+        }
+
+        .recent-date {
+            color: var(--text-muted);
+            font-size: 0.7rem;
         }
 
         /* Modal for post content */
@@ -422,6 +437,14 @@
             line-height: 1.6;
         }
 
+        .post-content ul, .post-content ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        .post-content li {
+            margin: 0.5rem 0;
+        }
+
         .post-content pre {
             background: var(--surface-bg);
             padding: 1rem;
@@ -437,6 +460,21 @@
             border-radius: 4px;
             font-size: 0.85rem;
             border: 1px solid var(--border-color);
+        }
+
+        .post-content pre code {
+            background: none;
+            padding: 0;
+            border: none;
+        }
+
+        /* Hidden posts (for filtering) */
+        .post-item.hidden {
+            display: none;
+        }
+
+        .topic-section.hidden {
+            display: none;
         }
 
         /* Footer - Compact */
@@ -547,10 +585,10 @@
                     <h2 class="section-title">📝 Research Posts & Tutorials</h2>
                     
                     <!-- Flow Matching Topic -->
-                    <div class="topic-section">
+                    <div class="topic-section" data-topic="flow-matching">
                         <h3 class="topic-header">Flow Matching & Continuous Normalizing Flows</h3>
                         <ul class="post-list">
-                            <li class="post-item">
+                            <li class="post-item" data-tags="flow-matching theory">
                                 <a href="#" class="post-link" onclick="showPost('flow-matching-intro')">
                                     <span class="post-title">Introduction to Flow Matching</span>
                                     <div class="post-meta">
@@ -559,7 +597,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="normalizing-flows theory">
                                 <a href="#" class="post-link" onclick="showPost('normalizing-flows')">
                                     <span class="post-title">Normalizing Flows from Scratch</span>
                                     <div class="post-meta">
@@ -568,7 +606,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="flow-matching continuous-flows">
                                 <a href="#" class="post-link" onclick="showPost('continuous-flows')">
                                     <span class="post-title">Continuous Normalizing Flows</span>
                                     <div class="post-meta">
@@ -577,7 +615,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="flow-matching pytorch implementation">
                                 <a href="#" class="post-link" onclick="showPost('flow-matching-pytorch')">
                                     <span class="post-title">Flow Matching Implementation với PyTorch</span>
                                     <div class="post-meta">
@@ -586,7 +624,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="rectified-flows theory">
                                 <a href="#" class="post-link" onclick="showPost('rectified-flows')">
                                     <span class="post-title">Rectified Flows: Straight Paths to Data</span>
                                     <div class="post-meta">
@@ -595,7 +633,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="glow invertible-networks">
                                 <a href="#" class="post-link" onclick="showPost('glow-model')">
                                     <span class="post-title">Glow: Generative Flow với Invertible Networks</span>
                                     <div class="post-meta">
@@ -608,10 +646,10 @@
                     </div>
 
                     <!-- DDPM Topic -->
-                    <div class="topic-section">
+                    <div class="topic-section" data-topic="ddpm">
                         <h3 class="topic-header">DDPM & Diffusion Models</h3>
                         <ul class="post-list">
-                            <li class="post-item">
+                            <li class="post-item" data-tags="ddpm diffusion mathematics">
                                 <a href="#" class="post-link" onclick="showPost('ddpm-basics')">
                                     <span class="post-title">DDPM: Toán học đằng sau Diffusion Models</span>
                                     <div class="post-meta">
@@ -620,7 +658,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="ddim sampling diffusion">
                                 <a href="#" class="post-link" onclick="showPost('ddim-sampling')">
                                     <span class="post-title">DDIM: Deterministic Sampling for Diffusion</span>
                                     <div class="post-meta">
@@ -629,7 +667,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="score-matching generative-models">
                                 <a href="#" class="post-link" onclick="showPost('score-matching')">
                                     <span class="post-title">Score-based Generative Models</span>
                                     <div class="post-meta">
@@ -638,7 +676,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="stable-diffusion architecture">
                                 <a href="#" class="post-link" onclick="showPost('stable-diffusion')">
                                     <span class="post-title">Stable Diffusion Architecture Deep Dive</span>
                                     <div class="post-meta">
@@ -647,7 +685,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="controlnet image-generation">
                                 <a href="#" class="post-link" onclick="showPost('controlnet')">
                                     <span class="post-title">ControlNet: Controlled Image Generation</span>
                                     <div class="post-meta">
@@ -660,10 +698,10 @@
                     </div>
 
                     <!-- VLM Topic -->
-                    <div class="topic-section">
+                    <div class="topic-section" data-topic="vlm">
                         <h3 class="topic-header">Vision-Language Models (VLM)</h3>
                         <ul class="post-list">
-                            <li class="post-item">
+                            <li class="post-item" data-tags="clip multimodal vision-language">
                                 <a href="#" class="post-link" onclick="showPost('clip-explained')">
                                     <span class="post-title">CLIP: Connecting Text and Images</span>
                                     <div class="post-meta">
@@ -672,7 +710,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="llava vlm multimodal">
                                 <a href="#" class="post-link" onclick="showPost('llava-multimodal')">
                                     <span class="post-title">LLaVA: Large Language and Vision Assistant</span>
                                     <div class="post-meta">
@@ -681,7 +719,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="flamingo few-shot vlm">
                                 <a href="#" class="post-link" onclick="showPost('flamingo-few-shot')">
                                     <span class="post-title">Flamingo: Few-shot Learning trong VLM</span>
                                     <div class="post-meta">
@@ -690,7 +728,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="gpt4v capabilities multimodal">
                                 <a href="#" class="post-link" onclick="showPost('gpt4v-capabilities')">
                                     <span class="post-title">GPT-4V: Capabilities và Limitations</span>
                                     <div class="post-meta">
@@ -703,10 +741,10 @@
                     </div>
 
                     <!-- Generative AI Topic -->
-                    <div class="topic-section">
+                    <div class="topic-section" data-topic="generative-ai">
                         <h3 class="topic-header">Generative AI Foundations</h3>
                         <ul class="post-list">
-                            <li class="post-item">
+                            <li class="post-item" data-tags="gans adversarial generative-ai">
                                 <a href="#" class="post-link" onclick="showPost('gans-overview')">
                                     <span class="post-title">GANs: Adversarial Training Deep Dive</span>
                                     <div class="post-meta">
@@ -715,7 +753,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="vaes latent-space generative-ai">
                                 <a href="#" class="post-link" onclick="showPost('vaes-latent-space')">
                                     <span class="post-title">VAEs: Variational Latent Space Modeling</span>
                                     <div class="post-meta">
@@ -724,7 +762,7 @@
                                     </div>
                                 </a>
                             </li>
-                            <li class="post-item">
+                            <li class="post-item" data-tags="transformers generative-tasks">
                                 <a href="#" class="post-link" onclick="showPost('transformer-generative')">
                                     <span class="post-title">Transformers cho Generative Tasks</span>
                                     <div class="post-meta">
@@ -762,34 +800,33 @@
                 <div class="sidebar-widget">
                     <h3 class="widget-title">🏷️ Tags</h3>
                     <div class="tag-cloud">
-                        <a href="#" class="tag">Flow Matching</a>
-                        <a href="#" class="tag">DDPM</a>
-                        <a href="#" class="tag">VLM</a>
-                        <a href="#" class="tag">PyTorch</a>
-                        <a href="#" class="tag">CLIP</a>
-                        <a href="#" class="tag">Diffusion</a>
-                        <a href="#" class="tag">GANs</a>
-                        <a href="#" class="tag">VAEs</a>
-                        <a href="#" class="tag">Theory</a>
-                        <a href="#" class="tag">Implementation</a>
+                        <span class="tag" onclick="filterByTag('flow-matching')">Flow Matching</span>
+                        <span class="tag" onclick="filterByTag('ddpm')">DDPM</span>
+                        <span class="tag" onclick="filterByTag('vlm')">VLM</span>
+                        <span class="tag" onclick="filterByTag('pytorch')">PyTorch</span>
+                        <span class="tag" onclick="filterByTag('clip')">CLIP</span>
+                        <span class="tag" onclick="filterByTag('diffusion')">Diffusion</span>
+                        <span class="tag" onclick="filterByTag('gans')">GANs</span>
+                        <span class="tag" onclick="filterByTag('vaes')">VAEs</span>
+                        <span class="tag" onclick="filterByTag('theory')">Theory</span>
+                        <span class="tag" onclick="filterByTag('implementation')">Implementation</span>
+                        <span class="tag" onclick="clearFilter()">🔄 Clear</span>
                     </div>
                 </div>
 
                 <div class="sidebar-widget">
                     <h3 class="widget-title">⚡ Recent</h3>
-                    <div style="font-size: 0.8rem;">
-                        <div style="margin-bottom: 0.5rem;">
-                            <a href="#" style="color: var(--text-secondary);">Flow Matching Implementation</a>
-                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 13, 2025</div>
-                        </div>
-                        <div style="margin-bottom: 0.5rem;">
-                            <a href="#" style="color: var(--text-secondary);">DDPM Explained</a>
-                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 12, 2025</div>
-                        </div>
-                        <div>
-                            <a href="#" style="color: var(--text-secondary);">LLaVA Multimodal</a>
-                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 11, 2025</div>
-                        </div>
+                    <div class="recent-post" onclick="showPost('flow-matching-pytorch')">
+                        <a href="#">Flow Matching Implementation</a>
+                        <div class="recent-date">Oct 13, 2025</div>
+                    </div>
+                    <div class="recent-post" onclick="showPost('ddpm-basics')">
+                        <a href="#">DDPM Explained</a>
+                        <div class="recent-date">Oct 12, 2025</div>
+                    </div>
+                    <div class="recent-post" onclick="showPost('llava-multimodal')">
+                        <a href="#">LLaVA Multimodal</a>
+                        <div class="recent-date">Oct 11, 2025</div>
                     </div>
                 </div>
             </aside>
@@ -824,6 +861,330 @@
     </div>
 
     <script>
+        // FIXED: Complete post content database
+        const postContent = {
+            'flow-matching-intro': {
+                title: 'Introduction to Flow Matching',
+                content: `
+                    <h1>Introduction to Flow Matching</h1>
+                    
+                    <p>Flow Matching đại diện cho một breakthrough trong generative modeling, offering một approach hiệu quả để học continuous normalizing flows.</p>
+
+                    <h2>Tại sao Flow Matching?</h2>
+                    <p>Traditional generative models như GANs và VAEs có limitations:</p>
+                    <ul>
+                        <li><strong>GANs:</strong> Training instability, mode collapse</li>
+                        <li><strong>VAEs:</strong> Blurry outputs, posterior collapse</li>
+                        <li><strong>Diffusion Models:</strong> Slow sampling, many steps required</li>
+                    </ul>
+
+                    <h2>Core Concept</h2>
+                    <p>Flow Matching learns vector field v(x,t) để transport từ simple distribution (Gaussian noise) tới complex data distribution:</p>
+                    <pre><code>dx/dt = v(x,t)
+x(0) ~ p_0 (simple)
+x(1) ~ p_1 (data)</code></pre>
+
+                    <h2>Key Advantages</h2>
+                    <ul>
+                        <li><strong>Fast Sampling:</strong> Single ODE solve thay vì many denoising steps</li>
+                        <li><strong>Training Stability:</strong> No adversarial training</li>
+                        <li><strong>High Quality:</strong> Comparable to diffusion models</li>
+                        <li><strong>Flexible:</strong> Works với nhiều architectures</li>
+                    </ul>
+
+                    <h2>Mathematical Foundation</h2>
+                    <p>Flow Matching objective:</p>
+                    <pre><code>L_FM = E_t,x(t) [||v_θ(x(t),t) - u(x(t),t)||²]</code></pre>
+                    <p>Where u(x(t),t) là target vector field từ optimal transport.</p>
+
+                    <p><strong>Next:</strong> <a href="#" onclick="showPost('normalizing-flows')">Normalizing Flows from Scratch</a></p>
+                `
+            },
+            'normalizing-flows': {
+                title: 'Normalizing Flows from Scratch',
+                content: `
+                    <h1>Normalizing Flows from Scratch</h1>
+                    
+                    <p>Normalizing Flows transform simple distributions thành complex ones through series of invertible functions.</p>
+
+                    <h2>Basic Idea</h2>
+                    <p>Given simple distribution p_0(z) (e.g., Gaussian), we apply invertible transformations:</p>
+                    <pre><code>z_0 → z_1 → z_2 → ... → z_K = x</code></pre>
+
+                    <h2>Change of Variables</h2>
+                    <p>Density transformation follows:</p>
+                    <pre><code>log p_K(x) = log p_0(z_0) - Σ log |det J_i|</code></pre>
+                    <p>Where J_i là Jacobian của transformation f_i.</p>
+
+                    <h2>Popular Flow Types</h2>
+                    <h3>1. Planar Flows</h3>
+                    <pre><code>f(z) = z + u * tanh(w^T z + b)</code></pre>
+                    
+                    <h3>2. RealNVP</h3>
+                    <pre><code>y_1:d = x_1:d
+y_d+1:D = x_d+1:D ⊙ exp(s(x_1:d)) + t(x_1:d)</code></pre>
+
+                    <h3>3. Glow</h3>
+                    <p>Combines:</p>
+                    <ul>
+                        <li>ActNorm: Activation normalization</li>
+                        <li>Invertible 1x1 convolutions</li>
+                        <li>Affine coupling layers</li>
+                    </ul>
+
+                    <h2>Implementation Tips</h2>
+                    <ul>
+                        <li><strong>Jacobian Computation:</strong> Use efficient determinant computation</li>
+                        <li><strong>Architecture:</strong> Alternate coupling dimensions</li>
+                        <li><strong>Training:</strong> Maximize likelihood = minimize NLL</li>
+                    </ul>
+
+                    <p><strong>Next:</strong> <a href="#" onclick="showPost('continuous-flows')">Continuous Normalizing Flows</a></p>
+                `
+            },
+            'flow-matching-pytorch': {
+                title: 'Flow Matching Implementation với PyTorch',
+                content: `
+                    <h1>Flow Matching Implementation với PyTorch</h1>
+                    
+                    <p>Complete implementation của Flow Matching từ scratch using PyTorch.</p>
+
+                    <h2>Vector Field Architecture</h2>
+                    <pre><code>class VectorField(nn.Module):
+    def __init__(self, dim, hidden_dim=256, time_embed_dim=64):
+        super().__init__()
+        self.time_embed = nn.Sequential(
+            nn.Linear(1, time_embed_dim),
+            nn.SiLU(),
+            nn.Linear(time_embed_dim, time_embed_dim)
+        )
+        
+        self.net = nn.Sequential(
+            nn.Linear(dim + time_embed_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, dim)
+        )
+    
+    def forward(self, x, t):
+        t_embed = self.time_embed(t.unsqueeze(-1))
+        input_vec = torch.cat([x, t_embed], dim=-1)
+        return self.net(input_vec)</code></pre>
+
+                    <h2>Training Loop</h2>
+                    <pre><code>def flow_matching_loss(x0, x1, t, model):
+    # Linear interpolation path
+    x_t = (1 - t.unsqueeze(-1)) * x0 + t.unsqueeze(-1) * x1
+    
+    # Target vector field
+    u_t = x1 - x0
+    
+    # Predicted vector field
+    v_t = model(x_t, t)
+    
+    return F.mse_loss(v_t, u_t)</code></pre>
+
+                    <h2>Sampling Process</h2>
+                    <pre><code>def sample_ode(model, num_samples, dim, steps=100):
+    x = torch.randn(num_samples, dim)
+    dt = 1.0 / steps
+    
+    for i in range(steps):
+        t = torch.full((num_samples,), i * dt)
+        v = model(x, t)
+        x = x + v * dt
+    
+    return x</code></pre>
+
+                    <h2>Advanced Features</h2>
+                    <ul>
+                        <li><strong>Adaptive ODE Solving:</strong> scipy.integrate.solve_ivp</li>
+                        <li><strong>Conditional Generation:</strong> Add condition embedding</li>
+                        <li><strong>Likelihood Computation:</strong> CNF với divergence</li>
+                    </ul>
+
+                    <h2>Results</h2>
+                    <p>Flow Matching achieves:</p>
+                    <ul>
+                        <li>Comparable quality to DDPM</li>
+                        <li>10-50x faster sampling</li>
+                        <li>Stable training</li>
+                    </ul>
+
+                    <p><strong>Code:</strong> <a href="https://github.com/VuThanhLam124/flow-matching-pytorch" target="_blank">GitHub Repository</a></p>
+                `
+            },
+            'ddpm-basics': {
+                title: 'DDPM: Toán học đằng sau Diffusion Models',
+                content: `
+                    <h1>DDPM: Toán học đằng sau Diffusion Models</h1>
+                    
+                    <p>Denoising Diffusion Probabilistic Models (DDPM) là foundation của state-of-the-art image generation models.</p>
+
+                    <h2>Forward Diffusion Process</h2>
+                    <p>Gradually add Gaussian noise:</p>
+                    <pre><code>q(x_t | x_{t-1}) = N(x_t; √(1-β_t) x_{t-1}, β_t I)
+
+q(x_{1:T} | x_0) = ∏_{t=1}^T q(x_t | x_{t-1})</code></pre>
+
+                    <h2>Reverse Denoising Process</h2>
+                    <p>Learn to reverse the diffusion:</p>
+                    <pre><code>p_θ(x_{t-1} | x_t) = N(x_{t-1}; μ_θ(x_t, t), Σ_θ(x_t, t))</code></pre>
+
+                    <h2>Training Objective</h2>
+                    <p>Variational lower bound leads to:</p>
+                    <pre><code>L_simple = E_{x_0, ε, t} [||ε - ε_θ(√(ᾱ_t) x_0 + √(1-ᾱ_t) ε, t)||²]</code></pre>
+
+                    <p>Where:</p>
+                    <ul>
+                        <li>ᾱ_t = ∏_{i=1}^t (1 - β_i)</li>
+                        <li>ε ~ N(0, I) là noise</li>
+                        <li>ε_θ là learned noise predictor</li>
+                    </ul>
+
+                    <h2>Sampling Algorithm</h2>
+                    <pre><code>x_T ~ N(0, I)
+for t = T, ..., 1:
+    z ~ N(0, I) if t > 1, else 0
+    x_{t-1} = 1/√α_t * (x_t - β_t/√(1-ᾱ_t) * ε_θ(x_t, t)) + σ_t z</code></pre>
+
+                    <h2>Key Insights</h2>
+                    <ul>
+                        <li><strong>Score Matching:</strong> ε_θ learns score function</li>
+                        <li><strong>Noise Schedule:</strong> β_t controls diffusion rate</li>
+                        <li><strong>Classifier Guidance:</strong> Conditional generation</li>
+                    </ul>
+
+                    <p><strong>Next:</strong> <a href="#" onclick="showPost('ddim-sampling')">DDIM: Deterministic Sampling</a></p>
+                `
+            },
+            'clip-explained': {
+                title: 'CLIP: Connecting Text and Images',
+                content: `
+                    <h1>CLIP: Connecting Text and Images</h1>
+                    
+                    <p>Contrastive Language-Image Pre-training (CLIP) revolutionized multimodal AI bằng joint training trên text-image pairs.</p>
+
+                    <h2>Architecture</h2>
+                    <p>CLIP consists của hai encoders:</p>
+                    <ul>
+                        <li><strong>Text Encoder:</strong> Transformer (GPT-style)</li>
+                        <li><strong>Image Encoder:</strong> CNN (ResNet) hoặc Vision Transformer</li>
+                    </ul>
+
+                    <h2>Training Objective</h2>
+                    <p>Contrastive learning trên batch of N text-image pairs:</p>
+                    <pre><code># Compute similarities
+logits = text_features @ image_features.T / temperature
+
+# Symmetric cross-entropy loss
+labels = torch.arange(N)
+loss_i = cross_entropy(logits, labels)
+loss_t = cross_entropy(logits.T, labels)
+loss = (loss_i + loss_t) / 2</code></pre>
+
+                    <h2>Zero-shot Classification</h2>
+                    <ol>
+                        <li>Create text prompts: "A photo of a [class]"</li>
+                        <li>Encode all prompts và test image</li>
+                        <li>Compute cosine similarities</li>
+                        <li>Pick highest similarity class</li>
+                    </ol>
+
+                    <h2>Key Innovations</h2>
+                    <ul>
+                        <li><strong>Scale:</strong> 400M text-image pairs</li>
+                        <li><strong>Natural Language:</strong> No fixed categories</li>
+                        <li><strong>Transferability:</strong> Zero-shot to many tasks</li>
+                    </ul>
+
+                    <h2>Applications</h2>
+                    <ul>
+                        <li>Zero-shot image classification</li>
+                        <li>Text-to-image search</li>
+                        <li>Image captioning</li>
+                        <li>Text-to-image generation (DALL-E 2)</li>
+                    </ul>
+
+                    <h2>Limitations</h2>
+                    <ul>
+                        <li>Fine-grained classification</li>
+                        <li>Compositional understanding</li>
+                        <li>Counting và spatial reasoning</li>
+                    </ul>
+
+                    <p><strong>Next:</strong> <a href="#" onclick="showPost('llava-multimodal')">LLaVA: Large Language and Vision Assistant</a></p>
+                `
+            },
+            'llava-multimodal': {
+                title: 'LLaVA: Large Language and Vision Assistant',
+                content: `
+                    <h1>LLaVA: Large Language and Vision Assistant</h1>
+                    
+                    <p>LLaVA combines the power của large language models với visual understanding capabilities để create một general-purpose multimodal assistant.</p>
+
+                    <h2>Architecture Overview</h2>
+                    <ul>
+                        <li><strong>Vision Encoder:</strong> CLIP ViT-L/14</li>
+                        <li><strong>Language Model:</strong> Vicuna (LLaMA-based)</li>
+                        <li><strong>Projection Layer:</strong> Linear layer để align vision features với text space</li>
+                    </ul>
+
+                    <h2>Training Strategy</h2>
+                    <h3>Stage 1: Feature Alignment</h3>
+                    <p>Train projection layer on image-caption pairs:</p>
+                    <ul>
+                        <li>Freeze vision encoder và LLM</li>
+                        <li>Only train projection weights</li>
+                        <li>Dataset: CC3M image-caption pairs</li>
+                    </ul>
+
+                    <h3>Stage 2: Visual Instruction Tuning</h3>
+                    <p>Fine-tune end-to-end on instruction data:</p>
+                    <ul>
+                        <li>Keep vision encoder frozen</li>
+                        <li>Train projection layer và LLM</li>
+                        <li>Dataset: GPT-4 generated instruction-following data</li>
+                    </ul>
+
+                    <h2>Data Generation Pipeline</h2>
+                    <p>Tạo instruction data using GPT-4:</p>
+                    <ol>
+                        <li>Give GPT-4 image captions và bounding boxes</li>
+                        <li>Generate diverse questions về image</li>
+                        <li>Generate detailed answers</li>
+                        <li>Create conversation-style exchanges</li>
+                    </ol>
+
+                    <h2>Key Capabilities</h2>
+                    <ul>
+                        <li><strong>Visual Question Answering:</strong> Answer questions về images</li>
+                        <li><strong>Image Description:</strong> Generate detailed captions</li>
+                        <li><strong>Visual Reasoning:</strong> Multi-step reasoning về visual content</li>
+                        <li><strong>Conversation:</strong> Multi-turn dialogue về images</li>
+                    </ul>
+
+                    <h2>Performance Results</h2>
+                    <p>LLaVA achieves competitive results trên:</p>
+                    <ul>
+                        <li>Science QA: 92.53%</li>
+                        <li>VQAv2: Competitive với specialized models</li>
+                        <li>Human evaluation: Preferred over many baselines</li>
+                    </ul>
+
+                    <h2>Advantages</h2>
+                    <ul>
+                        <li><strong>Simplicity:</strong> Simple architecture, easy to implement</li>
+                        <li><strong>Scalability:</strong> Can leverage improvements in base LLMs</li>
+                        <li><strong>Flexibility:</strong> Handles diverse visual tasks</li>
+                    </ul>
+
+                    <p><strong>Code:</strong> <a href="https://github.com/haotian-liu/LLaVA" target="_blank">Official Repository</a></p>
+                `
+            }
+        };
+
         // Theme Toggle
         function toggleTheme() {
             const body = document.body;
@@ -859,150 +1220,7 @@
             document.getElementById('progress-bar').style.width = Math.min(100, Math.max(0, scrollPercent)) + '%';
         });
 
-        // Post content data
-        const postContent = {
-            'flow-matching-pytorch': {
-                title: 'Flow Matching Implementation với PyTorch',
-                content: `
-                    <h1>Flow Matching: Từ lý thuyết đến thực hành với PyTorch</h1>
-                    
-                    <p>Flow Matching đang trở thành một trong những phương pháp generative modeling mạnh mẽ nhất hiện nay, với khả năng tạo ra dữ liệu chất lượng cao và training stability vượt trội so với các methods truyền thống.</p>
-
-                    <h2>Giới thiệu về Flow Matching</h2>
-                    
-                    <p><strong>Flow Matching</strong> là một framework để training continuous normalizing flows bằng cách học một vector field mà transport một distribution đơn giản (như Gaussian) tới target data distribution.</p>
-
-                    <h3>Ưu điểm chính:</h3>
-                    <ul>
-                        <li><strong>Training stability cao hơn</strong> so với GANs và VAEs</li>
-                        <li><strong>Sampling efficiency</strong> tốt hơn Diffusion Models</li>
-                        <li><strong>Theoretical foundation</strong> vững chắc dựa trên optimal transport</li>
-                    </ul>
-
-                    <h2>Implementation với PyTorch</h2>
-
-                    <pre><code>import torch
-import torch.nn as nn
-
-class VectorField(nn.Module):
-    def __init__(self, dim, hidden_dim=256):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(dim + 1, hidden_dim),  # +1 for time
-            nn.SiLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.SiLU(), 
-            nn.Linear(hidden_dim, dim)
-        )
-    
-    def forward(self, x, t):
-        input_vec = torch.cat([x, t.unsqueeze(-1)], dim=-1)
-        return self.net(input_vec)</code></pre>
-
-                    <h3>Training Process</h3>
-                    <p>Flow Matching training process bao gồm:</p>
-                    <ol>
-                        <li>Sample noise x₀ và data x₁</li>
-                        <li>Create linear interpolation path: x(t) = (1-t)x₀ + tx₁</li>
-                        <li>Compute target vector field: u(t) = x₁ - x₀</li>
-                        <li>Train model để predict u(t) given x(t) và t</li>
-                    </ol>
-
-                    <h2>Kết luận</h2>
-                    <p>Flow Matching mang lại perspective mới cho generative modeling với những ưu điểm về tốc độ sampling và training stability. Implementation với PyTorch straightforward và có thể extend cho nhiều applications.</p>
-
-                    <p><strong>Code repository:</strong> <a href="https://github.com/VuThanhLam124/flow-matching-pytorch" target="_blank">GitHub</a></p>
-                `
-            },
-            'ddpm-basics': {
-                title: 'DDPM: Toán học đằng sau Diffusion Models',
-                content: `
-                    <h1>DDPM: Toán học đằng sau Diffusion Models</h1>
-                    
-                    <p>Denoising Diffusion Probabilistic Models (DDPM) là foundation của các models như Stable Diffusion, DALL-E 2. Bài viết này phân tích chi tiết mathematics đằng sau DDPM.</p>
-
-                    <h2>Forward Process</h2>
-                    <p>Forward process thêm Gaussian noise vào data theo schedule β₁, β₂, ..., βₜ:</p>
-                    <pre><code>q(x_t | x_{t-1}) = N(x_t; √(1-β_t) x_{t-1}, β_t I)</code></pre>
-
-                    <h2>Reverse Process</h2>
-                    <p>Reverse process học để denoise từ pure noise về data:</p>
-                    <pre><code>p_θ(x_{t-1} | x_t) = N(x_{t-1}; μ_θ(x_t, t), Σ_θ(x_t, t))</code></pre>
-
-                    <h2>Training Objective</h2>
-                    <p>DDPM training minimize variational lower bound:</p>
-                    <pre><code>L = E_q[- log p_θ(x_0 | x_1)] + Σ D_KL(q(x_{t-1}|x_t,x_0) || p_θ(x_{t-1}|x_t))</code></pre>
-
-                    <h2>Practical Implementation</h2>
-                    <p>Trong thực tế, DDPM training equivalent với noise prediction:</p>
-                    <pre><code>L_simple = E_{x_0, ε, t} [||ε - ε_θ(√(ᾱ_t) x_0 + √(1-ᾱ_t) ε, t)||²]</code></pre>
-
-                    <p>Simplified loss này easier to optimize và gives better results trong practice.</p>
-                `
-            },
-            'clip-explained': {
-                title: 'CLIP: Connecting Text and Images',
-                content: `
-                    <h1>CLIP: Connecting Text and Images</h1>
-                    
-                    <p>Contrastive Language-Image Pre-training (CLIP) revolutionized multimodal AI bằng cách học joint representation của text và images.</p>
-
-                    <h2>Architecture</h2>
-                    <p>CLIP consists of:</p>
-                    <ul>
-                        <li><strong>Text Encoder:</strong> Transformer để encode text thành embeddings</li>
-                        <li><strong>Image Encoder:</strong> CNN hoặc Vision Transformer cho images</li>
-                        <li><strong>Projection Heads:</strong> Linear layers để project vào joint space</li>
-                    </ul>
-
-                    <h2>Contrastive Learning</h2>
-                    <p>CLIP training sử dụng contrastive loss trên batch of text-image pairs:</p>
-                    <pre><code>L = -1/N Σ log(exp(sim(I_i, T_i)/τ) / Σⱼ exp(sim(I_i, T_j)/τ))</code></pre>
-
-                    <h2>Zero-shot Classification</h2>
-                    <p>CLIP có thể classify images mà không cần training trên specific classes:</p>
-                    <ol>
-                        <li>Create text prompts cho each class: "A photo of a [class]"</li>
-                        <li>Encode prompts và image</li>
-                        <li>Compute cosine similarity</li>
-                        <li>Pick class with highest similarity</li>
-                    </ol>
-
-                    <h2>Applications</h2>
-                    <p>CLIP enables nhiều applications:</p>
-                    <ul>
-                        <li>Zero-shot image classification</li>
-                        <li>Text-to-image search</li>
-                        <li>Image captioning</li>
-                        <li>Visual question answering</li>
-                    </ul>
-                `
-            },
-            // Add more post content here
-            'normalizing-flows': {
-                title: 'Normalizing Flows from Scratch',
-                content: `
-                    <h1>Normalizing Flows from Scratch</h1>
-                    <p>Normalizing Flows là class của generative models học invertible transformations để model complex distributions.</p>
-                    <h2>Core Concepts</h2>
-                    <p>Key idea: Transform simple distribution (Gaussian) thành complex target distribution qua series of invertible functions.</p>
-                    <p><em>Content coming soon...</em></p>
-                `
-            },
-            // Add placeholder content for other posts
-            'llava-multimodal': {
-                title: 'LLaVA: Large Language and Vision Assistant',
-                content: `
-                    <h1>LLaVA: Large Language and Vision Assistant</h1>
-                    <p>LLaVA combines power của large language models với visual understanding capabilities.</p>
-                    <h2>Architecture</h2>
-                    <p>LLaVA architecture bao gồm vision encoder, language model, và projection layers.</p>
-                    <p><em>Detailed content coming soon...</em></p>
-                `
-            }
-        };
-
-        // Show post function
+        // FIXED: Show post function with proper content mapping
         function showPost(postSlug) {
             const modal = document.getElementById('post-modal');
             const contentContainer = document.getElementById('post-content-container');
@@ -1014,6 +1232,7 @@ class VectorField(nn.Module):
                     <div class="post-content">
                         <h1>Post Coming Soon</h1>
                         <p>This post is currently being written. Check back soon for detailed content!</p>
+                        <p><strong>Post:</strong> ${postSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
                         <p>Topics will include:</p>
                         <ul>
                             <li>Theoretical foundations</li>
@@ -1049,6 +1268,47 @@ class VectorField(nn.Module):
                 closeModal();
             }
         });
+
+        // FIXED: Tag filtering functionality
+        function filterByTag(tag) {
+            const posts = document.querySelectorAll('.post-item');
+            const topics = document.querySelectorAll('.topic-section');
+            
+            posts.forEach(post => {
+                const tags = post.getAttribute('data-tags') || '';
+                if (tags.includes(tag.toLowerCase())) {
+                    post.classList.remove('hidden');
+                } else {
+                    post.classList.add('hidden');
+                }
+            });
+
+            // Hide topics that have no visible posts
+            topics.forEach(topic => {
+                const visiblePosts = topic.querySelectorAll('.post-item:not(.hidden)');
+                if (visiblePosts.length === 0) {
+                    topic.classList.add('hidden');
+                } else {
+                    topic.classList.remove('hidden');
+                }
+            });
+
+            // Update active tag styling
+            document.querySelectorAll('.tag').forEach(t => t.style.backgroundColor = '');
+            event.target.style.backgroundColor = 'var(--highlight-color)';
+            event.target.style.color = 'var(--primary-bg)';
+        }
+
+        // FIXED: Clear filter function
+        function clearFilter() {
+            document.querySelectorAll('.post-item, .topic-section').forEach(el => {
+                el.classList.remove('hidden');
+            });
+            document.querySelectorAll('.tag').forEach(t => {
+                t.style.backgroundColor = '';
+                t.style.color = '';
+            });
+        }
 
         // Smooth scrolling for navigation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
