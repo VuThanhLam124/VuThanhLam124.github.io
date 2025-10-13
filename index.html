@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blog chia sẻ kiến thức về Generative AI, Flow Matching, DDPM và các nghiên cứu xoay quanh VLM">
+    <meta name="keywords" content="Generative AI, Flow Matching, DDPM, Diffusion Models, Machine Learning, Deep Learning, AI Research">
+    <meta name="author" content="ThanhLamDev">
+    <title>Lâm's Research Blog - Generative AI & Data Science</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 0.5rem 1.5rem;
+            margin: 0 0.5rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .hero {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .hero h2 {
+            color: #764ba2;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .topics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .topic-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .topic-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .topic-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .topic-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .blog-posts {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .blog-posts h2 {
+            color: #764ba2;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .post-item {
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .post-item:hover {
+            background: #e9ecef;
+            border-left-color: #764ba2;
+        }
+
+        .post-date {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-title {
+            color: #333;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .social-links {
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .hero {
+                padding: 2rem 1rem;
+            }
+            
+            .topics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Research Blog</h1>
+            <p class="tagline">Khám phá thế giới Generative AI & Diffusion Models</p>
+        </header>
+
+        <nav>
+            <a href="#home">Trang chủ</a>
+            <a href="#topics">Chủ đề</a>
+            <a href="#posts">Bài viết</a>
+            <a href="#about">Giới thiệu</a>
+        </nav>
+
+        <section class="hero" id="home">
+            <h2>Chào mừng đến với AI Research Blog</h2>
+            <p>
+                Nơi chia sẻ kiến thức chuyên sâu về Generative AI, Flow Matching, 
+                Denoising Diffusion Probabilistic Models (DDPM), và các công nghệ AI tiên tiến. 
+                Tôi tổng hợp nghiên cứu, thực nghiệm và insights từ các paper mới nhất trong lĩnh vực Machine Learning.
+            </p>
+        </section>
+
+        <section class="topics" id="topics">
+            <div class="topic-card">
+                <div class="topic-icon">🌊</div>
+                <h3>Flow Matching</h3>
+                <p>
+                    Khám phá Flow Matching - phương pháp huấn luyện continuous normalizing flows 
+                    hiệu quả cho generative modeling, với ứng dụng trong sinh ảnh, âm thanh và dữ liệu phức tạp.
+                </p>
+            </div>
+
+            <div class="topic-card">
+                <div class="topic-icon">🎨</div>
+                <h3>DDPM & Diffusion Models</h3>
+                <p>
+                    Tìm hiểu Denoising Diffusion Probabilistic Models - nền tảng của các mô hình 
+                    như Stable Diffusion, DALL-E. Phân tích kiến trúc, training process và optimization techniques.
+                </p>
+            </div>
+
+            <div class="topic-card">
+                <div class="topic-icon">⚡</div>
+                <h3>Generative AI</h3>
+                <p>
+                    Nghiên cứu các mô hình sinh tổng quát: GANs, VAEs, Transformers, Diffusion Models. 
+                    Ứng dụng thực tế trong computer vision, NLP và multimodal learning.
+                </p>
+            </div>
+
+            <div class="topic-card">
+                <div class="topic-icon">🔬</div>
+                <h3>Vision-Language Models</h3>
+                <p>
+                    Khám phá VLM (Vision-Language Models) như CLIP, Flamingo, GPT-4V. 
+                    Multimodal understanding và applications trong AI systems.
+                </p>
+            </div>
+        </section>
+
+        <section class="blog-posts" id="posts">
+            <h2>📝 Bài viết mới nhất</h2>
+            
+            <div class="post-item">
+                <div class="post-date">📅 Coming soon...</div>
+                <div class="post-title">Flow Matching: Từ lý thuyết đến thực hành</div>
+                <p>Deep dive vào Flow Matching và so sánh với Score-based Diffusion Models...</p>
+            </div>
+
+            <div class="post-item">
+                <div class="post-date">📅 Coming soon...</div>
+                <div class="post-title">DDPM Explained: Toán học đằng sau Diffusion Models</div>
+                <p>Phân tích chi tiết forward process, reverse process và training objective...</p>
+            </div>
+
+            <div class="post-item">
+                <div class="post-date">📅 Coming soon...</div>
+                <div class="post-title">Implementing Flow Matching từ đầu với PyTorch</div>
+                <p>Hướng dẫn code chi tiết để hiểu rõ cơ chế hoạt động của Flow Matching...</p>
+            </div>
+        </section>
+
+        <footer id="about">
+            <p><strong>Về tác giả</strong></p>
+            <p>Data Scientist đam mê nghiên cứu Generator Model và các vấn đề xoay quanh VLM
+               Chia sẻ kiến thức từ paper, thực nghiệm và ứng dụng thực tế.</p>
+            
+            <div class="social-links">
+                <a href="https://github.com/VuThanhLam124" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank">LinkedIn</a>
+                <a href="mailto:vuthanhlam848@gmail.com">Email</a>
+            </div>
+            
+            <p style="margin-top: 1.5rem; color: #999;">
+                &copy; 2025 AI Research Blog. Built with ❤️ on GitHub Pages
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
