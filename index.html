@@ -4,11 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Blog chia sẻ kiến thức về Generative AI, Flow Matching, DDPM và các nghiên cứu xoay quanh VLM">
-    <meta name="keywords" content="Generative AI, Flow Matching, DDPM, Diffusion Models, Machine Learning, Deep Learning, AI Research">
+    <meta name="keywords" content="Generative AI, Flow Matching, DDPM, Diffusion Models, Machine Learning, Deep Learning, AI Research, VLM">
     <meta name="author" content="ThanhLamDev">
     <title>Lâm's Research Blog - Generative AI & Data Science</title>
     
     <style>
+        :root {
+            /* Light Theme - Navy Blue & White */
+            --primary-bg: #ffffff;
+            --secondary-bg: #f8fafc;
+            --surface-bg: #e2e8f0;
+            --accent-bg: #1e293b;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --highlight-color: #1e40af;
+            --gradient-start: #1e3a8a;
+            --gradient-end: #3730a3;
+            --shadow: rgba(15, 23, 42, 0.1);
+            --shadow-hover: rgba(15, 23, 42, 0.2);
+            --card-hover: rgba(30, 64, 175, 0.05);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme - Deep Navy & White */
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --surface-bg: #334155;
+            --accent-bg: #475569;
+            --text-primary: #f8fafc;
+            --text-secondary: #e2e8f0;
+            --text-muted: #cbd5e1;
+            --border-color: #334155;
+            --code-bg: #1e293b;
+            --highlight-color: #60a5fa;
+            --gradient-start: #0f172a;
+            --gradient-end: #1e293b;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --card-hover: rgba(96, 165, 250, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,233 +54,523 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
+            transition: all 0.4s ease;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px;
         }
 
+        /* Header Section */
         header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem 0;
+            background: var(--primary-bg);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
             margin-bottom: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
         }
 
         h1 {
-            text-align: center;
-            color: #667eea;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--highlight-color);
+            margin: 0;
+            background: linear-gradient(135deg, var(--highlight-color), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .tagline {
-            text-align: center;
-            color: #666;
-            font-size: 1.1rem;
-            font-style: italic;
-        }
-
-        nav {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-
-        nav a {
-            color: #667eea;
-            text-decoration: none;
-            padding: 0.5rem 1.5rem;
-            margin: 0 0.5rem;
-            border-radius: 5px;
-            transition: all 0.3s;
-            display: inline-block;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
             font-weight: 500;
+            margin-top: 0.5rem;
         }
 
-        nav a:hover {
-            background: #667eea;
-            color: white;
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--surface-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .hero {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 3rem;
-            border-radius: 10px;
+        .theme-toggle:hover {
+            background: var(--highlight-color);
+            color: var(--primary-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--shadow-hover);
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--primary-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
             margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--card-hover), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
+        }
+
+        .nav-links a:hover {
+            background: var(--surface-bg);
+            color: var(--highlight-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--primary-bg);
+            padding: 4rem 3rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px var(--shadow);
             text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
         }
 
         .hero h2 {
-            color: #764ba2;
-            margin-bottom: 1rem;
-            font-size: 2rem;
+            color: var(--highlight-color);
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
         }
 
         .hero p {
-            font-size: 1.1rem;
-            color: #555;
-            max-width: 800px;
-            margin: 0 auto 1.5rem;
-        }
-
-        .topics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .topic-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .topic-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .topic-card h3 {
-            color: #667eea;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-        }
-
-        .topic-card p {
-            color: #666;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 900px;
+            margin: 0 auto;
             line-height: 1.8;
         }
 
+        /* Topics Grid */
+        .topics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .topic-card {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
+        }
+
+        .topic-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--card-hover);
+            border-radius: 50%;
+            transition: all 0.6s ease;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .topic-card:hover::after {
+            width: 300%;
+            height: 300%;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px var(--shadow-hover);
+            border-color: var(--highlight-color);
+        }
+
         .topic-icon {
-            font-size: 3rem;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            filter: drop-shadow(0 4px 8px var(--shadow));
+        }
+
+        .topic-card h3 {
+            color: var(--highlight-color);
+            font-size: 1.6rem;
+            font-weight: 700;
             margin-bottom: 1rem;
         }
 
+        .topic-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* Blog Posts Section */
         .blog-posts {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            background: var(--primary-bg);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px var(--shadow);
+            margin-bottom: 3rem;
+            border: 1px solid var(--border-color);
         }
 
         .blog-posts h2 {
-            color: #764ba2;
-            margin-bottom: 1.5rem;
+            color: var(--highlight-color);
+            margin-bottom: 2rem;
             text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
         }
 
         .post-item {
-            border-left: 4px solid #667eea;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            background: #f8f9fa;
-            border-radius: 5px;
-            transition: all 0.3s;
+            border-left: 4px solid var(--highlight-color);
+            background: var(--secondary-bg);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .post-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 0;
+            background: var(--gradient-end);
+            transition: height 0.3s ease;
+        }
+
+        .post-item:hover::before {
+            height: 100%;
         }
 
         .post-item:hover {
-            background: #e9ecef;
-            border-left-color: #764ba2;
+            background: var(--surface-bg);
+            transform: translateX(12px);
+            box-shadow: 0 8px 30px var(--shadow-hover);
         }
 
         .post-date {
-            color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
         }
 
         .post-title {
-            color: #333;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
         }
 
+        .post-excerpt {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* Footer */
         footer {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--primary-bg);
             text-align: center;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .author-section {
+            margin-bottom: 2rem;
+        }
+
+        .author-section strong {
+            color: var(--highlight-color);
+            font-size: 1.3rem;
+        }
+
+        .author-section p {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            line-height: 1.7;
         }
 
         .social-links {
-            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
         .social-links a {
-            color: #667eea;
+            background: var(--surface-bg);
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 12px;
             text-decoration: none;
-            margin: 0 1rem;
-            font-size: 1.2rem;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
         }
 
         .social-links a:hover {
-            color: #764ba2;
+            background: var(--highlight-color);
+            color: var(--primary-bg);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px var(--shadow-hover);
+        }
+
+        .copyright {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .topics {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
             h1 {
                 font-size: 2rem;
             }
-            
-            .hero {
-                padding: 2rem 1rem;
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
             }
-            
+
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .nav-links a {
+                padding: 0.8rem 1.5rem;
+            }
+
+            .hero {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
             .topics {
                 grid-template-columns: 1fr;
             }
+
+            .topic-card {
+                padding: 2rem;
+            }
+
+            .blog-posts {
+                padding: 2rem;
+            }
+
+            .post-item {
+                padding: 1.5rem;
+            }
+
+            .social-links {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
+        }
+
+        /* Scroll Progress Indicator */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
+            z-index: 1000;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
+    <div class="progress-bar" id="progress-bar"></div>
+    
     <div class="container">
-        <header>
-            <h1>🤖 AI Research Blog</h1>
-            <p class="tagline">Khám phá thế giới Generative AI & Diffusion Models</p>
+        <header class="fade-in">
+            <div class="header-content">
+                <div>
+                    <h1>🤖 Lâm's Research Hub</h1>
+                    <p class="tagline">Khám phá thế giới Generative AI & Diffusion Models</p>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
+                    🌙 Dark Mode
+                </button>
+            </div>
         </header>
 
-        <nav>
-            <a href="#home">Trang chủ</a>
-            <a href="#topics">Chủ đề</a>
-            <a href="#posts">Bài viết</a>
-            <a href="#about">Giới thiệu</a>
+        <nav class="loading">
+            <div class="nav-links">
+                <a href="#home">🏠 Trang chủ</a>
+                <a href="#topics">📚 Chủ đề</a>
+                <a href="#posts">✍️ Bài viết</a>
+                <a href="#about">👤 Giới thiệu</a>
+            </div>
         </nav>
 
-        <section class="hero" id="home">
-            <h2>Chào mừng đến với AI Research Blog</h2>
+        <section class="hero loading" id="home">
+            <h2>Chào mừng đến với AI Research Hub</h2>
             <p>
-                Nơi chia sẻ kiến thức chuyên sâu về Generative AI, Flow Matching, 
-                Denoising Diffusion Probabilistic Models (DDPM), và các công nghệ AI tiên tiến. 
-                Tôi tổng hợp nghiên cứu, thực nghiệm và insights từ các paper mới nhất trong lĩnh vực Machine Learning.
+                Nơi chia sẻ kiến thức chuyên sâu về <strong>Generative AI</strong>, <strong>Flow Matching</strong>, 
+                <strong>Denoising Diffusion Probabilistic Models (DDPM)</strong>, và các công nghệ AI tiên tiến. 
+                Tôi tổng hợp nghiên cứu, thực nghiệm và insights từ các paper mới nhất trong lĩnh vực Machine Learning và Vision-Language Models.
             </p>
         </section>
 
-        <section class="topics" id="topics">
+        <section class="topics loading" id="topics">
             <div class="topic-card">
                 <div class="topic-icon">🌊</div>
                 <h3>Flow Matching</h3>
                 <p>
                     Khám phá Flow Matching - phương pháp huấn luyện continuous normalizing flows 
-                    hiệu quả cho generative modeling, với ứng dụng trong sinh ảnh, âm thanh và dữ liệu phức tạp.
+                    hiệu quả cho generative modeling, với ứng dụng trong sinh ảnh, âm thanh và dữ liệu phức tạp. 
+                    Tìm hiểu về Rectified Flow và các optimization techniques.
                 </p>
             </div>
 
@@ -251,7 +579,8 @@
                 <h3>DDPM & Diffusion Models</h3>
                 <p>
                     Tìm hiểu Denoising Diffusion Probabilistic Models - nền tảng của các mô hình 
-                    như Stable Diffusion, DALL-E. Phân tích kiến trúc, training process và optimization techniques.
+                    như Stable Diffusion, DALL-E. Phân tích kiến trúc, training process, sampling strategies 
+                    và optimization techniques cho high-quality generation.
                 </p>
             </div>
 
@@ -260,7 +589,8 @@
                 <h3>Generative AI</h3>
                 <p>
                     Nghiên cứu các mô hình sinh tổng quát: GANs, VAEs, Transformers, Diffusion Models. 
-                    Ứng dụng thực tế trong computer vision, NLP và multimodal learning.
+                    Ứng dụng thực tế trong computer vision, NLP và multimodal learning. 
+                    So sánh performance và use cases của từng approach.
                 </p>
             </div>
 
@@ -268,49 +598,163 @@
                 <div class="topic-icon">🔬</div>
                 <h3>Vision-Language Models</h3>
                 <p>
-                    Khám phá VLM (Vision-Language Models) như CLIP, Flamingo, GPT-4V. 
-                    Multimodal understanding và applications trong AI systems.
+                    Khám phá VLM (Vision-Language Models) như CLIP, Flamingo, GPT-4V, LLaVA. 
+                    Multimodal understanding, cross-modal alignment và practical applications 
+                    trong AI systems và real-world deployment.
                 </p>
             </div>
         </section>
 
-        <section class="blog-posts" id="posts">
+        <section class="blog-posts loading" id="posts">
             <h2>📝 Bài viết mới nhất</h2>
             
             <div class="post-item">
-                <div class="post-date">📅 Coming soon...</div>
-                <div class="post-title">Flow Matching: Từ lý thuyết đến thực hành</div>
-                <p>Deep dive vào Flow Matching và so sánh với Score-based Diffusion Models...</p>
+                <div class="post-date">📅 Coming soon - October 2025</div>
+                <div class="post-title">Flow Matching: Từ lý thuyết đến thực hành với PyTorch</div>
+                <p class="post-excerpt">
+                    Deep dive vào Flow Matching theory, so sánh với Score-based Diffusion Models, 
+                    và complete implementation từ scratch. Phân tích Rectified Flow và các sampling techniques hiện đại.
+                </p>
             </div>
 
             <div class="post-item">
-                <div class="post-date">📅 Coming soon...</div>
+                <div class="post-date">📅 Coming soon - October 2025</div>
                 <div class="post-title">DDPM Explained: Toán học đằng sau Diffusion Models</div>
-                <p>Phân tích chi tiết forward process, reverse process và training objective...</p>
+                <p class="post-excerpt">
+                    Phân tích chi tiết forward process, reverse process, training objective và sampling algorithms. 
+                    So sánh DDPM vs DDIM vs DPM-Solver với practical benchmarks.
+                </p>
             </div>
 
             <div class="post-item">
-                <div class="post-date">📅 Coming soon...</div>
-                <div class="post-title">Implementing Flow Matching từ đầu với PyTorch</div>
-                <p>Hướng dẫn code chi tiết để hiểu rõ cơ chế hoạt động của Flow Matching...</p>
+                <div class="post-date">📅 Coming soon - October 2025</div>
+                <div class="post-title">Vision-Language Models: CLIP, LLaVA và beyond</div>
+                <p class="post-excerpt">
+                    Khám phá kiến trúc và training strategies của VLMs hiện đại. 
+                    Hands-on với multimodal fine-tuning và evaluation metrics cho practical applications.
+                </p>
+            </div>
+
+            <div class="post-item">
+                <div class="post-date">📅 Coming soon - November 2025</div>
+                <div class="post-title">Scalable Blog Architecture với Markdown & GitHub Pages</div>
+                <p class="post-excerpt">
+                    Hướng dẫn xây dựng hệ thống blog có khả năng mở rộng với markdown support, 
+                    dynamic content loading, search functionality và deployment automation.
+                </p>
             </div>
         </section>
 
-        <footer id="about">
-            <p><strong>Về tác giả</strong></p>
-            <p>Data Scientist đam mê nghiên cứu Generator Model và các vấn đề xoay quanh VLM
-               Chia sẻ kiến thức từ paper, thực nghiệm và ứng dụng thực tế.</p>
-            
-            <div class="social-links">
-                <a href="https://github.com/VuThanhLam124" target="_blank">GitHub</a>
-                <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank">LinkedIn</a>
-                <a href="mailto:vuthanhlam848@gmail.com">Email</a>
+        <footer class="loading" id="about">
+            <div class="author-section">
+                <p><strong>Về tác giả - ThanhLamDev</strong></p>
+                <p>
+                    Data Scientist đam mê nghiên cứu Generator Models và các vấn đề xoay quanh Vision-Language Models (VLM). 
+                    Chia sẻ kiến thức từ paper analysis, experiments và real-world applications trong AI research community.
+                </p>
             </div>
             
-            <p style="margin-top: 1.5rem; color: #999;">
-                &copy; 2025 AI Research Blog. Built with ❤️ on GitHub Pages
+            <div class="social-links">
+                <a href="https://github.com/VuThanhLam124" target="_blank" title="GitHub">🐙</a>
+                <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank" title="LinkedIn">💼</a>
+                <a href="mailto:vuthanhlam848@gmail.com" title="Email">📧</a>
+                <a href="#" target="_blank" title="Twitter">🐦</a>
+            </div>
+            
+            <p class="copyright">
+                &copy; 2025 Lâm's Research Hub. Built with ❤️ on GitHub Pages | Powered by Generative AI Knowledge
             </p>
         </footer>
     </div>
+
+    <script>
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeToggle.innerHTML = '🌙 Dark Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '☀️ Light Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Scroll Progress Bar
+        function updateProgressBar() {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.body.offsetHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('progress-bar').style.width = scrollPercent + '%';
+        }
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '☀️ Light Mode';
+            }
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Progress bar on scroll
+            window.addEventListener('scroll', updateProgressBar);
+
+            // Intersection Observer for animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe loading elements
+            document.querySelectorAll('.loading').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // Enhanced hover effects
+        document.addEventListener('mousemove', function(e) {
+            const cards = document.querySelectorAll('.topic-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                    card.style.setProperty('--mouse-x', x + 'px');
+                    card.style.setProperty('--mouse-y', y + 'px');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
