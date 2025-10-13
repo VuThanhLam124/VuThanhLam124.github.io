@@ -1,649 +1,914 @@
-// Core JavaScript functionality for the blog
-class BlogSystem {
+class BlogApp {
     constructor() {
-        this.posts = [];
+        this.state = {
+            posts: [],
+            categories: [],
+            tags: [],
+            filteredPosts: [],
+            activeCategory: 'all',
+            activeTag: null,
+            searchQuery: '',
+            currentPage: 1,
+            postsPerPage: 6
+        };
+
+        this.postIndex = new Map();
+        this.contentCache = new Map();
+        this.sidebarVisible = false;
         this.currentTheme = 'light';
-        this.searchIndex = [];
-        this.currentPage = 1;
-        this.postsPerPage = 6;
+
+        this.elements = {
+            body: document.body,
+            postsGrid: document.getElementById('posts-grid'),
+            pagination: document.getElementById('pagination'),
+            searchInput: document.getElementById('search-input'),
+            searchStats: document.getElementById('search-stats'),
+            featuredHighlight: document.getElementById('featured-highlight'),
+            categoryFilter: document.getElementById('category-filter'),
+            tagFilter: document.getElementById('tag-filter'),
+            categoryGrid: document.getElementById('category-grid'),
+            sidebar: document.getElementById('sidebar'),
+            sidebarToggle: document.getElementById('sidebar-toggle'),
+            sidebarLatest: document.getElementById('sidebar-latest'),
+            sidebarTopics: document.getElementById('sidebar-topics'),
+            themeToggle: document.getElementById('theme-toggle'),
+            modal: document.getElementById('post-modal'),
+            modalContent: document.getElementById('modal-content'),
+            totalPosts: document.getElementById('total-posts'),
+            totalReadingTime: document.getElementById('total-reading-time'),
+            currentYear: document.getElementById('current-year')
+        };
+
         this.init();
     }
 
     async init() {
-        await this.loadTheme();
-        await this.loadPosts();
-        this.setupEventListeners();
-        this.setupProgressBar();
-        this.setupAnimations();
+        this.updateCurrentYear();
+        this.setupTheme();
+        this.bindGlobalEvents();
+        await this.loadData();
+        this.renderInitialView();
     }
 
-    // Theme Management
-    async loadTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        this.setTheme(savedTheme);
+    updateCurrentYear() {
+        if (this.elements.currentYear) {
+            this.elements.currentYear.textContent = new Date().getFullYear();
+        }
     }
 
-    setTheme(theme) {
-        this.currentTheme = theme;
-        document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.innerHTML = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    setupTheme() {
+        const savedTheme = localStorage.getItem('lam-theme');
+        if (savedTheme) {
+            this.currentTheme = savedTheme;
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            this.currentTheme = 'dark';
+        }
+        this.applyTheme();
+    }
+
+    applyTheme() {
+        document.body.setAttribute('data-theme', this.currentTheme);
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.textContent =
+                this.currentTheme === 'dark' ? '☀️' : '🌙';
+            this.elements.themeToggle.setAttribute(
+                'aria-label',
+                this.currentTheme === 'dark'
+                    ? 'Chuyển sang giao diện sáng'
+                    : 'Chuyển sang giao diện tối'
+            );
         }
     }
 
     toggleTheme() {
-        const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-        this.setTheme(newTheme);
+        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('lam-theme', this.currentTheme);
+        this.applyTheme();
     }
 
-    // Posts Management
-    async loadPosts() {
+    bindGlobalEvents() {
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.addEventListener('click', () =>
+                this.toggleTheme()
+            );
+        }
+
+        if (this.elements.searchInput) {
+            const handler = this.debounce((event) => {
+                this.state.searchQuery = event.target.value || '';
+                this.state.currentPage = 1;
+                this.renderPostsSection();
+            }, 220);
+            this.elements.searchInput.addEventListener('input', handler);
+        }
+
+        if (this.elements.sidebarToggle) {
+            this.elements.sidebarToggle.addEventListener('click', () =>
+                this.toggleSidebar()
+            );
+        }
+
+        document
+            .querySelectorAll('[data-close-modal]')
+            .forEach((trigger) => {
+                trigger.addEventListener('click', () => this.closeModal());
+            });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.closeModal();
+                this.closeSidebar();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!this.sidebarVisible) {
+                return;
+            }
+            const sidebar = this.elements.sidebar;
+            const toggle = this.elements.sidebarToggle;
+            if (
+                sidebar &&
+                !sidebar.contains(event.target) &&
+                toggle &&
+                !toggle.contains(event.target)
+            ) {
+                this.closeSidebar();
+            }
+        });
+    }
+
+    toggleSidebar() {
+        if (this.sidebarVisible) {
+            this.closeSidebar();
+        } else {
+            this.openSidebar();
+        }
+    }
+
+    openSidebar() {
+        if (!this.elements.sidebar) return;
+        this.elements.sidebar.classList.add('sidebar--visible');
+        document.body.classList.add('has-sidebar-open', 'sidebar-overlay-visible');
+        this.sidebarVisible = true;
+    }
+
+    closeSidebar() {
+        if (!this.elements.sidebar) return;
+        this.elements.sidebar.classList.remove('sidebar--visible');
+        document.body.classList.remove(
+            'has-sidebar-open',
+            'sidebar-overlay-visible'
+        );
+        this.sidebarVisible = false;
+    }
+
+    async loadData() {
         try {
             const response = await fetch('/api/posts.json');
+            if (!response.ok) {
+                throw new Error('Không thể tải dữ liệu bài viết');
+            }
             const data = await response.json();
-            this.posts = data.posts || [];
-            
-            // Load actual content from markdown files
-            await this.loadPostContents();
-            
-            this.buildSearchIndex();
-            this.renderPosts();
+
+            const posts = (data.posts || []).map((post) => {
+                const published =
+                    post.publishedAt || `${post.date || ''}T00:00:00Z`;
+                const dateObject = new Date(published);
+                const year = Number.isNaN(dateObject.getFullYear())
+                    ? new Date().getFullYear()
+                    : dateObject.getFullYear();
+                const safeTags = Array.isArray(post.tags) ? post.tags : [];
+                const readingTime = Number(post.readingTime) || 8;
+
+                const decoratedPost = {
+                    ...post,
+                    dateObject,
+                    publishedAt: published,
+                    year,
+                    tags: safeTags,
+                    readingTime
+                };
+
+                this.postIndex.set(post.slug, decoratedPost);
+                return decoratedPost;
+            });
+
+            posts.sort(
+                (a, b) => b.dateObject.getTime() - a.dateObject.getTime()
+            );
+
+            this.state.posts = posts;
+
+            const categoryCounts = this.countPostsByCategory(posts);
+
+            this.state.categories = this.hydrateCategories(
+                data.categories,
+                categoryCounts
+            );
+            this.state.tags = data.tags || this.buildTags(posts);
         } catch (error) {
-            console.log('Using placeholder posts data');
-            this.loadPlaceholderPosts();
+            console.error(error);
+            this.state.posts = [];
+            this.state.categories = [];
+            this.state.tags = [];
         }
     }
 
-    async loadPostContents() {
-        for (let post of this.posts) {
-            try {
-                // Try to load markdown content
-                const markdownPath = `/posts/2025/${post.slug}.md`;
-                const response = await fetch(markdownPath);
-                if (response.ok) {
-                    const content = await response.text();
-                    post.content = this.parseMarkdown(content);
-                    post.hasRealContent = true;
-                }
-            } catch (error) {
-                console.log(`Could not load content for ${post.slug}`);
-                post.hasRealContent = false;
-            }
-        }
+    countPostsByCategory(posts) {
+        const counts = new Map();
+        posts.forEach((post) => {
+            const category = post.category || 'Chưa phân loại';
+            counts.set(category, (counts.get(category) || 0) + 1);
+        });
+        return counts;
     }
 
-    parseMarkdown(content) {
-        // Extract front matter and content
-        const frontMatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-        const match = content.match(frontMatterRegex);
-        
-        if (match) {
-            const markdownContent = match[2];
-            // Simple markdown parsing for excerpt
-            const firstParagraph = markdownContent
-                .split('\n\n')[0]
-                .replace(/^#+\s+/gm, '') // Remove headers
-                .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
-                .replace(/\*(.*?)\*/g, '$1') // Remove italic
-                .replace(/`(.*?)`/g, '$1') // Remove inline code
-                .trim();
-            
-            return {
-                full: markdownContent,
-                excerpt: firstParagraph.substring(0, 200) + '...'
-            };
+    hydrateCategories(source, counts) {
+        if (Array.isArray(source) && source.length) {
+            return source
+                .map((category) => ({
+                    ...category,
+                    postCount:
+                        counts.get(category.name) ??
+                        category.postCount ??
+                        0
+                }))
+                .sort((a, b) => (b.postCount || 0) - (a.postCount || 0));
         }
-        
-        return { full: content, excerpt: content.substring(0, 200) + '...' };
+
+        return Array.from(counts.entries())
+            .map(([name, postCount]) => ({
+                name,
+                slug: name.toLowerCase().replace(/\s+/g, '-'),
+                description: '',
+                color: '#0b73b7',
+                postCount
+            }))
+            .sort((a, b) => b.postCount - a.postCount);
     }
 
-    loadPlaceholderPosts() {
-        this.posts = [
-            {
-                slug: 'flow-matching-theory',
-                title: 'Flow Matching: Từ lý thuyết đến thực hành với PyTorch',
-                date: '2025-10-13',
-                category: 'Flow Matching',
-                tags: ['Flow Matching', 'PyTorch', 'Generative AI'],
-                excerpt: 'Deep dive vào Flow Matching theory, so sánh với Score-based Diffusion Models, và complete implementation từ scratch.',
-                author: 'ThanhLamDev',
-                readingTime: 15,
-                featured: true,
-                content: null
-            },
-            {
-                slug: 'ddpm-explained',
-                title: 'DDPM Explained: Toán học đằng sau Diffusion Models',
-                date: '2025-10-12',
-                category: 'DDPM',
-                tags: ['DDPM', 'Diffusion', 'Mathematics'],
-                excerpt: 'Phân tích chi tiết forward process, reverse process, training objective và sampling algorithms.',
-                author: 'ThanhLamDev',
-                readingTime: 12,
-                featured: false,
-                content: null
-            },
-            {
-                slug: 'vlm-clip-llava',
-                title: 'Vision-Language Models: CLIP, LLaVA và beyond',
-                date: '2025-10-11',
-                category: 'VLM',
-                tags: ['VLM', 'CLIP', 'LLaVA', 'Multimodal'],
-                excerpt: 'Khám phá kiến trúc và training strategies của VLMs hiện đại với hands-on examples.',
-                author: 'ThanhLamDev',
-                readingTime: 18,
-                featured: true,
-                content: null
-            }
+    buildTags(posts) {
+        const tagCounts = new Map();
+        posts.forEach((post) => {
+            post.tags.forEach((tag) => {
+                tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+            });
+        });
+
+        return Array.from(tagCounts.keys());
+    }
+
+    renderInitialView() {
+        this.renderFeatured();
+        this.renderFilters();
+        this.renderSidebar();
+        this.renderTopicsSection();
+        this.renderPostsSection();
+        this.updateStats();
+    }
+
+    renderFilters() {
+        this.renderCategoryFilter();
+        this.renderTagFilter();
+    }
+
+    renderCategoryFilter() {
+        if (!this.elements.categoryFilter) return;
+
+        const categories = [
+            { label: 'Tất cả', value: 'all' },
+            ...this.state.categories.map((category) => ({
+                label: category.name,
+                value: category.name
+            }))
         ];
-        this.buildSearchIndex();
-        this.renderPosts();
+
+        this.elements.categoryFilter.innerHTML = categories
+            .map(
+                (category) => `
+                <button
+                    type="button"
+                    class="chip ${
+                        this.state.activeCategory === category.value
+                            ? 'is-active'
+                            : ''
+                    }"
+                    data-action="filter-category"
+                    data-category="${category.value}"
+                >
+                    ${category.label}
+                </button>
+            `
+            )
+            .join('');
+
+        this.elements.categoryFilter
+            .querySelectorAll('[data-action="filter-category"]')
+            .forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const value = chip.dataset.category;
+                    this.state.activeCategory = value;
+                    this.state.currentPage = 1;
+                    this.renderCategoryFilter();
+                    this.renderPostsSection();
+                });
+            });
     }
 
-    buildSearchIndex() {
-        this.searchIndex = this.posts.map(post => ({
-            ...post,
-            searchText: `${post.title} ${post.excerpt} ${post.tags.join(' ')} ${post.category}`.toLowerCase()
-        }));
+    renderTagFilter() {
+        if (!this.elements.tagFilter) return;
+
+        const topTags = this.getTopTags(12);
+        this.elements.tagFilter.innerHTML = topTags
+            .map(
+                (tag) => `
+                <button
+                    type="button"
+                    class="chip ${
+                        this.state.activeTag === tag ? 'is-active' : ''
+                    }"
+                    data-action="filter-tag"
+                    data-tag="${tag}"
+                >
+                    ${tag}
+                </button>
+            `
+            )
+            .join('');
+
+        this.elements.tagFilter
+            .querySelectorAll('[data-action="filter-tag"]')
+            .forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const tag = chip.dataset.tag;
+                    this.state.activeTag =
+                        this.state.activeTag === tag ? null : tag;
+                    this.state.currentPage = 1;
+                    this.renderTagFilter();
+                    this.renderPostsSection();
+                });
+            });
     }
 
-    renderPosts(postsToRender = null) {
-        const container = document.getElementById('posts-container');
-        if (!container) return;
-
-        const posts = postsToRender || this.posts;
-        const startIndex = (this.currentPage - 1) * this.postsPerPage;
-        const endIndex = startIndex + this.postsPerPage;
-        const paginatedPosts = posts.slice(startIndex, endIndex);
-
-        container.innerHTML = paginatedPosts.map(post => {
-            // Use real content excerpt if available
-            const displayExcerpt = post.hasRealContent && post.content ? 
-                post.content.excerpt : post.excerpt;
-            
-            return `
-            <article class="post-item" data-slug="${post.slug}">
-                <div class="post-meta">
-                    <span>📅 ${this.formatDate(post.date)}</span>
-                    <span>🏷️ ${post.category}</span>
-                    <span>⏱️ ${post.readingTime} min read</span>
-                    ${post.featured ? '<span class="featured-badge">⭐ Featured</span>' : ''}
-                    ${post.hasRealContent ? '<span class="content-badge">📄 Full Content</span>' : '<span class="preview-badge">👁️ Preview</span>'}
-                </div>
-                <h3 class="post-title">${post.title}</h3>
-                <p class="post-excerpt">${displayExcerpt}</p>
-                <div class="post-tags">
-                    ${post.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join('')}
-                </div>
-                ${post.hasRealContent ? '<div class="read-more">Click to read full article →</div>' : '<div class="coming-soon">Coming soon...</div>'}
-            </article>
-            `;
-        }).join('');
-
-        // Add click handlers
-        this.attachPostClickHandlers();
-        this.renderPagination(posts.length);
-        
-        // Update stats
-        this.updateStats(posts);
-        this.updateTagCloud();
-    }
-
-    attachPostClickHandlers() {
-        document.querySelectorAll('.post-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const slug = item.dataset.slug;
-                this.showPost(slug);
+    getTopTags(limit = 10) {
+        const counts = new Map();
+        this.state.posts.forEach((post) => {
+            post.tags.forEach((tag) => {
+                counts.set(tag, (counts.get(tag) || 0) + 1);
             });
         });
 
-        document.querySelectorAll('.tag').forEach(tag => {
-            tag.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.filterByTag(tag.dataset.tag);
-            });
-        });
+        return Array.from(counts.entries())
+            .sort(([, countA], [, countB]) => countB - countA)
+            .slice(0, limit)
+            .map(([tag]) => tag);
     }
 
-    async showPost(slug) {
-        const post = this.posts.find(p => p.slug === slug);
-        if (!post) return;
+    renderSidebar() {
+        this.renderSidebarLatest();
+        this.renderSidebarTopics();
+    }
 
-        let content;
-        if (post.hasRealContent && post.content) {
-            content = this.markdownToHtml(post.content.full);
-        } else {
-            content = await this.loadPostContent(slug);
+    renderSidebarLatest() {
+        if (!this.elements.sidebarLatest) return;
+        const latestPosts = this.state.posts.slice(0, 12);
+
+        this.elements.sidebarLatest.innerHTML = latestPosts
+            .map(
+                (post) => `
+                <li>
+                    <a href="#posts"
+                       data-action="open-post"
+                       data-slug="${post.slug}">
+                        ${post.title}
+                    </a>
+                </li>
+            `
+            )
+            .join('');
+
+        this.attachPostOpenHandlers(this.elements.sidebarLatest);
+    }
+
+    renderSidebarTopics() {
+        if (!this.elements.sidebarTopics) return;
+        const topCategories = this.state.categories.slice(0, 10);
+
+        this.elements.sidebarTopics.innerHTML = topCategories
+            .map(
+                (category) => `
+                <button
+                    type="button"
+                    data-action="sidebar-category"
+                    data-category="${category.name}"
+                >
+                    ${category.name}
+                </button>
+            `
+            )
+            .join('');
+
+        this.elements.sidebarTopics
+            .querySelectorAll('[data-action="sidebar-category"]')
+            .forEach((button) => {
+                button.addEventListener('click', () => {
+                    const value = button.dataset.category;
+                    this.state.activeCategory = value;
+                    this.closeSidebar();
+                    this.renderCategoryFilter();
+                    this.renderPostsSection();
+                });
+            });
+    }
+
+    renderTopicsSection() {
+        if (!this.elements.categoryGrid) return;
+        if (!this.state.categories.length) {
+            this.elements.categoryGrid.innerHTML =
+                '<p class="empty-state">Chưa có dữ liệu chủ đề.</p>';
+            return;
         }
 
-        this.openModal(`
-            <div class="post-modal-content">
-                <button class="close-btn" onclick="blogSystem.closeModal()">&times;</button>
-                <article class="full-post">
-                    <header class="post-header">
-                        <h1>${post.title}</h1>
-                        <div class="post-meta">
-                            <span>📅 ${this.formatDate(post.date)}</span>
-                            <span>👤 ${post.author}</span>
-                            <span>⏱️ ${post.readingTime} min read</span>
-                            <span>🏷️ ${post.category}</span>
-                        </div>
-                        <div class="post-tags">
-                            ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                        </div>
+        this.elements.categoryGrid.innerHTML = this.state.categories
+            .map(
+                (category) => `
+                <article class="category-card">
+                    <header>
+                        <h3>${category.name}</h3>
+                        <p class="category-card__count">${category.postCount} bài viết</p>
                     </header>
-                    <div class="post-content">${content || this.getPlaceholderContent(post)}</div>
+                    <p>${category.description || 'Khám phá các bài viết liên quan.'}</p>
+                    <button
+                        type="button"
+                        class="ghost-button"
+                        data-action="filter-category"
+                        data-category="${category.name}"
+                    >
+                        Xem bài viết
+                    </button>
                 </article>
-            </div>
-        `);
+            `
+            )
+            .join('');
+
+        this.elements.categoryGrid
+            .querySelectorAll('[data-action="filter-category"]')
+            .forEach((button) => {
+                button.addEventListener('click', () => {
+                    const value = button.dataset.category;
+                    this.state.activeCategory = value;
+                    this.state.currentPage = 1;
+                    this.renderCategoryFilter();
+                    this.renderPostsSection();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
     }
 
-    async loadPostContent(slug) {
-        try {
-            // Try different paths
-            const paths = [
-                `/posts/2025/${slug}.md`,
-                `/posts/${slug}.md`,
-                `/code/flow-matching/${slug}.py`
-            ];
-            
-            for (const path of paths) {
-                try {
-                    const response = await fetch(path);
-                    if (response.ok) {
-                        const content = await response.text();
-                        if (path.endsWith('.py')) {
-                            return `<pre><code class="language-python">${this.escapeHtml(content)}</code></pre>`;
-                        } else {
-                            return this.markdownToHtml(content);
-                        }
-                    }
-                } catch (e) {
-                    continue;
-                }
-            }
-            throw new Error('Content not found');
-        } catch (error) {
-            return this.getPlaceholderContent(this.posts.find(p => p.slug === slug));
+    renderFeatured() {
+        if (!this.elements.featuredHighlight) return;
+
+        if (!this.state.posts.length) {
+            this.elements.featuredHighlight.innerHTML =
+                '<p class="empty-state">Chưa có bài viết nào được đăng tải.</p>';
+            return;
         }
+
+        const featuredPosts = this.state.posts.filter((post) => post.featured);
+        const toRender = (featuredPosts.length
+            ? featuredPosts
+            : this.state.posts
+        ).slice(0, 2);
+
+        this.elements.featuredHighlight.innerHTML = toRender
+            .map(
+                (post) => `
+                <article class="feature-card"
+                         data-action="open-post"
+                         data-slug="${post.slug}">
+                    <div class="feature-card__meta">
+                        <span>⭐ Featured</span>
+        <span>${this.formatDate(post.dateObject)}</span>
+                        <span>${post.readingTime} phút đọc</span>
+                    </div>
+                    <h3 class="feature-card__title">${post.title}</h3>
+                    <p class="feature-card__excerpt">${post.excerpt}</p>
+                    <div class="post-tags">
+                        ${post.tags
+                            .slice(0, 4)
+                            .map(
+                                (tag) => `<span class="tag">${tag}</span>`
+                            )
+                            .join('')}
+                    </div>
+                    <div>
+                        <button
+                            type="button"
+                            class="ghost-button"
+                            data-action="open-post"
+                            data-slug="${post.slug}"
+                        >
+                            Đọc chi tiết
+                        </button>
+                    </div>
+                </article>
+            `
+            )
+            .join('<hr>');
+
+        this.attachPostOpenHandlers(this.elements.featuredHighlight);
     }
 
-    markdownToHtml(markdown) {
-        // Remove front matter if present
-        const contentWithoutFrontMatter = markdown.replace(/^---\n[\s\S]*?\n---\n/, '');
-        
-        // Simple markdown to HTML conversion
-        let html = contentWithoutFrontMatter
-            // Headers
-            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-            // Bold and italic
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            // Code blocks
-            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
-            .replace(/`(.*?)`/g, '<code>$1</code>')
-            // Line breaks
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>');
-        
-        return `<p>${html}</p>`;
+    renderPostsSection() {
+        this.state.filteredPosts = this.applyFilters();
+        this.renderPosts();
+        this.renderPagination();
+        this.updateSearchStats();
+        this.updateStats();
     }
 
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    applyFilters() {
+        const { posts, activeCategory, activeTag, searchQuery } = this.state;
+        const normalizedQuery = searchQuery.trim().toLowerCase();
+
+        return posts.filter((post) => {
+            const matchesCategory =
+                activeCategory === 'all' ||
+                (post.category || '').toLowerCase() ===
+                    activeCategory.toLowerCase();
+
+            const matchesTag = !activeTag || post.tags.includes(activeTag);
+
+            const matchesQuery =
+                !normalizedQuery ||
+                [
+                    post.title,
+                    post.excerpt,
+                    post.category,
+                    post.description,
+                    post.tags.join(' ')
+                ]
+                    .filter(Boolean)
+                    .some((field) =>
+                        field.toLowerCase().includes(normalizedQuery)
+                    );
+
+            return matchesCategory && matchesTag && matchesQuery;
+        });
     }
 
-    getPlaceholderContent(post) {
+    renderPosts() {
+        if (!this.elements.postsGrid) return;
+
+        const { currentPage, postsPerPage, filteredPosts } = this.state;
+        const start = (currentPage - 1) * postsPerPage;
+        const end = start + postsPerPage;
+        const paginatedPosts = filteredPosts.slice(start, end);
+
+        if (!paginatedPosts.length) {
+            this.elements.postsGrid.innerHTML =
+                '<div class="empty-state">Không tìm thấy bài viết nào. Hãy thử đổi từ khóa hoặc chủ đề khác.</div>';
+            return;
+        }
+
+        this.elements.postsGrid.innerHTML = paginatedPosts
+            .map((post) => this.renderPostCard(post))
+            .join('');
+
+        this.attachPostOpenHandlers(this.elements.postsGrid);
+    }
+
+    renderPostCard(post) {
+        const category = post.category || 'Chưa phân loại';
         return `
-            <div class="placeholder-content">
-                <p><strong>This post is coming soon!</strong></p>
-                <p>${post.excerpt}</p>
-                <p>Stay tuned for detailed content covering:</p>
-                <ul>
-                    ${post.tags.map(tag => `<li>In-depth analysis of ${tag}</li>`).join('')}
-                    <li>Practical implementation examples</li>
-                    <li>Code tutorials and best practices</li>
-                    <li>Real-world applications and use cases</li>
-                </ul>
-                <p>Follow us on <a href="https://github.com/VuThanhLam124" target="_blank">GitHub</a> for updates!</p>
-            </div>
+            <article class="post-card"
+                     data-action="open-post"
+                     data-slug="${post.slug}">
+                <div class="post-card__meta">
+                    <span>📅 ${this.formatDate(post.dateObject)}</span>
+                    <span>🏷️ ${category}</span>
+                    <span>⏱️ ${post.readingTime} phút đọc</span>
+                </div>
+                <h3 class="post-card__title">${post.title}</h3>
+                <p class="post-card__excerpt">${post.excerpt}</p>
+                <div class="post-tags">
+                    ${post.tags
+                        .map((tag) => `<span class="tag">${tag}</span>`)
+                        .join('')}
+                </div>
+            </article>
         `;
     }
 
-    markdownToHtml(markdown) {
-        // Simple markdown parser - in production, use a proper markdown library
-        return markdown
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-            .replace(/```([\\s\\S]*?)```/gim, '<pre><code>$1</code></pre>')
-            .replace(/`([^`]+)`/gim, '<code>$1</code>')
-            .replace(/\n/gim, '<br>');
-    }
+    renderPagination() {
+        if (!this.elements.pagination) return;
 
-    // Search Functionality
-    search(query) {
-        if (!query.trim()) {
-            this.renderPosts();
-            return;
-        }
+        const { filteredPosts, postsPerPage, currentPage } = this.state;
+        const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
 
-        const results = this.searchIndex.filter(post => 
-            post.searchText.includes(query.toLowerCase())
-        );
-
-        this.renderPosts(results);
-        this.updateSearchStats(results.length, query);
-    }
-
-    updateSearchStats(count, query) {
-        const statsContainer = document.getElementById('search-stats');
-        if (statsContainer) {
-            statsContainer.innerHTML = `Found ${count} posts matching "${query}"`;
-        }
-    }
-
-    filterByTag(tag) {
-        const filtered = this.posts.filter(post => post.tags.includes(tag));
-        this.currentPage = 1; // Reset to first page
-        this.renderPosts(filtered);
-        this.updateSearchStats(filtered.length, `tag: ${tag}`);
-    }
-
-    // Search functionality
-    search(query) {
-        if (!query.trim()) {
-            this.currentPage = 1;
-            this.renderPosts();
-            this.updateSearchStats(this.posts.length, '');
-            return;
-        }
-
-        const searchTerms = query.toLowerCase().split(' ');
-        const filtered = this.posts.filter(post => {
-            const searchableText = (
-                post.title + ' ' +
-                post.excerpt + ' ' +
-                post.category + ' ' +
-                post.tags.join(' ') + ' ' +
-                (post.content?.full || '')
-            ).toLowerCase();
-
-            return searchTerms.every(term => searchableText.includes(term));
-        });
-
-        this.currentPage = 1;
-        this.renderPosts(filtered);
-        this.updateSearchStats(filtered.length, `search: "${query}"`);
-    }
-
-    updateSearchStats(count, context) {
-        const stats = document.getElementById('search-stats');
-        if (stats) {
-            if (context) {
-                stats.textContent = `Found ${count} posts for ${context}`;
-            } else {
-                stats.textContent = `Showing ${count} posts`;
-            }
-        }
-    }
-
-    updateStats(posts = null) {
-        const postsToCount = posts || this.posts;
-        const totalPosts = document.getElementById('total-posts');
-        const totalTime = document.getElementById('total-reading-time');
-        
-        if (totalPosts) {
-            totalPosts.textContent = postsToCount.length;
-        }
-        
-        if (totalTime) {
-            const totalReadingTime = postsToCount.reduce((sum, post) => sum + (post.readingTime || 0), 0);
-            totalTime.textContent = `${totalReadingTime} min`;
-        }
-    }
-
-    updateTagCloud() {
-        const tagCloud = document.getElementById('tag-cloud');
-        if (!tagCloud) return;
-
-        // Count tag frequencies
-        const tagCounts = {};
-        this.posts.forEach(post => {
-            post.tags.forEach(tag => {
-                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            });
-        });
-
-        // Sort tags by frequency
-        const sortedTags = Object.entries(tagCounts)
-            .sort(([,a], [,b]) => b - a)
-            .slice(0, 15); // Show top 15 tags
-
-        tagCloud.innerHTML = sortedTags.map(([tag, count]) => 
-            `<span class="tag" onclick="blogSystem.filterByTag('${tag}')" title="${count} posts">
-                ${tag} (${count})
-            </span>`
-        ).join('');
-    }
-
-    // Pagination
-    renderPagination(totalPosts) {
-        const container = document.getElementById('pagination-container');
-        if (!container) return;
-
-        const totalPages = Math.ceil(totalPosts / this.postsPerPage);
         if (totalPages <= 1) {
-            container.innerHTML = '';
+            this.elements.pagination.innerHTML = '';
             return;
         }
 
-        let paginationHTML = '<div class="pagination">';
-        
-        if (this.currentPage > 1) {
-            paginationHTML += `<button onclick="blogSystem.goToPage(${this.currentPage - 1})">Previous</button>`;
+        const buttons = [];
+
+        if (currentPage > 1) {
+            buttons.push(
+                `<button type="button" data-action="paginate" data-page="${
+                    currentPage - 1
+                }">Trước</button>`
+            );
         }
 
-        for (let i = 1; i <= totalPages; i++) {
-            const active = i === this.currentPage ? 'active' : '';
-            paginationHTML += `<button class="${active}" onclick="blogSystem.goToPage(${i})">${i}</button>`;
+        for (let page = 1; page <= totalPages; page += 1) {
+            buttons.push(
+                `<button type="button" data-action="paginate" data-page="${page}" ${
+                    page === currentPage ? 'class="active"' : ''
+                }>${page}</button>`
+            );
         }
 
-        if (this.currentPage < totalPages) {
-            paginationHTML += `<button onclick="blogSystem.goToPage(${this.currentPage + 1})">Next</button>`;
+        if (currentPage < totalPages) {
+            buttons.push(
+                `<button type="button" data-action="paginate" data-page="${
+                    currentPage + 1
+                }">Sau</button>`
+            );
         }
 
-        paginationHTML += '</div>';
-        container.innerHTML = paginationHTML;
-    }
-
-    goToPage(page) {
-        this.currentPage = page;
-        this.renderPosts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Modal Management
-    openModal(content) {
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.innerHTML = content;
-        document.body.appendChild(modal);
-        document.body.style.overflow = 'hidden';
-
-        // Close on outside click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closeModal();
-            }
-        });
-
-        // Close on Escape key
-        document.addEventListener('keydown', this.handleEscapeKey);
-    }
-
-    closeModal() {
-        const modal = document.querySelector('.modal');
-        if (modal) {
-            modal.remove();
-            document.body.style.overflow = '';
-            document.removeEventListener('keydown', this.handleEscapeKey);
-        }
-    }
-
-    handleEscapeKey = (e) => {
-        if (e.key === 'Escape') {
-            this.closeModal();
-        }
-    }
-
-    // Progress Bar
-    setupProgressBar() {
-        window.addEventListener('scroll', this.updateProgressBar);
-    }
-
-    updateProgressBar() {
-        const scrollTop = window.pageYOffset;
-        const docHeight = document.body.offsetHeight - window.innerHeight;
-        const scrollPercent = (scrollTop / docHeight) * 100;
-        const progressBar = document.getElementById('progress-bar');
-        if (progressBar) {
-            progressBar.style.width = Math.min(100, Math.max(0, scrollPercent)) + '%';
-        }
-    }
-
-    // Event Listeners
-    setupEventListeners() {
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => this.toggleTheme());
-        }
-
-        // Search
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.search(e.target.value);
+        this.elements.pagination.innerHTML = buttons.join('');
+        this.elements.pagination
+            .querySelectorAll('[data-action="paginate"]')
+            .forEach((button) => {
+                button.addEventListener('click', () => {
+                    const page = Number(button.dataset.page) || 1;
+                    this.state.currentPage = page;
+                    this.renderPosts();
+                    this.renderPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
             });
+    }
+
+    updateSearchStats() {
+        if (!this.elements.searchStats) return;
+        const total = this.state.filteredPosts.length;
+
+        const parts = [];
+        if (this.state.activeCategory !== 'all') {
+            parts.push(`chủ đề "${this.state.activeCategory}"`);
+        }
+        if (this.state.activeTag) {
+            parts.push(`tag "${this.state.activeTag}"`);
+        }
+        if (this.state.searchQuery.trim()) {
+            parts.push(`từ khóa "${this.state.searchQuery.trim()}"`);
         }
 
-        // Modal close on backdrop click
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeModal();
-            }
-        });
+        if (parts.length) {
+            this.elements.searchStats.textContent = `Tìm thấy ${total} bài viết cho ${parts.join(
+                ', '
+            )}.`;
+        } else {
+            this.elements.searchStats.textContent = `Đang hiển thị ${total} bài viết.`;
+        }
+    }
 
-        // Escape key to close modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModal();
-            }
-        });
+    updateStats() {
+        if (this.elements.totalPosts) {
+            this.elements.totalPosts.textContent = this.state.posts.length;
+        }
 
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+        if (this.elements.totalReadingTime) {
+            const totalMinutes = this.state.posts.reduce(
+                (sum, post) => sum + (post.readingTime || 0),
+                0
+            );
+            this.elements.totalReadingTime.textContent = `${totalMinutes} phút`;
+        }
+    }
+
+    attachPostOpenHandlers(root) {
+        if (!root) return;
+        root.querySelectorAll('[data-action="open-post"]').forEach((element) => {
+            element.addEventListener('click', (event) => {
+                event.preventDefault();
+                const slug = element.dataset.slug;
+                if (slug) {
+                    if (this.sidebarVisible) {
+                        this.closeSidebar();
+                    }
+                    this.openPost(slug);
                 }
             });
         });
     }
 
-    // Animations
-    setupAnimations() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+    async openPost(slug) {
+        const post = this.postIndex.get(slug);
+        if (!post) return;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
+        const content = await this.loadPostContent(post);
+        this.renderModal(post, content);
+        this.openModal();
+    }
+
+    async loadPostContent(post) {
+        if (this.contentCache.has(post.slug)) {
+            return this.contentCache.get(post.slug);
+        }
+
+        const year = post.year || new Date().getFullYear();
+        const candidatePaths = [
+            `/posts/${year}/${post.slug}.md`,
+            `/posts/${post.slug}.md`,
+            `/posts/${post.slug}/index.md`
+        ];
+
+        for (const path of candidatePaths) {
+            try {
+                const response = await fetch(path);
+                if (response.ok) {
+                    const raw = await response.text();
+                    const content = this.parseMarkdown(raw);
+                    this.contentCache.set(post.slug, content);
+                    return content;
                 }
-            });
-        }, observerOptions);
+            } catch (error) {
+                console.warn(`Không thể tải nội dung từ ${path}`, error);
+            }
+        }
 
-        // Observe elements with loading class
-        document.querySelectorAll('.loading, .fade-in-delay').forEach(el => {
-            observer.observe(el);
+        return `<p>Nội dung chi tiết sẽ sớm được cập nhật. Bạn có thể xem code và tài liệu liên quan trong mục <strong>Code Lab</strong>.</p>`;
+    }
+
+    parseMarkdown(raw) {
+        if (!raw) return '<p></p>';
+
+        const withoutFrontMatter = raw.replace(/^---[\s\S]*?---\s*/, '').trim();
+        const lines = withoutFrontMatter.split(/\r?\n/);
+
+        let html = '';
+        let paragraphBuffer = [];
+        let listBuffer = [];
+        let inCodeBlock = false;
+        let codeBuffer = [];
+
+        const flushParagraph = () => {
+            if (!paragraphBuffer.length) return;
+            const text = paragraphBuffer.join(' ');
+            html += `<p>${this.inlineMarkdown(text)}</p>`;
+            paragraphBuffer = [];
+        };
+
+        const flushList = () => {
+            if (!listBuffer.length) return;
+            const items = listBuffer
+                .map((item) => `<li>${this.inlineMarkdown(item)}</li>`)
+                .join('');
+            html += `<ul>${items}</ul>`;
+            listBuffer = [];
+        };
+
+        const flushCode = () => {
+            if (!codeBuffer.length) return;
+            const content = this.escapeHtml(codeBuffer.join('\n'));
+            html += `<pre><code>${content}</code></pre>`;
+            codeBuffer = [];
+        };
+
+        lines.forEach((line) => {
+            const trimmed = line.trim();
+
+            if (trimmed.startsWith('```')) {
+                if (inCodeBlock) {
+                    flushCode();
+                    inCodeBlock = false;
+                } else {
+                    flushParagraph();
+                    flushList();
+                    inCodeBlock = true;
+                }
+                return;
+            }
+
+            if (inCodeBlock) {
+                codeBuffer.push(line);
+                return;
+            }
+
+            if (!trimmed) {
+                flushParagraph();
+                flushList();
+                return;
+            }
+
+            const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+            if (headingMatch) {
+                flushParagraph();
+                flushList();
+                const level = headingMatch[1].length;
+                html += `<h${level}>${this.inlineMarkdown(
+                    headingMatch[2]
+                )}</h${level}>`;
+                return;
+            }
+
+            if (/^[-*]\s+/.test(trimmed)) {
+                flushParagraph();
+                listBuffer.push(trimmed.replace(/^[-*]\s+/, ''));
+                return;
+            }
+
+            paragraphBuffer.push(trimmed);
         });
+
+        flushParagraph();
+        flushList();
+        flushCode();
+
+        return html || '<p></p>';
     }
 
-    // Utility Functions
-    formatDate(dateString) {
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        return new Date(dateString).toLocaleDateString('vi-VN', options);
+    inlineMarkdown(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
     }
 
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+    escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
-    // Modal functions
-    openModal(content) {
-        const modal = document.getElementById('post-modal') || this.createModal();
-        modal.innerHTML = content;
-        modal.classList.add('active');
+    renderModal(post, content) {
+        if (!this.elements.modalContent) return;
+        const author = post.author || 'ThanhLamDev';
+        const category = post.category || 'Chưa phân loại';
+        this.elements.modalContent.innerHTML = `
+            <article class="full-post">
+                <header>
+                    <h1>${post.title}</h1>
+                    <div class="full-post__meta">
+                        <span>📅 ${this.formatDate(post.dateObject)}</span>
+                        <span>👤 ${author}</span>
+                        <span>⏱️ ${post.readingTime} phút đọc</span>
+                        <span>🏷️ ${category}</span>
+                    </div>
+                    <div class="post-tags">
+                        ${post.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </header>
+                <div class="full-post__body">
+                    ${content}
+                </div>
+            </article>
+        `;
+    }
+
+    openModal() {
+        if (!this.elements.modal) return;
+        this.elements.modal.classList.add('is-visible');
+        this.elements.modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }
 
     closeModal() {
-        const modal = document.getElementById('post-modal');
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
+        if (!this.elements.modal) return;
+        this.elements.modal.classList.remove('is-visible');
+        this.elements.modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    formatDate(date) {
+        try {
+            return new Intl.DateTimeFormat('vi-VN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            }).format(date);
+        } catch (error) {
+            return '';
         }
     }
 
-    createModal() {
-        const modal = document.createElement('div');
-        modal.id = 'post-modal';
-        modal.className = 'modal';
-        document.body.appendChild(modal);
-        return modal;
+    debounce(fn, delay = 200) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn.apply(this, args), delay);
+        };
     }
 }
 
-// Initialize the blog system when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.blogSystem = new BlogSystem();
+    window.blogApp = new BlogApp();
 });
-
-// Initialize blog system when DOM is loaded
-let blogSystem;
-document.addEventListener('DOMContentLoaded', () => {
-    blogSystem = new BlogSystem();
-});
-
-// Export for global access
-window.blogSystem = blogSystem;

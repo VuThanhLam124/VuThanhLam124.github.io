@@ -3,239 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Blog chia sẻ kiến thức về Generative AI, Flow Matching, DDPM và các nghiên cứu xoay quanh VLM">
-    <meta name="keywords" content="Generative AI, Flow Matching, DDPM, Diffusion Models, Machine Learning, Deep Learning, AI Research, VLM">
+    <meta name="description" content="Lâm's AI Research Blog chia sẻ nghiên cứu về Generative AI, Flow Matching, Diffusion Models và các hệ thống VLM.">
+    <meta name="keywords" content="Generative AI, Flow Matching, Diffusion Models, VLM, Machine Learning, Research">
     <meta name="author" content="ThanhLamDev">
-    <title>Lâm's Research Blog - Generative AI & Data Science</title>
-    
+    <title>Lâm's Research Hub • Generative AI & Data Science</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans+Condensed:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/main.css">
-    
-    <style>
-        /* Additional styles for layout */
-        .progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
-            z-index: 1000;
-            transition: width 0.3s ease;
-        }
-        
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: var(--space-32);
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-                gap: var(--space-24);
-            }
-            
-            .sidebar {
-                order: -1;
-            }
-        }
-        
-        .sidebar {
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            padding: var(--space-24);
-            height: fit-content;
-            position: sticky;
-            top: var(--space-24);
-            border: 1px solid var(--color-border);
-        }
-        
-        .topic-tag {
-            display: inline-block;
-            background: var(--color-secondary);
-            color: var(--color-text);
-            padding: var(--space-6) var(--space-12);
-            border-radius: var(--radius-base);
-            border: 1px solid var(--color-border);
-            cursor: pointer;
-            margin: var(--space-4);
-            font-size: var(--font-size-sm);
-            transition: all var(--duration-fast) var(--ease-standard);
-        }
-        
-        .topic-tag:hover {
-            background: var(--color-primary);
-            color: var(--color-btn-primary-text);
-        }
-        
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: var(--space-8);
-        }
-        
-        .stat-number {
-            font-weight: var(--font-weight-bold);
-            color: var(--color-primary);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--space-24);
-        }
-        
-        .theme-toggle {
-            background: var(--color-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            padding: var(--space-8) var(--space-16);
-            cursor: pointer;
-            transition: all var(--duration-fast) var(--ease-standard);
-            color: var(--color-text);
-        }
-        
-        .theme-toggle:hover {
-            background: var(--color-primary);
-            color: var(--color-btn-primary-text);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: var(--space-16);
-            margin-bottom: var(--space-32);
-        }
-        
-        .nav-links a {
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            padding: var(--space-8) var(--space-16);
-            border-radius: var(--radius-base);
-            transition: all var(--duration-fast) var(--ease-standard);
-        }
-        
-        .nav-links a:hover {
-            background: var(--color-secondary);
-            color: var(--color-text);
-        }
-        
-        .tagline {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-lg);
-            margin-bottom: 0;
-        }
-        
-        .section-title {
-            margin-bottom: var(--space-24);
-            color: var(--color-text);
-        }
-    </style>
 </head>
 <body>
-    <div class="progress-bar" id="progress-bar"></div>
-    
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <div>
-                    <h1>🤖 Lâm's AI Research</h1>
-                    <p class="tagline">Generative AI • Flow Matching • DDPM • VLM Research</p>
+    <div class="page-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar__header">
+                <a class="sidebar__brand" href="#home">
+                    <span class="brand-mark">TL</span>
+                    <div>
+                        <p class="brand-kicker">ThanhLamDev</p>
+                        <h1 class="brand-title">AI Research Hub</h1>
+                        <p class="brand-subtitle">Generative AI • Flow Matching • Diffusion Systems</p>
+                    </div>
+                </a>
+            </div>
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Bài viết mới</h2>
+                <ul class="sidebar-list" id="sidebar-latest"></ul>
+            </div>
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Chủ đề nổi bật</h2>
+                <div class="sidebar-tag-cloud" id="sidebar-topics"></div>
+            </div>
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Liên kết nhanh</h2>
+                <ul class="sidebar-links">
+                    <li><a href="#home">🏠 Trang chủ</a></li>
+                    <li><a href="#posts">📚 Bài viết</a></li>
+                    <li><a href="#categories">🗂️ Chủ đề</a></li>
+                    <li><a href="#code">💻 Code Lab</a></li>
+                    <li><a href="#about">👤 Về tôi</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="topbar__left">
+                    <button class="icon-button" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                    <nav class="topbar__nav">
+                        <a href="#home">Home</a>
+                        <a href="#posts">Posts</a>
+                        <a href="#categories">Topics</a>
+                        <a href="#code">Code</a>
+                        <a href="#about">About</a>
+                    </nav>
                 </div>
-                <button class="theme-toggle" onclick="blogSystem.toggleTheme()" id="theme-toggle">
-                    🌙 Dark
-                </button>
-            </div>
-        </header>
-
-        <nav>
-            <div class="nav-links">
-                <a href="#home">🏠 Home</a>
-                <a href="#posts">📚 Posts</a>
-                <a href="#code">💻 Code</a>
-                <a href="#about">👤 About</a>
-            </div>
-        </nav>
-
-        <div class="main-layout">
-            <main>
-                <section class="posts-section" id="posts">
-                    <h2 class="section-title">📝 Research Posts & Tutorials</h2>
-                    
-                    <!-- Search -->
-                    <div class="search-container">
-                        <input type="text" id="search-input" class="search-input" placeholder="🔍 Search posts...">
+                <div class="topbar__actions">
+                    <div class="stat-chip">
+                        <span id="total-posts">0</span>
+                        <span>Bài viết</span>
                     </div>
-                    
-                    <!-- Search stats -->
-                    <div id="search-stats" class="search-stats"></div>
-                    
-                    <!-- Dynamic posts container -->
-                    <div id="posts-container" class="posts-grid">
-                        <!-- Posts will be loaded here dynamically -->
+                    <div class="stat-chip">
+                        <span id="total-reading-time">0</span>
+                        <span>Phút đọc</span>
                     </div>
+                    <button class="theme-toggle" id="theme-toggle" type="button">🌙</button>
+                </div>
+            </header>
 
-                    <!-- Pagination -->
-                    <div id="pagination-container" class="pagination">
-                        <!-- Pagination will be loaded here -->
-                    </div>
-                </section>
-
-                <section class="code-section" id="code">
-                    <h2 class="section-title">💻 Code & Implementations</h2>
-                    <p>Explore hands-on implementations and practical code examples.</p>
-                    <!-- Code content will be dynamically loaded here too -->
-                </section>
-
-                <section class="about-section" id="about">
-                    <h2 class="section-title">👤 About</h2>
-                    <p>Research engineer focusing on Generative AI, Flow Matching, and Vision-Language Models. 
-                    Passionate about bridging theory and practice in deep learning.</p>
-                    
-                    <div class="social-links">
-                        <a href="https://github.com/VuThanhLam124" target="_blank">GitHub</a>
-                        <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank">LinkedIn</a>
-                        <a href="mailto:vuthanhlam848@gmail.com">Email</a>
-                    </div>
-                </section>
-            </main>
-
-            <sidebar class="sidebar">
-                <div class="sidebar-content">
-                    <h3>🔥 Featured Topics</h3>
-                    <div class="topic-tags">
-                        <button class="topic-tag" onclick="blogSystem.filterByTag('Flow Matching')">Flow Matching</button>
-                        <button class="topic-tag" onclick="blogSystem.filterByTag('DDPM')">DDPM</button>
-                        <button class="topic-tag" onclick="blogSystem.filterByTag('VLM')">VLM</button>
-                        <button class="topic-tag" onclick="blogSystem.filterByTag('PyTorch')">PyTorch</button>
-                    </div>
-
-                    <h3>📊 Quick Stats</h3>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Total Posts</span>
-                            <span class="stat-number" id="total-posts">-</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Reading Time</span>
-                            <span class="stat-number" id="total-reading-time">- min</span>
-                        </div>
-                    </div>
-
-                    <h3>🏷️ All Tags</h3>
-                    <div id="tag-cloud" class="tag-cloud">
-                        <!-- Tags will be populated dynamically -->
+            <section class="hero" id="home">
+                <div class="hero__content">
+                    <p class="hero__eyebrow">AI Systems • Research Notes • Engineering</p>
+                    <h2>Generative AI, Flow Matching & Diffusion Systems</h2>
+                    <p>Blog chia sẻ nghiên cứu thực chiến, ghi chép kỹ thuật và walkthrough chi tiết về những mô hình tạo sinh hiện đại. Lấy cảm hứng từ cách tổ chức của Khanh's Blog nhưng được tái thiết kế để linh hoạt, mở rộng dễ dàng và hỗ trợ thêm trải nghiệm tìm kiếm nhanh.</p>
+                    <div class="hero__actions">
+                        <a class="primary-button" href="#posts">Khám phá bài viết</a>
+                        <a class="ghost-button" href="#code">Tới kho code</a>
                     </div>
                 </div>
-            </sidebar>
+                <div class="hero__feature" id="featured-highlight">
+                    <!-- Featured post injected by JS -->
+                </div>
+            </section>
+
+            <section class="filters" id="posts">
+                <div class="filters__header">
+                    <div class="search">
+                        <input id="search-input" type="search" placeholder="🔍 Tìm kiếm bài viết, chủ đề, tags..." aria-label="Tìm kiếm bài viết">
+                    </div>
+                    <p class="search-stats" id="search-stats">Đang hiển thị tất cả bài viết</p>
+                </div>
+                <div class="filter-groups">
+                    <div class="chip-group" id="category-filter"></div>
+                    <div class="chip-group" id="tag-filter"></div>
+                </div>
+            </section>
+
+            <section class="posts-section">
+                <h2 class="section-title">📝 Tất cả bài viết</h2>
+                <div class="posts-grid" id="posts-grid"></div>
+                <div class="pagination" id="pagination"></div>
+            </section>
+
+            <section class="topics-section" id="categories">
+                <h2 class="section-title">🗂️ Khám phá theo chủ đề</h2>
+                <div class="category-grid" id="category-grid"></div>
+            </section>
+
+            <section class="code-section" id="code">
+                <h2 class="section-title">💻 Code Lab</h2>
+                <p>Bộ sưu tập notebooks, scripts và mini-projects phục vụ nghiên cứu Flow Matching, Diffusion Models, Vision-Language và các hệ thống học sâu khác.</p>
+                <div class="code-links">
+                    <a class="code-card" href="https://github.com/VuThanhLam124" target="_blank" rel="noopener">
+                        <h3>GitHub</h3>
+                        <p>Kho code chính thức &amp; demo.</p>
+                    </a>
+                    <a class="code-card" href="/code/flow-matching/" target="_blank" rel="noopener">
+                        <h3>Flow Matching Lab</h3>
+                        <p>Implementations, benchmarks, training scripts.</p>
+                    </a>
+                    <a class="code-card" href="/code/vlm/" target="_blank" rel="noopener">
+                        <h3>VLM Playground</h3>
+                        <p>Fine-tuning CLIP, LLaVA và các mô hình đa phương thức.</p>
+                    </a>
+                </div>
+            </section>
+
+            <section class="about-section" id="about">
+                <h2 class="section-title">👤 Về Thanh Lâm</h2>
+                <div class="about-card">
+                    <p>Tôi là ML Engineer tập trung vào Generative AI và Vision-Language Systems. Blog là nơi tôi ghi chép lại kết quả nghiên cứu, kiến trúc hệ thống và chia sẻ code chất lượng sản xuất.</p>
+                    <ul class="about-list">
+                        <li>🎯 Trọng tâm: Flow Matching, Diffusion, Multimodal Systems</li>
+                        <li>🧪 Phương pháp: kết hợp lý thuyết với engineering practice</li>
+                        <li>📨 Liên hệ: <a href="mailto:vuthanhlam848@gmail.com">vuthanhlam848@gmail.com</a></li>
+                        <li>🌐 LinkedIn: <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank" rel="noopener">thanhlamdev848</a></li>
+                    </ul>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <p>© <span id="current-year"></span> ThanhLamDev • Made for the AI research community.</p>
+            </footer>
+        </main>
+    </div>
+
+    <div id="post-modal" class="modal" aria-hidden="true">
+        <div class="modal__overlay" data-close-modal></div>
+        <div class="modal__dialog" role="dialog" aria-modal="true">
+            <button class="modal__close" type="button" data-close-modal aria-label="Đóng bài viết">&times;</button>
+            <div class="modal__content" id="modal-content"></div>
         </div>
     </div>
 
-    <!-- Modal will be created dynamically by JavaScript -->
-
-    <!-- Load main JavaScript -->
-    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/main.js" defer></script>
 </body>
 </html>
