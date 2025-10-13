@@ -19,13 +19,11 @@
             --text-secondary: #475569;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --code-bg: #f1f5f9;
             --highlight-color: #1e40af;
             --gradient-start: #1e3a8a;
             --gradient-end: #3730a3;
             --shadow: rgba(15, 23, 42, 0.1);
             --shadow-hover: rgba(15, 23, 42, 0.2);
-            --card-hover: rgba(30, 64, 175, 0.05);
         }
 
         [data-theme="dark"] {
@@ -38,13 +36,11 @@
             --text-secondary: #e2e8f0;
             --text-muted: #cbd5e1;
             --border-color: #334155;
-            --code-bg: #1e293b;
             --highlight-color: #60a5fa;
             --gradient-start: #0f172a;
             --gradient-end: #1e293b;
             --shadow: rgba(0, 0, 0, 0.3);
             --shadow-hover: rgba(0, 0, 0, 0.4);
-            --card-hover: rgba(96, 165, 250, 0.1);
         }
 
         * {
@@ -55,27 +51,26 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.7;
+            line-height: 1.6;
             color: var(--text-primary);
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
-            transition: all 0.4s ease;
+            font-size: 14px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 16px;
         }
 
-        /* Header Section */
+        /* Header - Compact */
         header {
             background: var(--primary-bg);
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px var(--shadow);
-            margin-bottom: 2rem;
-            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px var(--shadow);
+            margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
         }
 
@@ -84,62 +79,53 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         h1 {
-            font-size: 3rem;
-            font-weight: 800;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--highlight-color);
             margin: 0;
-            background: linear-gradient(135deg, var(--highlight-color), var(--gradient-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .tagline {
             color: var(--text-secondary);
-            font-size: 1.2rem;
-            font-weight: 500;
-            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
         }
 
-        /* Theme Toggle */
+        /* Theme Toggle - Compact */
         .theme-toggle {
             background: var(--surface-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 50px;
-            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             color: var(--text-primary);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
         .theme-toggle:hover {
             background: var(--highlight-color);
             color: var(--primary-bg);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--shadow-hover);
         }
 
-        /* Navigation */
+        /* Navigation - Compact */
         nav {
             background: var(--primary-bg);
-            padding: 1.5rem 2rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 32px var(--shadow);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow);
             border: 1px solid var(--border-color);
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -147,320 +133,358 @@
         .nav-links a {
             color: var(--text-primary);
             text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-links a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, var(--card-hover), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav-links a:hover::before {
-            left: 100%;
         }
 
         .nav-links a:hover {
             background: var(--surface-bg);
             color: var(--highlight-color);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--shadow);
         }
 
-        /* Hero Section */
-        .hero {
-            background: var(--primary-bg);
-            padding: 4rem 3rem;
-            border-radius: 20px;
-            margin-bottom: 3rem;
-            box-shadow: 0 10px 40px var(--shadow);
-            text-align: center;
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
-        }
-
-        .hero h2 {
-            color: var(--highlight-color);
-            margin-bottom: 1.5rem;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            max-width: 900px;
-            margin: 0 auto;
-            line-height: 1.8;
-        }
-
-        /* Topics Grid */
-        .topics {
+        /* Main Layout */
+        .main-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
+            grid-template-columns: 1fr 250px;
+            gap: 1.5rem;
         }
 
-        .topic-card {
+        /* Posts Section - List Style */
+        .posts-section {
             background: var(--primary-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px var(--shadow);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2.5rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
         }
 
-        .topic-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
-        }
-
-        .topic-card::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: var(--card-hover);
-            border-radius: 50%;
-            transition: all 0.6s ease;
-            transform: translate(-50%, -50%);
-            z-index: -1;
-        }
-
-        .topic-card:hover::after {
-            width: 300%;
-            height: 300%;
-        }
-
-        .topic-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px var(--shadow-hover);
-            border-color: var(--highlight-color);
-        }
-
-        .topic-icon {
-            font-size: 3.5rem;
+        .section-title {
+            color: var(--highlight-color);
+            font-size: 1.3rem;
+            font-weight: 700;
             margin-bottom: 1.5rem;
-            display: block;
-            filter: drop-shadow(0 4px 8px var(--shadow));
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
         }
 
-        .topic-card h3 {
-            color: var(--highlight-color);
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .topic-card p {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            font-size: 1rem;
-        }
-
-        /* Blog Posts Section */
-        .blog-posts {
-            background: var(--primary-bg);
-            border-radius: 20px;
-            padding: 3rem;
-            box-shadow: 0 10px 40px var(--shadow);
-            margin-bottom: 3rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .blog-posts h2 {
-            color: var(--highlight-color);
+        /* Topic Sections */
+        .topic-section {
             margin-bottom: 2rem;
-            text-align: center;
-            font-size: 2.2rem;
-            font-weight: 700;
+        }
+
+        .topic-header {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem 0;
+            border-left: 4px solid var(--highlight-color);
+            padding-left: 1rem;
+            background: var(--secondary-bg);
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* Post List */
+        .post-list {
+            list-style: none;
+            margin-left: 1rem;
         }
 
         .post-item {
-            border-left: 4px solid var(--highlight-color);
-            background: var(--secondary-bg);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0 12px 12px 0;
+            margin-bottom: 0.5rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid rgba(var(--border-color), 0.3);
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
             transition: all 0.3s ease;
-            position: relative;
+            font-size: 0.9rem;
+            cursor: pointer;
         }
 
-        .post-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 0;
-            background: var(--gradient-end);
-            transition: height 0.3s ease;
-        }
-
-        .post-item:hover::before {
-            height: 100%;
-        }
-
-        .post-item:hover {
+        .post-link:hover {
             background: var(--surface-bg);
-            transform: translateX(12px);
-            box-shadow: 0 8px 30px var(--shadow-hover);
-        }
-
-        .post-date {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 0.8rem;
-            font-weight: 500;
+            color: var(--highlight-color);
+            transform: translateX(4px);
         }
 
         .post-title {
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
+            flex: 1;
+            font-weight: 500;
             line-height: 1.4;
         }
 
-        .post-excerpt {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            font-size: 1rem;
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: 1rem;
         }
 
-        /* Footer */
-        footer {
+        .post-status {
+            padding: 0.2rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .status-published {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .status-draft {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .status-coming-soon {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        /* Numbering */
+        .topic-section {
+            counter-reset: post-counter;
+        }
+
+        .post-item {
+            counter-increment: post-counter;
+        }
+
+        .post-item::before {
+            content: counter(topic-counter) "." counter(post-counter);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            min-width: 2rem;
+            display: inline-block;
+        }
+
+        .topic-section:nth-child(1) { counter-reset: topic-counter 0; }
+        .topic-section:nth-child(2) { counter-reset: topic-counter 1; }
+        .topic-section:nth-child(3) { counter-reset: topic-counter 2; }
+        .topic-section:nth-child(4) { counter-reset: topic-counter 3; }
+        .topic-section:nth-child(5) { counter-reset: topic-counter 4; }
+
+        .topic-section {
+            counter-increment: topic-counter;
+        }
+
+        .topic-header::before {
+            content: counter(topic-counter) ". ";
+            color: var(--highlight-color);
+            font-weight: 700;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sidebar-widget {
             background: var(--primary-bg);
-            text-align: center;
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px var(--shadow);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px var(--shadow);
             border: 1px solid var(--border-color);
         }
 
-        .author-section {
-            margin-bottom: 2rem;
-        }
-
-        .author-section strong {
+        .widget-title {
             color: var(--highlight-color);
-            font-size: 1.3rem;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
         }
 
-        .author-section p {
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(var(--border-color), 0.3);
+        }
+
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+
+        .stats-label {
             color: var(--text-secondary);
-            margin-top: 0.5rem;
-            line-height: 1.7;
+        }
+
+        .stats-value {
+            color: var(--highlight-color);
+            font-weight: 500;
+        }
+
+        /* Tags */
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .tag {
+            background: var(--surface-bg);
+            color: var(--text-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .tag:hover {
+            background: var(--highlight-color);
+            color: var(--primary-bg);
+        }
+
+        /* Modal for post content */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--primary-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px var(--shadow-hover);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .post-content h1, .post-content h2, .post-content h3 {
+            color: var(--highlight-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .post-content h1 { font-size: 1.5rem; }
+        .post-content h2 { font-size: 1.3rem; }
+        .post-content h3 { font-size: 1.1rem; }
+
+        .post-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .post-content pre {
+            background: var(--surface-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .post-content code {
+            background: var(--surface-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Footer - Compact */
+        footer {
+            background: var(--primary-bg);
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px var(--shadow);
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
         }
 
         .social-links {
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
-            margin: 2rem 0;
+            gap: 1rem;
+            margin: 1rem 0;
         }
 
         .social-links a {
             background: var(--surface-bg);
             color: var(--text-primary);
-            padding: 1rem;
-            border-radius: 12px;
+            padding: 0.5rem;
+            border-radius: 6px;
             text-decoration: none;
             transition: all 0.3s ease;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
+            font-size: 0.9rem;
             border: 1px solid var(--border-color);
         }
 
         .social-links a:hover {
             background: var(--highlight-color);
             color: var(--primary-bg);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px var(--shadow-hover);
         }
 
-        .copyright {
-            margin-top: 2rem;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .container {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero h2 {
-                font-size: 2rem;
-            }
-
-            .topics {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                padding: 16px;
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: 1.5rem;
             }
 
             .header-content {
@@ -470,59 +494,22 @@
 
             .nav-links {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.3rem;
             }
 
-            .nav-links a {
-                padding: 0.8rem 1.5rem;
-            }
-
-            .hero {
-                padding: 2.5rem 1.5rem;
-            }
-
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .topics {
-                grid-template-columns: 1fr;
-            }
-
-            .topic-card {
-                padding: 2rem;
-            }
-
-            .blog-posts {
-                padding: 2rem;
-            }
-
-            .post-item {
+            .modal-content {
+                margin: 0.5rem;
                 padding: 1.5rem;
             }
-
-            .social-links {
-                flex-wrap: wrap;
-            }
         }
 
-        /* Loading Animation */
-        .loading {
-            opacity: 0;
-            animation: fadeInUp 0.8s ease-out 0.2s forwards;
-        }
-
-        /* Scroll Progress Indicator */
+        /* Progress Bar */
         .progress-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 0%;
-            height: 4px;
+            height: 3px;
             background: linear-gradient(90deg, var(--highlight-color), var(--gradient-end));
             z-index: 1000;
             transition: width 0.3s ease;
@@ -533,225 +520,546 @@
     <div class="progress-bar" id="progress-bar"></div>
     
     <div class="container">
-        <header class="fade-in">
+        <header>
             <div class="header-content">
                 <div>
-                    <h1>🤖 Lâm's Research Hub</h1>
-                    <p class="tagline">Khám phá thế giới Generative AI & Diffusion Models</p>
+                    <h1>🤖 Lâm's AI Research</h1>
+                    <p class="tagline">Generative AI • Flow Matching • DDPM • VLM Research</p>
                 </div>
                 <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
-                    🌙 Dark Mode
+                    🌙 Dark
                 </button>
             </div>
         </header>
 
-        <nav class="loading">
+        <nav>
             <div class="nav-links">
-                <a href="#home">🏠 Trang chủ</a>
-                <a href="#topics">📚 Chủ đề</a>
-                <a href="#posts">✍️ Bài viết</a>
-                <a href="#about">👤 Giới thiệu</a>
+                <a href="#home">🏠 Home</a>
+                <a href="#posts">📚 Posts</a>
+                <a href="#code">💻 Code</a>
+                <a href="#about">👤 About</a>
             </div>
         </nav>
 
-        <section class="hero loading" id="home">
-            <h2>Chào mừng đến với AI Research Hub</h2>
-            <p>
-                Nơi chia sẻ kiến thức chuyên sâu về <strong>Generative AI</strong>, <strong>Flow Matching</strong>, 
-                <strong>Denoising Diffusion Probabilistic Models (DDPM)</strong>, và các công nghệ AI tiên tiến. 
-                Tôi tổng hợp nghiên cứu, thực nghiệm và insights từ các paper mới nhất trong lĩnh vực Machine Learning và Vision-Language Models.
+        <div class="main-layout">
+            <main>
+                <section class="posts-section" id="posts">
+                    <h2 class="section-title">📝 Research Posts & Tutorials</h2>
+                    
+                    <!-- Flow Matching Topic -->
+                    <div class="topic-section">
+                        <h3 class="topic-header">Flow Matching & Continuous Normalizing Flows</h3>
+                        <ul class="post-list">
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('flow-matching-intro')">
+                                    <span class="post-title">Introduction to Flow Matching</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>15 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('normalizing-flows')">
+                                    <span class="post-title">Normalizing Flows from Scratch</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>12 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('continuous-flows')">
+                                    <span class="post-title">Continuous Normalizing Flows</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>18 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('flow-matching-pytorch')">
+                                    <span class="post-title">Flow Matching Implementation với PyTorch</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>25 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('rectified-flows')">
+                                    <span class="post-title">Rectified Flows: Straight Paths to Data</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-coming-soon">Coming Soon</span>
+                                        <span>20 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('glow-model')">
+                                    <span class="post-title">Glow: Generative Flow với Invertible Networks</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-coming-soon">Coming Soon</span>
+                                        <span>16 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- DDPM Topic -->
+                    <div class="topic-section">
+                        <h3 class="topic-header">DDPM & Diffusion Models</h3>
+                        <ul class="post-list">
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('ddpm-basics')">
+                                    <span class="post-title">DDPM: Toán học đằng sau Diffusion Models</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>22 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('ddim-sampling')">
+                                    <span class="post-title">DDIM: Deterministic Sampling for Diffusion</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>14 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('score-matching')">
+                                    <span class="post-title">Score-based Generative Models</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-draft">Draft</span>
+                                        <span>19 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('stable-diffusion')">
+                                    <span class="post-title">Stable Diffusion Architecture Deep Dive</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-coming-soon">Coming Soon</span>
+                                        <span>28 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('controlnet')">
+                                    <span class="post-title">ControlNet: Controlled Image Generation</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-coming-soon">Coming Soon</span>
+                                        <span>24 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- VLM Topic -->
+                    <div class="topic-section">
+                        <h3 class="topic-header">Vision-Language Models (VLM)</h3>
+                        <ul class="post-list">
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('clip-explained')">
+                                    <span class="post-title">CLIP: Connecting Text and Images</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>16 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('llava-multimodal')">
+                                    <span class="post-title">LLaVA: Large Language and Vision Assistant</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>21 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('flamingo-few-shot')">
+                                    <span class="post-title">Flamingo: Few-shot Learning trong VLM</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-draft">Draft</span>
+                                        <span>18 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('gpt4v-capabilities')">
+                                    <span class="post-title">GPT-4V: Capabilities và Limitations</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-coming-soon">Coming Soon</span>
+                                        <span>20 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Generative AI Topic -->
+                    <div class="topic-section">
+                        <h3 class="topic-header">Generative AI Foundations</h3>
+                        <ul class="post-list">
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('gans-overview')">
+                                    <span class="post-title">GANs: Adversarial Training Deep Dive</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>17 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('vaes-latent-space')">
+                                    <span class="post-title">VAEs: Variational Latent Space Modeling</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-published">Published</span>
+                                        <span>15 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="post-item">
+                                <a href="#" class="post-link" onclick="showPost('transformer-generative')">
+                                    <span class="post-title">Transformers cho Generative Tasks</span>
+                                    <div class="post-meta">
+                                        <span class="post-status status-draft">Draft</span>
+                                        <span>23 min</span>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="sidebar">
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">📊 Stats</h3>
+                    <div class="stats-item">
+                        <span class="stats-label">Total Posts</span>
+                        <span class="stats-value">18</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Published</span>
+                        <span class="stats-value">8</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">In Progress</span>
+                        <span class="stats-value">4</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Coming Soon</span>
+                        <span class="stats-value">6</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">🏷️ Tags</h3>
+                    <div class="tag-cloud">
+                        <a href="#" class="tag">Flow Matching</a>
+                        <a href="#" class="tag">DDPM</a>
+                        <a href="#" class="tag">VLM</a>
+                        <a href="#" class="tag">PyTorch</a>
+                        <a href="#" class="tag">CLIP</a>
+                        <a href="#" class="tag">Diffusion</a>
+                        <a href="#" class="tag">GANs</a>
+                        <a href="#" class="tag">VAEs</a>
+                        <a href="#" class="tag">Theory</a>
+                        <a href="#" class="tag">Implementation</a>
+                    </div>
+                </div>
+
+                <div class="sidebar-widget">
+                    <h3 class="widget-title">⚡ Recent</h3>
+                    <div style="font-size: 0.8rem;">
+                        <div style="margin-bottom: 0.5rem;">
+                            <a href="#" style="color: var(--text-secondary);">Flow Matching Implementation</a>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 13, 2025</div>
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            <a href="#" style="color: var(--text-secondary);">DDPM Explained</a>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 12, 2025</div>
+                        </div>
+                        <div>
+                            <a href="#" style="color: var(--text-secondary);">LLaVA Multimodal</a>
+                            <div style="color: var(--text-muted); font-size: 0.7rem;">Oct 11, 2025</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer id="about">
+            <p><strong>ThanhLamDev</strong></p>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0.5rem 0;">
+                Data Scientist đam mê Generator Models và VLM Research
             </p>
-        </section>
-
-        <section class="topics loading" id="topics">
-            <div class="topic-card">
-                <div class="topic-icon">🌊</div>
-                <h3>Flow Matching</h3>
-                <p>
-                    Khám phá Flow Matching - phương pháp huấn luyện continuous normalizing flows 
-                    hiệu quả cho generative modeling, với ứng dụng trong sinh ảnh, âm thanh và dữ liệu phức tạp. 
-                    Tìm hiểu về Rectified Flow và các optimization techniques.
-                </p>
-            </div>
-
-            <div class="topic-card">
-                <div class="topic-icon">🎨</div>
-                <h3>DDPM & Diffusion Models</h3>
-                <p>
-                    Tìm hiểu Denoising Diffusion Probabilistic Models - nền tảng của các mô hình 
-                    như Stable Diffusion, DALL-E. Phân tích kiến trúc, training process, sampling strategies 
-                    và optimization techniques cho high-quality generation.
-                </p>
-            </div>
-
-            <div class="topic-card">
-                <div class="topic-icon">⚡</div>
-                <h3>Generative AI</h3>
-                <p>
-                    Nghiên cứu các mô hình sinh tổng quát: GANs, VAEs, Transformers, Diffusion Models. 
-                    Ứng dụng thực tế trong computer vision, NLP và multimodal learning. 
-                    So sánh performance và use cases của từng approach.
-                </p>
-            </div>
-
-            <div class="topic-card">
-                <div class="topic-icon">🔬</div>
-                <h3>Vision-Language Models</h3>
-                <p>
-                    Khám phá VLM (Vision-Language Models) như CLIP, Flamingo, GPT-4V, LLaVA. 
-                    Multimodal understanding, cross-modal alignment và practical applications 
-                    trong AI systems và real-world deployment.
-                </p>
-            </div>
-        </section>
-
-        <section class="blog-posts loading" id="posts">
-            <h2>📝 Bài viết mới nhất</h2>
-            
-            <div class="post-item">
-                <div class="post-date">📅 Coming soon - October 2025</div>
-                <div class="post-title">Flow Matching: Từ lý thuyết đến thực hành với PyTorch</div>
-                <p class="post-excerpt">
-                    Deep dive vào Flow Matching theory, so sánh với Score-based Diffusion Models, 
-                    và complete implementation từ scratch. Phân tích Rectified Flow và các sampling techniques hiện đại.
-                </p>
-            </div>
-
-            <div class="post-item">
-                <div class="post-date">📅 Coming soon - October 2025</div>
-                <div class="post-title">DDPM Explained: Toán học đằng sau Diffusion Models</div>
-                <p class="post-excerpt">
-                    Phân tích chi tiết forward process, reverse process, training objective và sampling algorithms. 
-                    So sánh DDPM vs DDIM vs DPM-Solver với practical benchmarks.
-                </p>
-            </div>
-
-            <div class="post-item">
-                <div class="post-date">📅 Coming soon - October 2025</div>
-                <div class="post-title">Vision-Language Models: CLIP, LLaVA và beyond</div>
-                <p class="post-excerpt">
-                    Khám phá kiến trúc và training strategies của VLMs hiện đại. 
-                    Hands-on với multimodal fine-tuning và evaluation metrics cho practical applications.
-                </p>
-            </div>
-
-            <div class="post-item">
-                <div class="post-date">📅 Coming soon - November 2025</div>
-                <div class="post-title">Scalable Blog Architecture với Markdown & GitHub Pages</div>
-                <p class="post-excerpt">
-                    Hướng dẫn xây dựng hệ thống blog có khả năng mở rộng với markdown support, 
-                    dynamic content loading, search functionality và deployment automation.
-                </p>
-            </div>
-        </section>
-
-        <footer class="loading" id="about">
-            <div class="author-section">
-                <p><strong>Về tác giả - ThanhLamDev</strong></p>
-                <p>
-                    Data Scientist đam mê nghiên cứu Generator Models và các vấn đề xoay quanh Vision-Language Models (VLM). 
-                    Chia sẻ kiến thức từ paper analysis, experiments và real-world applications trong AI research community.
-                </p>
-            </div>
             
             <div class="social-links">
-                <a href="https://github.com/VuThanhLam124" target="_blank" title="GitHub">🐙</a>
-                <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank" title="LinkedIn">💼</a>
-                <a href="mailto:vuthanhlam848@gmail.com" title="Email">📧</a>
-                <a href="#" target="_blank" title="Twitter">🐦</a>
+                <a href="https://github.com/VuThanhLam124" target="_blank">GitHub</a>
+                <a href="https://www.linkedin.com/in/thanhlamdev848/" target="_blank">LinkedIn</a>
+                <a href="mailto:vuthanhlam848@gmail.com">Email</a>
             </div>
             
-            <p class="copyright">
-                &copy; 2025 Lâm's Research Hub. Built with ❤️ on GitHub Pages | Powered by Generative AI Knowledge
+            <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.8rem;">
+                &copy; 2025 Built with ❤️ on GitHub Pages
             </p>
         </footer>
     </div>
 
+    <!-- Modal for post content -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <div id="post-content-container">
+                <!-- Post content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Theme Toggle Functionality
+        // Theme Toggle
         function toggleTheme() {
             const body = document.body;
             const themeToggle = document.getElementById('theme-toggle');
             
             if (body.getAttribute('data-theme') === 'dark') {
                 body.removeAttribute('data-theme');
-                themeToggle.innerHTML = '🌙 Dark Mode';
+                themeToggle.textContent = '🌙 Dark';
                 localStorage.setItem('theme', 'light');
             } else {
                 body.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '☀️ Light Mode';
+                themeToggle.textContent = '☀️ Light';
                 localStorage.setItem('theme', 'dark');
             }
         }
 
-        // Scroll Progress Bar
-        function updateProgressBar() {
-            const scrollTop = window.pageYOffset;
-            const docHeight = document.body.offsetHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / docHeight) * 100;
-            document.getElementById('progress-bar').style.width = scrollPercent + '%';
-        }
-
-        // Initialize on DOM load
+        // Load saved theme
         document.addEventListener('DOMContentLoaded', function() {
-            // Load saved theme
             const savedTheme = localStorage.getItem('theme');
             const themeToggle = document.getElementById('theme-toggle');
             
             if (savedTheme === 'dark') {
                 document.body.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '☀️ Light Mode';
+                themeToggle.textContent = '☀️ Light';
             }
-
-            // Smooth scrolling for navigation links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-
-            // Progress bar on scroll
-            window.addEventListener('scroll', updateProgressBar);
-
-            // Intersection Observer for animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observe loading elements
-            document.querySelectorAll('.loading').forEach(el => {
-                observer.observe(el);
-            });
         });
 
-        // Enhanced hover effects
-        document.addEventListener('mousemove', function(e) {
-            const cards = document.querySelectorAll('.topic-card');
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-                    card.style.setProperty('--mouse-x', x + 'px');
-                    card.style.setProperty('--mouse-y', y + 'px');
+        // Progress bar
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.body.offsetHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            document.getElementById('progress-bar').style.width = Math.min(100, Math.max(0, scrollPercent)) + '%';
+        });
+
+        // Post content data
+        const postContent = {
+            'flow-matching-pytorch': {
+                title: 'Flow Matching Implementation với PyTorch',
+                content: `
+                    <h1>Flow Matching: Từ lý thuyết đến thực hành với PyTorch</h1>
+                    
+                    <p>Flow Matching đang trở thành một trong những phương pháp generative modeling mạnh mẽ nhất hiện nay, với khả năng tạo ra dữ liệu chất lượng cao và training stability vượt trội so với các methods truyền thống.</p>
+
+                    <h2>Giới thiệu về Flow Matching</h2>
+                    
+                    <p><strong>Flow Matching</strong> là một framework để training continuous normalizing flows bằng cách học một vector field mà transport một distribution đơn giản (như Gaussian) tới target data distribution.</p>
+
+                    <h3>Ưu điểm chính:</h3>
+                    <ul>
+                        <li><strong>Training stability cao hơn</strong> so với GANs và VAEs</li>
+                        <li><strong>Sampling efficiency</strong> tốt hơn Diffusion Models</li>
+                        <li><strong>Theoretical foundation</strong> vững chắc dựa trên optimal transport</li>
+                    </ul>
+
+                    <h2>Implementation với PyTorch</h2>
+
+                    <pre><code>import torch
+import torch.nn as nn
+
+class VectorField(nn.Module):
+    def __init__(self, dim, hidden_dim=256):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim + 1, hidden_dim),  # +1 for time
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(), 
+            nn.Linear(hidden_dim, dim)
+        )
+    
+    def forward(self, x, t):
+        input_vec = torch.cat([x, t.unsqueeze(-1)], dim=-1)
+        return self.net(input_vec)</code></pre>
+
+                    <h3>Training Process</h3>
+                    <p>Flow Matching training process bao gồm:</p>
+                    <ol>
+                        <li>Sample noise x₀ và data x₁</li>
+                        <li>Create linear interpolation path: x(t) = (1-t)x₀ + tx₁</li>
+                        <li>Compute target vector field: u(t) = x₁ - x₀</li>
+                        <li>Train model để predict u(t) given x(t) và t</li>
+                    </ol>
+
+                    <h2>Kết luận</h2>
+                    <p>Flow Matching mang lại perspective mới cho generative modeling với những ưu điểm về tốc độ sampling và training stability. Implementation với PyTorch straightforward và có thể extend cho nhiều applications.</p>
+
+                    <p><strong>Code repository:</strong> <a href="https://github.com/VuThanhLam124/flow-matching-pytorch" target="_blank">GitHub</a></p>
+                `
+            },
+            'ddpm-basics': {
+                title: 'DDPM: Toán học đằng sau Diffusion Models',
+                content: `
+                    <h1>DDPM: Toán học đằng sau Diffusion Models</h1>
+                    
+                    <p>Denoising Diffusion Probabilistic Models (DDPM) là foundation của các models như Stable Diffusion, DALL-E 2. Bài viết này phân tích chi tiết mathematics đằng sau DDPM.</p>
+
+                    <h2>Forward Process</h2>
+                    <p>Forward process thêm Gaussian noise vào data theo schedule β₁, β₂, ..., βₜ:</p>
+                    <pre><code>q(x_t | x_{t-1}) = N(x_t; √(1-β_t) x_{t-1}, β_t I)</code></pre>
+
+                    <h2>Reverse Process</h2>
+                    <p>Reverse process học để denoise từ pure noise về data:</p>
+                    <pre><code>p_θ(x_{t-1} | x_t) = N(x_{t-1}; μ_θ(x_t, t), Σ_θ(x_t, t))</code></pre>
+
+                    <h2>Training Objective</h2>
+                    <p>DDPM training minimize variational lower bound:</p>
+                    <pre><code>L = E_q[- log p_θ(x_0 | x_1)] + Σ D_KL(q(x_{t-1}|x_t,x_0) || p_θ(x_{t-1}|x_t))</code></pre>
+
+                    <h2>Practical Implementation</h2>
+                    <p>Trong thực tế, DDPM training equivalent với noise prediction:</p>
+                    <pre><code>L_simple = E_{x_0, ε, t} [||ε - ε_θ(√(ᾱ_t) x_0 + √(1-ᾱ_t) ε, t)||²]</code></pre>
+
+                    <p>Simplified loss này easier to optimize và gives better results trong practice.</p>
+                `
+            },
+            'clip-explained': {
+                title: 'CLIP: Connecting Text and Images',
+                content: `
+                    <h1>CLIP: Connecting Text and Images</h1>
+                    
+                    <p>Contrastive Language-Image Pre-training (CLIP) revolutionized multimodal AI bằng cách học joint representation của text và images.</p>
+
+                    <h2>Architecture</h2>
+                    <p>CLIP consists of:</p>
+                    <ul>
+                        <li><strong>Text Encoder:</strong> Transformer để encode text thành embeddings</li>
+                        <li><strong>Image Encoder:</strong> CNN hoặc Vision Transformer cho images</li>
+                        <li><strong>Projection Heads:</strong> Linear layers để project vào joint space</li>
+                    </ul>
+
+                    <h2>Contrastive Learning</h2>
+                    <p>CLIP training sử dụng contrastive loss trên batch of text-image pairs:</p>
+                    <pre><code>L = -1/N Σ log(exp(sim(I_i, T_i)/τ) / Σⱼ exp(sim(I_i, T_j)/τ))</code></pre>
+
+                    <h2>Zero-shot Classification</h2>
+                    <p>CLIP có thể classify images mà không cần training trên specific classes:</p>
+                    <ol>
+                        <li>Create text prompts cho each class: "A photo of a [class]"</li>
+                        <li>Encode prompts và image</li>
+                        <li>Compute cosine similarity</li>
+                        <li>Pick class with highest similarity</li>
+                    </ol>
+
+                    <h2>Applications</h2>
+                    <p>CLIP enables nhiều applications:</p>
+                    <ul>
+                        <li>Zero-shot image classification</li>
+                        <li>Text-to-image search</li>
+                        <li>Image captioning</li>
+                        <li>Visual question answering</li>
+                    </ul>
+                `
+            },
+            // Add more post content here
+            'normalizing-flows': {
+                title: 'Normalizing Flows from Scratch',
+                content: `
+                    <h1>Normalizing Flows from Scratch</h1>
+                    <p>Normalizing Flows là class của generative models học invertible transformations để model complex distributions.</p>
+                    <h2>Core Concepts</h2>
+                    <p>Key idea: Transform simple distribution (Gaussian) thành complex target distribution qua series of invertible functions.</p>
+                    <p><em>Content coming soon...</em></p>
+                `
+            },
+            // Add placeholder content for other posts
+            'llava-multimodal': {
+                title: 'LLaVA: Large Language and Vision Assistant',
+                content: `
+                    <h1>LLaVA: Large Language and Vision Assistant</h1>
+                    <p>LLaVA combines power của large language models với visual understanding capabilities.</p>
+                    <h2>Architecture</h2>
+                    <p>LLaVA architecture bao gồm vision encoder, language model, và projection layers.</p>
+                    <p><em>Detailed content coming soon...</em></p>
+                `
+            }
+        };
+
+        // Show post function
+        function showPost(postSlug) {
+            const modal = document.getElementById('post-modal');
+            const contentContainer = document.getElementById('post-content-container');
+            
+            if (postContent[postSlug]) {
+                contentContainer.innerHTML = `<div class="post-content">${postContent[postSlug].content}</div>`;
+            } else {
+                contentContainer.innerHTML = `
+                    <div class="post-content">
+                        <h1>Post Coming Soon</h1>
+                        <p>This post is currently being written. Check back soon for detailed content!</p>
+                        <p>Topics will include:</p>
+                        <ul>
+                            <li>Theoretical foundations</li>
+                            <li>Practical implementation</li>
+                            <li>Code examples</li>
+                            <li>Real-world applications</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('post-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('post-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             });
         });
