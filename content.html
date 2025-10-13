@@ -171,6 +171,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
         }
         
         .nav-brand {
@@ -178,11 +180,14 @@
             font-weight: 700;
             color: var(--color-primary);
             text-decoration: none;
+            white-space: nowrap;
         }
         
         .nav-links {
             display: flex;
             gap: 2rem;
+            flex: 1;
+            justify-content: center;
         }
         
         .nav-links a {
@@ -197,19 +202,25 @@
         }
         
         .theme-toggle {
-            background: var(--color-primary-soft);
-            border: 1px solid var(--color-primary);
+            background: var(--color-layer);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             padding: 0.5rem 1rem;
-            color: var(--color-primary);
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
         }
         
         .theme-toggle:hover {
             background: var(--color-primary);
             color: white;
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
         }
         
         @media (max-width: 768px) {
@@ -229,6 +240,13 @@
             
             .nav-links {
                 gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .theme-toggle {
+                width: 100%;
+                justify-content: center;
             }
             
             .topic-section {
@@ -272,7 +290,7 @@
                 
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <span class="stat-number" id="total-posts">7+</span>
+                        <span class="stat-number" id="total-posts">25+</span>
                         <div class="stat-label">Bài viết chuyên sâu</div>
                     </div>
                     <div class="stat-item">
@@ -280,7 +298,7 @@
                         <div class="stat-label">Chủ đề chính</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">15+</span>
+                        <span class="stat-number">30+</span>
                         <div class="stat-label">Code examples</div>
                     </div>
                 </div>
@@ -288,41 +306,66 @@
         </section>
 
         <div class="content-section">
-            <!-- Flow Matching Section -->
+            <!-- Flow-based Models Section -->
             <section class="topic-section">
                 <h2 class="topic-title">
-                    🌊 Flow Matching & Continuous Normalizing Flows
+                    🌊 Flow-based Models
                     <span class="topic-badge">Cutting-edge</span>
                 </h2>
                 <p class="topic-description">
-                    Flow Matching là một trong những breakthrough quan trọng nhất trong Generative AI hiện đại. Khác với Diffusion Models truyền thống, 
-                    Flow Matching học trực tiếp vector field để transport từ noise distribution đến data distribution thông qua optimal transport paths. 
-                    Điều này mang lại tốc độ sampling nhanh hơn và training stability cao hơn. Trong series này, chúng ta sẽ khám phá từ lý thuyết toán học 
-                    cho đến implementation hoàn chỉnh với PyTorch.
+                    Flow-based Models đại diện cho một trong những breakthrough quan trọng nhất trong Generative AI hiện đại. Từ Normalizing Flows cổ điển 
+                    đến Flow Matching với optimal transport theory, từ Real NVP architecture đến cutting-edge Rectified Flows - mỗi approach đều mang lại 
+                    unique advantages trong modeling complex data distributions. Khác với Diffusion Models, Flow-based models học trực tiếp bijective 
+                    transformations hoặc vector fields, cho phép exact likelihood computation và efficient sampling. Series này khám phá comprehensive 
+                    landscape từ foundations đến state-of-the-art techniques.
                 </p>
                 <ol class="posts-list">
                     <li>
-                        <a href="/posts/2025/flow-matching-theory" class="post-link">
-                            Flow Matching: Từ lý thuyết đến thực hành với PyTorch
-                            <span class="post-meta">• 15 phút đọc • Lý thuyết + Code</span>
+                        <a href="/posts/2025/normalizing-flows" class="post-link">
+                            Normalizing Flow & Continuous Normalizing Flow
+                            <span class="post-meta">Foundations + Theory</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/posts/2025/flow-matching-readme" class="post-link">
-                            Flow Matching Implementation Guide
-                            <span class="post-meta">• 12 phút đọc • Hands-on Tutorial</span>
+                        <a href="/posts/2025/flow-matching-theory" class="post-link">
+                            Flow Matching: Từ lý thuyết đến thực hành với PyTorch
+                            <span class="post-meta">Lý thuyết + Code</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/realnvp-glow" class="post-link">
+                            Real NVP & Glow: Invertible Architectures
+                            <span class="post-meta">Architecture Deep Dive</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/rectified-flows" class="post-link">
                             Rectified Flow: Straight Paths in Flow Matching
-                            <span class="post-meta">• 18 phút đọc • Advanced Theory</span>
+                            <span class="post-meta">Advanced Theory</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/posts/2025/flow-matching-optimization" class="post-link">
-                            Optimization Techniques for Flow Matching
-                            <span class="post-meta">• 20 phút đọc • Performance Tuning</span>
+                        <a href="/posts/2025/flow-map-matching" class="post-link">
+                            Flow Map Matching (FMM): Efficient One-Step Generation
+                            <span class="post-meta">State-of-the-Art</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/conditional-flow-matching" class="post-link">
+                            Conditional Flow Matching (CFM) và Optimal Transport
+                            <span class="post-meta">Advanced Applications</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/schrodinger-bridge" class="post-link">
+                            Schrödinger Bridge và Flow-based Models
+                            <span class="post-meta">Mathematical Framework</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/generator-matching-framework" class="post-link">
+                            Theoretical Foundations: Generator Matching Framework
+                            <span class="post-meta">Unified Theory</span>
                         </a>
                     </li>
                 </ol>
@@ -331,37 +374,69 @@
             <!-- Diffusion Models Section -->
             <section class="topic-section">
                 <h2 class="topic-title">
-                    ✨ Diffusion Models & DDPM
+                    ✨ Diffusion Models & Score-based Generation
                     <span class="topic-badge">Foundation</span>
                 </h2>
                 <p class="topic-description">
-                    Diffusion Models đã trở thành backbone của nhiều hệ thống AI generative nổi tiếng như DALL-E, Midjourney, và Stable Diffusion. 
-                    Từ DDPM gốc đến các variants hiện đại như DDIM, DPM-Solver, và Karras scheduling - mỗi technique đều mang lại improvements đáng kể 
-                    về chất lượng và tốc độ generation. Series này sẽ đi sâu vào mathematical foundations và practical implementations.
+                    Diffusion Models đã revolutionize generative AI và trở thành backbone của các hệ thống nổi tiếng như DALL-E 3, Midjourney, và Stable Diffusion. 
+                    Từ DDPM foundations với denoising score matching đến advanced samplers như DPM-Solver++ và Karras scheduling, từ Consistency Models với 
+                    one-step generation đến Diffusion Transformers (DiT) architecture - mỗi innovation đều push boundaries của image quality và generation speed. 
+                    Series này comprehensive coverage từ mathematical foundations (SDE/ODE frameworks, score matching theory) đến cutting-edge architectures 
+                    và practical deployment strategies.
                 </p>
                 <ol class="posts-list">
                     <li>
                         <a href="/posts/2025/ddpm-explained" class="post-link">
                             DDPM Explained: Toán học đằng sau Diffusion Models
-                            <span class="post-meta">• 22 phút đọc • Mathematical Deep Dive</span>
+                            <span class="post-meta">Mathematical Deep Dive</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/ddim-sampling" class="post-link">
                             DDIM: Deterministic Sampling for Faster Generation
-                            <span class="post-meta">• 16 phút đọc • Sampling Techniques</span>
+                            <span class="post-meta">Sampling Techniques</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/score-matching" class="post-link">
                             Score-based Generative Models và SDE Framework
-                            <span class="post-meta">• 25 phút đọc • Advanced Theory</span>
+                            <span class="post-meta">Advanced Theory</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/diffusion-guidance" class="post-link">
                             Classifier-free Guidance và Conditional Generation
-                            <span class="post-meta">• 19 phút đọc • Conditional Models</span>
+                            <span class="post-meta">Conditional Models</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/consistency-models" class="post-link">
+                            Consistency Models: One-Step Generation
+                            <span class="post-meta">Fast Sampling</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/diffusion-transformers" class="post-link">
+                            Diffusion Transformers (DiT): Next-Gen Architecture
+                            <span class="post-meta">Architecture Innovation</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/elucidating-diffusion-models" class="post-link">
+                            Elucidating Diffusion Models (EDM): Unified Design Framework
+                            <span class="post-meta">Design Principles</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/latent-consistency-models" class="post-link">
+                            Latent Consistency Models (LCM): Fast High-Resolution Generation
+                            <span class="post-meta">Production Ready</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/consistency-trajectory-models" class="post-link">
+                            Consistency Trajectory Models (CTM): Best of Both Worlds
+                            <span class="post-meta">Hybrid Approaches</span>
                         </a>
                     </li>
                 </ol>
@@ -375,33 +450,53 @@
                 </h2>
                 <p class="topic-description">
                     VLM đại diện cho future của AI - khả năng hiểu và reasoning đồng thời trên cả visual và textual information. 
-                    Từ CLIP với contrastive learning cho đến LLaVA với instruction following, từ Flamingo với few-shot capabilities 
-                    đến GPT-4V với advanced reasoning - VLM đang mở ra endless possibilities cho multimodal applications. 
-                    Series này explore architectures, training strategies, và practical applications.
+                    Từ foundations với Vision Encoders (ViT, CLIP) và image tokenization strategies, qua multimodal alignment techniques 
+                    (contrastive learning, cross-attention fusion), đến visual instruction tuning cho practical applications. 
+                    CLIP revolutionized zero-shot visual understanding, LLaVA demonstrated instruction following capabilities, 
+                    Flamingo showcased few-shot learning, và GPT-4V pushed boundaries của multimodal reasoning. Series này explores 
+                    complete pipeline từ architectural components đến training methodologies và real-world deployment.
                 </p>
                 <ol class="posts-list">
                     <li>
+                        <a href="/posts/2025/vision-encoder-tokenization" class="post-link">
+                            Foundations: Vision Encoder và Image Tokenization
+                            <span class="post-meta">Core Components</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/multimodal-alignment" class="post-link">
+                            Multimodal Alignment: Kết nối Vision và Language
+                            <span class="post-meta">Training Strategies</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/visual-instruction-tuning" class="post-link">
+                            Visual Instruction Tuning: Training VLMs hiệu quả
+                            <span class="post-meta">Practical Guide</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="/posts/2025/vlm-clip-llava" class="post-link">
                             Vision-Language Models: CLIP, LLaVA và beyond
-                            <span class="post-meta">• 18 phút đọc • Architecture Overview</span>
+                            <span class="post-meta">Architecture Overview</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/clip-training" class="post-link">
                             CLIP Training: Contrastive Learning at Scale
-                            <span class="post-meta">• 21 phút đọc • Training Deep Dive</span>
+                            <span class="post-meta">Training Deep Dive</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/llava-instruction-tuning" class="post-link">
                             LLaVA: Instruction Tuning for Multimodal Understanding
-                            <span class="post-meta">• 17 phút đọc • Fine-tuning Guide</span>
+                            <span class="post-meta">Fine-tuning Guide</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/vlm-evaluation" class="post-link">
                             Evaluating Vision-Language Models: Metrics & Benchmarks
-                            <span class="post-meta">• 14 phút đọc • Evaluation Methods</span>
+                            <span class="post-meta">Evaluation Methods</span>
                         </a>
                     </li>
                 </ol>
@@ -422,25 +517,25 @@
                     <li>
                         <a href="/posts/2025/transformer-attention-mechanisms" class="post-link">
                             Attention Mechanisms trong Transformers: Self, Cross, và Multi-Head
-                            <span class="post-meta">• 16 phút đọc • Architecture Deep Dive</span>
+                            <span class="post-meta">Architecture Deep Dive</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/pytorch-flow-matching-tutorial" class="post-link">
                             PyTorch Implementation Guide cho Generative Models
-                            <span class="post-meta">• 25 phút đọc • Complete Tutorial</span>
+                            <span class="post-meta">Complete Tutorial</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/generative-ai-overview" class="post-link">
                             Generative AI Landscape 2025: Trends và Future Directions
-                            <span class="post-meta">• 20 phút đọc • Industry Overview</span>
+                            <span class="post-meta">Industry Overview</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/ai-systems-production" class="post-link">
                             Deploying AI Systems to Production: MLOps Best Practices
-                            <span class="post-meta">• 23 phút đọc • Production Guide</span>
+                            <span class="post-meta">Production Guide</span>
                         </a>
                     </li>
                 </ol>

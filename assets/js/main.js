@@ -489,8 +489,7 @@ class BlogApp {
                          data-slug="${post.slug}">
                     <div class="feature-card__meta">
                         <span>⭐ Featured</span>
-        <span>${this.formatDate(post.dateObject)}</span>
-                        <span>${post.readingTime} phút đọc</span>
+                        <span>${this.formatDate(post.dateObject)}</span>
                     </div>
                     <h3 class="feature-card__title">${post.title}</h3>
                     <p class="feature-card__excerpt">${post.excerpt}</p>
@@ -588,7 +587,6 @@ class BlogApp {
                 <div class="post-card__meta">
                     <span>📅 ${this.formatDate(post.dateObject)}</span>
                     <span>🏷️ ${category}</span>
-                    <span>⏱️ ${post.readingTime} phút đọc</span>
                 </div>
                 <h3 class="post-card__title">${post.title}</h3>
                 <p class="post-card__excerpt">${post.excerpt}</p>
@@ -860,7 +858,6 @@ class BlogApp {
                     <div class="full-post__meta">
                         <span>📅 ${this.formatDate(post.dateObject)}</span>
                         <span>👤 ${author}</span>
-                        <span>⏱️ ${post.readingTime} phút đọc</span>
                         <span>🏷️ ${category}</span>
                     </div>
                     <div class="post-tags">

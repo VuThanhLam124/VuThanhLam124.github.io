@@ -185,6 +185,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
         }
         
         .nav-brand {
@@ -195,11 +197,14 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
         }
         
         .nav-links {
             display: flex;
             gap: 2rem;
+            flex: 1;
+            justify-content: center;
         }
         
         .nav-links a {
@@ -228,6 +233,28 @@
             background: var(--color-primary);
         }
         
+        .theme-toggle {
+            background: var(--color-layer);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+        
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -254,6 +281,13 @@
             
             .nav-links {
                 gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .theme-toggle {
+                width: 100%;
+                justify-content: center;
             }
             
             .features-grid, .posts-grid {
@@ -410,109 +444,8 @@
                 </div>
                 
                 <!-- Research & Publications -->
-                <!-- <div style="margin-bottom: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        📄 Publications & Research
-                    </h3>
-                </div> -->
-                
-                <!-- Awards & Recognition -->
-                <!-- <div style="margin-bottom: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        🏆 Awards & Recognition
-                    </h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🥇</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">Best Paper Award</h4>
-                            <p style="color: var(--color-muted);">CVPR 2024 Vietnam Workshop</p>
-                        </div>
-                        
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">AI Challenge Winner</h4>
-                            <p style="color: var(--color-muted);">Zalo AI Challenge 2023 - Top 3</p>
-                        </div>
-                        
-                        <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">💡</div>
-                            <h4 style="color: var(--color-text); margin-bottom: 0.5rem;">Research Grant</h4>
-                            <p style="color: var(--color-muted);">VinAI Research Grant 2024</p>
-                        </div>
-                    </div>
-                </div> -->
-                
                 <!-- Experience -->
-                <!-- <div>
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        💼 Experience
-                    </h3>
-                    <div style="display: grid; gap: 2rem;">
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🤖</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">Senior ML Engineer</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2023 - Present</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">VinAI Research</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Leading Generative AI projects, focusing on Flow Matching và Diffusion Models. 
-                                    Developed production-ready multimodal systems serving millions of users.
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🔬</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">AI Research Engineer</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2021 - 2023</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">FPT AI Center</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Research and development of Vision-Language Models for Vietnamese. 
-                                    Built CLIP-based systems for e-commerce search and recommendation.
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: 2rem; background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                            <div style="flex-shrink: 0; color: var(--color-primary); font-size: 2.5rem;">🎓</div>
-                            <div style="flex-grow: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                    <h4 style="color: var(--color-text); font-size: 1.2rem; margin: 0;">ML Engineer Intern</h4>
-                                    <span style="color: var(--color-muted); font-size: 0.9rem;">2020 - 2021</span>
-                                </div>
-                                <p style="color: var(--color-primary); margin-bottom: 1rem;">Zalo AI</p>
-                                <p style="color: var(--color-text); line-height: 1.6;">
-                                    Worked on computer vision projects for object detection và image classification. 
-                                    Contributed to Zalo's AI-powered features.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
-                
-                <!-- Education -->
-                <!-- <div style="margin-top: 4rem;">
-                    <h3 style="color: var(--color-text); font-size: 1.8rem; margin-bottom: 2rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">
-                        🎓 Education
-                    </h3>
-                    <div style="background: var(--color-layer); padding: 2rem; border-radius: var(--radius-lg);">
-                        <h4 style="color: var(--color-text); font-size: 1.2rem; margin-bottom: 0.5rem;">
-                            M.Sc. in Computer Science (AI Specialization)
-                        </h4>
-                        <p style="color: var(--color-primary); margin-bottom: 0.5rem;">
-                            Vietnam National University, Hanoi (VNU) • 2022 - 2024
-                        </p>
-                        <p style="color: var(--color-text); line-height: 1.6;">
-                            Thesis: "Efficient Training Methods for Large-Scale Vision-Language Models" 
-                            • GPA: 3.9/4.0 • Outstanding Graduate Award
-                        </p>
-                    </div>
-                </div> -->
+                 
             </div>
         </section>
     </main>
@@ -578,7 +511,6 @@
                                  onmouseout="this.style.transform=''; this.style.boxShadow=''">
                             <div style="margin-bottom: 1rem;">
                                 <span style="color: var(--color-primary); font-size: 0.9rem; font-weight: 500;">${post.category}</span>
-                                <span style="color: var(--color-muted); font-size: 0.9rem; margin-left: 1rem;">${post.readingTime} phút đọc</span>
                             </div>
                             <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--color-text);">
                                 <a href="/posts/2025/${post.slug}" style="color: inherit; text-decoration: none;">${post.title}</a>
