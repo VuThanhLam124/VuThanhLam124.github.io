@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown + KaTeX Test</title>
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.0.0/marked.min.js"></script>
+    
+    <style>
+        body {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+        }
+        
+        h1 { color: #0b73b7; border-bottom: 2px solid #0b73b7; padding-bottom: 0.5rem; }
+        h2 { color: #074b80; margin-top: 2rem; }
+        
+        .katex-display {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-left: 4px solid #0b73b7;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .success { background: #f0fdf4; border-color: #86efac; }
+        .error { background: #fef2f2; border-color: #fca5a5; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Markdown + KaTeX Integration Test</h1>
+    
+    <div class="test-section" id="status">
+        <strong>Loading...</strong>
+    </div>
+    
+    <div id="content"></div>
+    
+    <script>
+        // Test markdown with LaTeX
+        const testMarkdown = `
+# Normalizing Flows: Test Document
+
+## 1. Change of Variables Formula
+
+Giả sử có bijective mapping $f: \\mathbb{R}^d \\rightarrow \\mathbb{R}^d$, với inverse $f^{-1}$ và input distribution $p_z(z)$:
+
+$$
+p_x(x) = p_z(f^{-1}(x)) \\left| \\det \\frac{\\partial f^{-1}(x)}{\\partial x} \\right|
+$$
+
+hoặc với **log-likelihood**:
+
+$$
+\\log p_x(x) = \\log p_z(z) + \\log \\left| \\det \\frac{\\partial f}{\\partial z} \\right|^{-1}
+$$
+
+### 1.2 Jacobian và Computational Efficiency
+
+Challenge chính: computing determinant của Jacobian matrix có complexity $O(d^3)$ - prohibitive cho high-dimensional data.
+
+**Solution approaches:**
+
+1. **Triangular Jacobians** - det computation trong $O(d)$
+2. **Special structures** (e.g., autoregressive, coupling layers)
+3. **Continuous-time limit** - CNF với ODE
+
+## 2. Code Example
+
+Here's some \`inline code\` and a block:
+
+\`\`\`python
+def compute_likelihood(x, z, jacobian):
+    log_pz = normal_log_prob(z)
+    log_det = torch.log(torch.abs(jacobian.det()))
+    return log_pz + log_det
+\`\`\`
+
+## 3. More Math
+
+The ODE formulation:
+
+$$
+\\frac{dz(t)}{dt} = f(z(t), t, \\theta)
+$$
+
+với log-density evolution:
+
+$$
+\\frac{d \\log p(z(t))}{dt} = -\\text{tr}\\left(\\frac{\\partial f}{\\partial z(t)}\\right)
+$$
+
+## 4. Lists with Math
+
+- First item với math: $\\alpha = 0.5$
+- Second item: $\\beta^2 + \\gamma = 1$
+- **Bold item** với *italic* text
+
+And a [link to somewhere](https://example.com).
+`;
+
+        function runTest() {
+            const statusEl = document.getElementById('status');
+            const contentEl = document.getElementById('content');
+            
+            try {
+                // Check if marked.js loaded
+                if (typeof marked === 'undefined') {
+                    throw new Error('marked.js not loaded');
+                }
+                
+                // Check if KaTeX loaded
+                if (typeof katex === 'undefined') {
+                    throw new Error('KaTeX not loaded');
+                }
+                
+                // Parse markdown
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    mangle: false,
+                    sanitize: false
+                });
+                
+                const html = marked.parse(testMarkdown);
+                contentEl.innerHTML = html;
+                
+                // Render math
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(contentEl, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false,
+                        trust: true
+                    });
+                    
+                    // Check if math was rendered
+                    const mathElements = contentEl.querySelectorAll('.katex');
+                    
+                    statusEl.className = 'test-section success';
+                    statusEl.innerHTML = `
+                        <strong>✅ Test PASSED!</strong><br>
+                        - marked.js: Loaded ✓<br>
+                        - KaTeX: Loaded ✓<br>
+                        - Math elements rendered: ${mathElements.length} ✓<br>
+                        - Integration: Working ✓
+                    `;
+                } else {
+                    throw new Error('renderMathInElement not available');
+                }
+                
+            } catch (error) {
+                statusEl.className = 'test-section error';
+                statusEl.innerHTML = `
+                    <strong>❌ Test FAILED!</strong><br>
+                    Error: ${error.message}<br>
+                    <small>${error.stack}</small>
+                `;
+            }
+        }
+        
+        // Wait for all scripts to load
+        window.addEventListener('load', () => {
+            setTimeout(runTest, 500);
+        });
+    </script>
+</body>
+</html>
