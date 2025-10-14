@@ -746,7 +746,26 @@ class BlogApp {
         if (!raw) return '<p></p>';
 
         const withoutFrontMatter = raw.replace(/^---[\s\S]*?---\s*/, '').trim();
-        const lines = withoutFrontMatter.split(/\r?\n/);
+        
+        // Protect LaTeX blocks from markdown parsing
+        const mathBlocks = [];
+        let protected = withoutFrontMatter;
+        
+        // Protect display math $$...$$
+        protected = protected.replace(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
+            const index = mathBlocks.length;
+            mathBlocks.push(`$$${content}$$`);
+            return `__MATH_BLOCK_${index}__`;
+        });
+        
+        // Protect inline math $...$
+        protected = protected.replace(/\$([^\$\n]+?)\$/g, (match, content) => {
+            const index = mathBlocks.length;
+            mathBlocks.push(`$${content}$`);
+            return `__MATH_INLINE_${index}__`;
+        });
+        
+        const lines = protected.split(/\r?\n/);
 
         let html = '';
         let paragraphBuffer = [];
@@ -827,6 +846,15 @@ class BlogApp {
         flushList();
         flushCode();
 
+        // Restore math blocks
+        html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => {
+            return mathBlocks[parseInt(index)];
+        });
+        
+        html = html.replace(/__MATH_INLINE_(\d+)__/g, (match, index) => {
+            return mathBlocks[parseInt(index)];
+        });
+
         return html || '<p></p>';
     }
 
@@ -869,6 +897,36 @@ class BlogApp {
                 </div>
             </article>
         `;
+        
+        // Render LaTeX/KaTeX if available
+        this.renderMath();
+    }
+    
+    renderMath() {
+        // Check if KaTeX is loaded
+        if (typeof renderMathInElement === 'undefined') {
+            console.warn('KaTeX auto-render not loaded yet');
+            return;
+        }
+        
+        // Render math in modal content
+        if (this.elements.modalContent) {
+            try {
+                renderMathInElement(this.elements.modalContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false,
+                    errorColor: '#cc0000',
+                    strict: false
+                });
+            } catch (error) {
+                console.error('KaTeX rendering error:', error);
+            }
+        }
     }
 
     openModal() {

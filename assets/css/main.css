@@ -920,3 +920,66 @@ body.has-sidebar-open.sidebar-overlay-visible::before {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===================================
+   KaTeX Math Rendering Styles
+   =================================== */
+.katex {
+  font-size: 1.05em;
+  color: var(--color-text);
+}
+
+.katex-display {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--color-layer-subtle);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.katex-display > .katex {
+  text-align: center;
+  display: block;
+}
+
+/* Dark theme adjustments for KaTeX */
+body[data-theme="dark"] .katex {
+  color: var(--color-text);
+}
+
+body[data-theme="dark"] .katex-display {
+  background: var(--color-layer-subtle);
+  border-left-color: var(--color-primary);
+}
+
+/* Inline math */
+.katex {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* Math in headings */
+h1 .katex, h2 .katex, h3 .katex, h4 .katex, h5 .katex, h6 .katex {
+  font-size: inherit;
+}
+
+/* Scrollable math expressions */
+.katex-display::-webkit-scrollbar {
+  height: 6px;
+}
+
+.katex-display::-webkit-scrollbar-track {
+  background: var(--color-bg);
+  border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+.katex-display::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
