@@ -63,14 +63,14 @@ if (content && typeof renderMathInElement !== 'undefined') {
 
 ## Expected Results
 
-### ✅ Working Correctly
-- Inline math: $E = mc^2$ renders as formatted equation
-- Display math blocks render centered with proper styling
-- Regular markdown (bold, italic, links, code) still works
-- Console shows "KaTeX rendering completed"
+### Khi mọi thứ hoạt động bình thường
+- Inline math như $E = mc^2$ hiển thị đúng công thức
+- Công thức dạng block căn giữa, font chuẩn
+- Markdown thông thường (bold, italic, link, code) vẫn giữ định dạng
+- Console báo “KaTeX rendering completed”
 
-### ❌ Still Broken
-If math still shows as raw text:
+### Khi vẫn gặp lỗi
+Nếu công thức vẫn hiện dạng text thô:
 
 1. **Check browser cache** - Hard refresh (Ctrl+Shift+R)
 2. **Check console errors** - Look for script loading failures

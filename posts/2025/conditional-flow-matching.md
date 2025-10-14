@@ -44,28 +44,28 @@ Chúng ta vẫn coi thời gian $t \in [0,1]$. Khi $t=0$, mẫu nằm ở base d
 
 ### 3.1 Định nghĩa đường có điều kiện
 
-Với điều kiện $y$, ta mô tả quỹ đạo bằng ODE:
+Khi cố định điều kiện $y$, quỹ đạo thỏa hệ ODE
 
 $$
-\frac{d x_t}{dt} = v_t(x_t \mid y), \qquad x_0 \sim p_0(x \mid y), \quad x_1 \sim p_1(x \mid y)
+\frac{d x_t}{dt} = v_t(x_t \mid y), \qquad x_0 \sim p_0(x \mid y), \quad x_1 \sim p_1(x \mid y).
 $$
 
 **Chú thích:** $x_t$ là trạng thái tại thời gian $t$; $v_t$ là trường vận tốc phụ thuộc $y$; $p_0, p_1$ lần lượt là phân phối đầu/cuối tương ứng điều kiện.
 
 ### 3.2 Đường có điều kiện dễ định nghĩa
 
-Thay vì trực tiếp mô hình hóa $p_t(x \mid y)$, ta xây dựng đường dẫn dựa trên cặp $(x_0, x_1)$ đã ghép với điều kiện:
+Ta có thể dựng đường dẫn đơn giản bằng nội suy tuyến tính theo cặp $(x_0, x_1)$:
 
 $$
-x_t = (1 - t) \, x_0 + t \, x_1
+x_t = (1 - t) \, x_0 + t \, x_1.
 $$
 
 **Chú thích:** Nội suy tuyến tính vẫn hoạt động khi cả $x_0$ và $x_1$ cùng ràng buộc bởi $y$. Với dữ liệu hình ảnh có điều kiện, $x_1$ là ảnh thực thuộc điều kiện, còn $x_0$ lấy từ Gaussian độc lập với $y$ (hoặc Gaussian đã shift theo embed $y$).
 
-Từ quỹ đạo này, vận tốc “thật” là:
+Vận tốc “thật” tương ứng được tính như sau
 
 $$
-u_t(x_t \mid x_0, x_1, y) = x_1 - x_0
+u_t(x_t \mid x_0, x_1, y) = x_1 - x_0.
 $$
 
 ### 3.3 Kết nối Optimal Transport
@@ -76,20 +76,20 @@ Trong OT, ta tìm ánh xạ tối ưu $T_y$ đưa $x_0$ tới $x_1$ với chi ph
 
 ### 4.1 Loss chính
 
-Đặt mạng $v_\theta(x, t, y)$ xấp xỉ vận tốc. Ta huấn luyện bằng loss bình phương:
+Đặt mạng $v_\theta(x, t, y)$ xấp xỉ vận tốc. Ta huấn luyện bằng loss bình phương
 
 $$
-\mathcal{L}_{\text{CFM}}(\theta) = \mathbb{E}_{y, x_0, x_1, t}\Big[\big\|v_\theta(x_t, t, y) - (x_1 - x_0)\big\|^2\Big]
+\mathcal{L}_{\text{CFM}}(\theta) = \mathbb{E}_{y, x_0, x_1, t}\Big[\big\|v_\theta(x_t, t, y) - (x_1 - x_0)\big\|^2\Big].
 $$
 
 **Chú thích:** $x_t$ được dựng từ nội suy ở trên; kỳ vọng lấy trung bình trên điều kiện $y$, cặp mẫu $(x_0, x_1)$ và thời gian $t$.
 
 ### 4.2 Regularizer tính nhất quán
 
-Để đảm bảo vận tốc không “lệch pha” khi ghép điều kiện, ta thêm regularizer identity hoặc consistency:
+Để vận tốc không “lệch pha” khi ghép điều kiện, ta thêm regularizer identity hoặc consistency
 
 $$
-\mathcal{L}_{\text{id}} = \mathbb{E}_{y, x_0}\big[\|v_\theta(x_0, 0, y) - (x_1 - x_0)\big\|^2\big]
+\mathcal{L}_{\text{id}} = \mathbb{E}_{y, x_0}\big[\|v_\theta(x_0, 0, y) - (x_1 - x_0)\|^2\big].
 $$
 
 Hoặc đơn giản hơn, buộc $v_\theta(x, 0, y)$ gần 0 để tránh drift đầu kỳ.
@@ -97,7 +97,7 @@ Hoặc đơn giản hơn, buộc $v_\theta(x, 0, y)$ gần 0 để tránh drift 
 ### 4.3 Loss tổng
 
 $$
-\mathcal{L} = \mathcal{L}_{\text{CFM}} + \lambda_{\text{id}} \mathcal{L}_{\text{id}} + \lambda_{\text{reg}} \|v_\theta\|^2
+\mathcal{L} = \mathcal{L}_{\text{CFM}} + \lambda_{\text{id}} \mathcal{L}_{\text{id}} + \lambda_{\text{reg}} \|v_\theta\|^2.
 $$
 
 **Chú thích:** $\lambda_{\text{id}}, \lambda_{\text{reg}}$ là hệ số điều chỉnh; $\|v_\theta\|^2$ giúp regularize gradient.

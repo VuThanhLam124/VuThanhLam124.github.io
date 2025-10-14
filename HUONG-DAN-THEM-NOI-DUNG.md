@@ -356,16 +356,16 @@ Tìm section `hero-stats` (khoảng dòng 338):
 
 ---
 
-## 🎯 Best Practices
+## Hướng dẫn best practice
 
 ### 1. **Naming Convention**
 
-- **File names:** lowercase, dấu gạch ngang
-  - ✅ `diffusion-transformers.md`
-  - ❌ `Diffusion_Transformers.md`
+- **File names:** lowercase, dùng dấu gạch ngang  
+  - Ví dụ đúng: `diffusion-transformers.md`  
+  - Ví dụ sai: `Diffusion_Transformers.md`
 
-- **Slugs:** giống file name (không cần .md)
-  - ✅ `"slug": "diffusion-transformers"`
+- **Slugs:** giống file name (không cần .md)  
+  - Ví dụ đúng: `"slug": "diffusion-transformers"`
 
 ### 2. **Markdown Format**
 
@@ -417,10 +417,10 @@ Mỗi bài viết nên có:
 ### 5. **Excerpt Writing**
 
 - Dài 1-2 câu (khoảng 20-30 từ)
-- Highlight điểm chính của bài
-- Tránh dùng "Trong bài này..." - đi thẳng vào vấn đề
-- ✅ "Khám phá DiT architecture kết hợp Transformer và Diffusion cho high-quality generation."
-- ❌ "Trong bài này chúng ta sẽ tìm hiểu về DiT."
+- Nêu bật điểm chính của bài
+- Tránh mở đầu bằng "Trong bài này..." – đi thẳng vào nội dung
+- Ví dụ nên dùng: “Khám phá DiT architecture kết hợp Transformer và Diffusion cho high-quality generation.”
+- Ví dụ nên tránh: “Trong bài này chúng ta sẽ tìm hiểu về DiT.”
 
 ---
 

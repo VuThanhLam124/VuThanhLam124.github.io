@@ -181,11 +181,11 @@ And a [link to somewhere](https://example.com).
                     
                     statusEl.className = 'test-section success';
                     statusEl.innerHTML = `
-                        <strong>✅ Test PASSED!</strong><br>
-                        - marked.js: Loaded ✓<br>
-                        - KaTeX: Loaded ✓<br>
-                        - Math elements rendered: ${mathElements.length} ✓<br>
-                        - Integration: Working ✓
+                        <strong>Test PASSED!</strong><br>
+                        - marked.js: Loaded<br>
+                        - KaTeX: Loaded<br>
+                        - Math elements rendered: ${mathElements.length}<br>
+                        - Integration: Working
                     `;
                 } else {
                     throw new Error('renderMathInElement not available');

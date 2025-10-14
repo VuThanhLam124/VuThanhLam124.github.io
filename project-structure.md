@@ -107,31 +107,31 @@ GitHub Pages sẽ tự động serve tại `https://vuthanhlam124.github.io`
 
 ## Tính năng chính của hệ thống:
 
-### ✅ **Scalable Architecture**
+### Kiến trúc mở rộng
 - JSON-based content management
 - Dynamic loading với JavaScript
 - Modular CSS với theme system
 - Progressive enhancement
 
-### ✅ **SEO Optimized** 
+### Tối ưu SEO
 - Semantic HTML structure
 - Meta tags cho mọi page
 - Sitemap và robots.txt
 - Open Graph tags
 
-### ✅ **Performance**
+### Tối ưu hiệu năng
 - CSS/JS minification ready
 - Image lazy loading
 - Progressive loading
 - Client-side caching
 
-### ✅ **Developer Experience**
+### Trải nghiệm cho người viết
 - Write trong Markdown
 - Hot reload ready (với dev server)
 - Easy content management
 - Version control friendly
 
-### ✅ **User Experience**
+### Trải nghiệm người dùng
 - Dark/Light theme toggle
 - Search functionality
 - Responsive design
