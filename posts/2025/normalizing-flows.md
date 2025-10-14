@@ -154,7 +154,7 @@ $$
 \log p_x(x) = \log p_z(z) + \log\left|\frac{df^{-1}}{dx}\right|
 $$
 
-**"Phí co giãn"** $\left| \frac{df^{-1}}{dx} \right|$ điều chỉnh mật độ để bảo toàn tổng xác suất.
+Ở đây, thành phần $\left|\frac{df^{-1}}{dx}\right|$ chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
 
 ### Ví dụ cụ thể
 
@@ -209,11 +209,13 @@ print(f"Max log-prob difference: {(log_p_x - log_p_x_true).abs().max():.6f}")
 
 ### Từ 1D sang nhiều chiều
 
-Khi dữ liệu có nhiều chiều (ví dụ: ảnh 64×64 = 4096 dimensions), "phí co giãn" không còn là một số đơn giản. Nó trở thành **định thức (determinant)** của **ma trận Jacobian**.
+Khi người thợ gốm làm việc với một khối đất sét 3D, thao tác của họ phức tạp hơn nhiều. Họ không chỉ kéo dãn theo một hướng, mà còn bóp, xoắn, và nặn từ mọi phía. Mỗi hành động này làm thay đổi thể tích của một phần đất sét.
+
+Trong không gian nhiều chiều (ví dụ: một bức ảnh có hàng ngàn pixel), "phí co giãn" không còn là một con số đơn giản. Nó trở thành **định thức (determinant)** của **ma trận Jacobian** - một công cụ toán học đo lường sự thay đổi "thể tích" trong không gian đa chiều.
 
 ### Ma trận Jacobian
 
-Cho $f: \mathbb{R}^d \to \mathbb{R}^d$, Jacobian là ma trận đạo hàm riêng:
+Cho hàm biến đổi $f: \mathbb{R}^d \to \mathbb{R}^d$, ma trận Jacobian là một bảng tổng hợp tất cả các đạo hàm riêng, cho biết mỗi chiều của output thay đổi như thế nào khi một chiều của input thay đổi.
 
 $$
 J = \frac{\partial f}{\partial z} = \begin{bmatrix}
@@ -223,22 +225,25 @@ J = \frac{\partial f}{\partial z} = \begin{bmatrix}
 \end{bmatrix}
 $$
 
-**Ý nghĩa hình học:** Jacobian mô tả cách một vùng không gian nhỏ bị co giãn, xoay, biến dạng.
+**Ý nghĩa hình học:** Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đầu. Sau khi người thợ nặn, nó có thể trở thành một hình bình hành bị kéo dài và xoay đi. Ma trận Jacobian mô tả chính xác phép biến đổi từ hình vuông sang hình bình hành đó.
 
-**Định thức:** $\det(J)$ cho biết **thể tích** của vùng đó thay đổi bao nhiêu lần.
+**Định thức:** Giá trị tuyệt đối của định thức, $|\det(J)|$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
 
 ### Change of Variables (nhiều chiều)
+
+Công thức tổng quát trở thành:
 
 $$
 \log p_x(x) = \log p_z(z) - \log\left|\det\left(\frac{\partial f}{\partial z}\right)\right|
 $$
 
-**Vấn đề lớn:** Tính $\det(J)$ cho ma trận $d \times d$ có độ phức tạp $O(d^3)$!
+**Vấn đề lớn:** Việc tính toán định thức của ma trận Jacobian có độ phức tạp $O(d^3)$. Đây là một rào cản khổng lồ. Nếu "tác phẩm" của chúng ta là một bức ảnh 64x64 pixel ($d=4096$), phép tính này gần như bất khả thi.
 
-Với ảnh 64×64:
-- $d = 4096$
-- $O(d^3) = O(68{,}719{,}476{,}736)$ operations
-- **Không khả thi!**
+$$
+d = 4096 \implies O(d^3) \approx O(6.8 \times 10^{10}) \text{ phép tính}
+$$
+
+Làm thế nào người thợ gốm có thể thực hiện một thao tác phức tạp mà vẫn dễ dàng tính được sự thay đổi thể tích? Đây là lúc cần đến những "kỹ thuật" thông minh.
 
 ### Ví dụ: Affine transformation 2D
 
@@ -281,40 +286,53 @@ print(f"Log-determinant: {log_det:.4f}")
 
 ### Ý tưởng thiên tài
 
-Để tránh tính toán $O(d^3)$, chúng ta thiết kế transformation sao cho Jacobian có **cấu trúc đặc biệt** → tính determinant chỉ mất $O(d)$!
+Làm thế nào để người thợ gốm bậc thầy có thể tạo ra những tác phẩm phức tạp mà không cần phải tính toán những chi phí khổng lồ? Họ sử dụng một mẹo cực kỳ thông minh: **chia để trị**.
+
+Thay vì biến đổi toàn bộ khối đất sét cùng một lúc, người thợ giữ một nửa khối đất sét bằng một tay, và dùng tay kia để nặn nửa còn lại. Quan trọng hơn, cách họ nặn nửa thứ hai lại **phụ thuộc vào hình dạng của nửa thứ nhất**.
+
+Đây chính là ý tưởng cốt lõi của **Coupling Layers**.
 
 ### Coupling Layer (RealNVP)
 
-**Ý tưởng:** Chia vector $z$ thành 2 nửa:
+**Ý tưởng:** Chia các chiều dữ liệu (dimensions) thành hai phần, $z_A$ và $z_B$.
+1.  **Giữ nguyên phần A:** $x_A = z_A$. Giống như tay giữ yên một nửa khối đất.
+2.  **Biến đổi phần B:** Nửa thứ hai, $x_B$, được biến đổi bằng một hàm đơn giản (scale và shift), nhưng các tham số của hàm này (độ co giãn `s` và độ dịch chuyển `t`) lại được tính toán từ nửa thứ nhất, $z_A$.
 
 $$
 \begin{aligned}
-x_{1:d/2} &= z_{1:d/2} \quad \text{(giữ nguyên)} \\
-x_{d/2+1:d} &= z_{d/2+1:d} \odot \exp(s(z_{1:d/2})) + t(z_{1:d/2})
+x_A &= z_A \\
+x_B &= z_B \odot \exp(s(z_A)) + t(z_A)
 \end{aligned}
 $$
 
-Trong đó:
-- $s(\cdot)$: **scale network** (neural net)
-- $t(\cdot)$: **translation network** (neural net)  
-- $\odot$: element-wise multiplication
+Trong đó $s(\cdot)$ và $t(\cdot)$ là các mạng neural nhỏ.
 
 **Jacobian có dạng tam giác:**
 
+Phép biến đổi này tạo ra một ma trận Jacobian có dạng tam giác dưới (lower triangular):
+
 $$
 J = \begin{bmatrix}
-I_{d/2} & 0 \\
-\frac{\partial x_{d/2+1:d}}{\partial z_{1:d/2}} & \text{diag}(\exp(s(z_{1:d/2})))
+I & 0 \\
+\frac{\partial x_B}{\partial z_A} & \text{diag}(\exp(s(z_A)))
 \end{bmatrix}
 $$
 
-**Determinant cực kỳ đơn giản:**
+**Điều kỳ diệu:** Định thức của một ma trận tam giác chỉ đơn giản là **tích các phần tử trên đường chéo chính**.
 
 $$
-\log|\det(J)| = \sum_{i=d/2+1}^{d} s_i(z_{1:d/2})
+\det(J) = \prod \exp(s_i(z_A))
 $$
 
-Chỉ cần **cộng các phần tử** → $O(d)$ thay vì $O(d^3)$!
+Và log-determinant trở thành một phép cộng:
+
+$$
+\log|\det(J)| = \sum s_i(z_A)
+$$
+
+Phép tính từ $O(d^3)$ đã trở thành $O(d)$! Người thợ gốm giờ đây có thể thực hiện một bước nặn phức tạp mà vẫn tính được "phí co giãn" một cách dễ dàng.
+
+Để đảm bảo mọi phần của "khối đất" đều được nặn, chúng ta chỉ cần hoán vị các chiều dữ liệu và lặp lại quá trình này nhiều lần.
 
 ### Implementation PyTorch
 
@@ -490,45 +508,45 @@ with torch.no_grad():
 
 ### Từ rời rạc sang liên tục
 
-Quay lại ví dụ người thợ gốm. Thay vì xem từng động tác rời rạc (như flipbook), **CNF** mô tả toàn bộ quá trình như một video mượt mà, liên tục.
+Đến giờ, chúng ta hình dung người thợ gốm thực hiện một chuỗi các thao tác **rời rạc**: nặn, kéo, xoắn... giống như xem một cuốn sách lật (flipbook). Mỗi trang là một bước biến đổi.
 
-**Discrete NF:**
+**Continuous Normalizing Flows (CNF)** đề xuất một góc nhìn khác: điều gì sẽ xảy ra nếu quá trình nặn gốm là một **dòng chảy liên tục, mượt mà**? Thay vì các bước riêng lẻ, hãy tưởng tượng một video quay chậm, ghi lại chuyển động của từng phân tử đất sét từ khối cầu ban đầu đến con rồng hoàn thiện.
+
+**Discrete NF (sách lật):**
 $$
-z_0 \to z_1 \to z_2 \to \cdots \to z_K = x
+z_0 \xrightarrow{f_1} z_1 \xrightarrow{f_2} \cdots \to z_K = x
 $$
 
-**Continuous NF:**
+**Continuous NF (video):**
+Thay vì một chuỗi hàm, chúng ta học một **trường vector (vector field)** $f$ phụ thuộc vào thời gian. Trường vector này giống như một "dòng chảy" vô hình, chỉ đạo hướng di chuyển cho mỗi "phân tử" $z$ tại mỗi thời điểm $t$.
+
 $$
 \frac{dz(t)}{dt} = f(z(t), t; \theta) \quad \text{với } t \in [0, 1]
 $$
 
-Trong đó:
-- $z(0) \sim p_0$ (base distribution)
-- $z(1) = x \sim p_{\text{data}}$
-- $f(\cdot, \cdot; \theta)$ là **vector field** học được
-
-### Ý nghĩa
-
-- $f(z, t)$ cho biết "vận tốc" của điểm $z$ tại thời điểm $t$
-- Tưởng tượng dòng nước chảy: mỗi giọt nước (data point) di chuyển theo hướng được chỉ định bởi vector field
+- $z(0)$ là một điểm trong khối đất sét ban đầu.
+- $z(1)$ là điểm tương ứng trên tác phẩm hoàn thiện.
+- $f(z(t), t)$ là "vận tốc" của hạt đất sét tại vị trí $z$ và thời gian $t$.
 
 ### Instantaneous Change of Variables
 
-Log-density evolution theo thời gian:
+Với cách tiếp cận này, "phí co giãn" cũng được tính một cách liên tục. Thay vì tính định thức của cả một bước biến đổi lớn, chúng ta chỉ cần tính "tốc độ thay đổi thể tích" tại mỗi khoảnh khắc. Tốc độ này được đo bằng **vết (trace)** của ma trận Jacobian, là tổng các phần tử trên đường chéo chính.
 
 $$
 \frac{d \log p_t(z(t))}{dt} = -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right)
 $$
 
-**Ưu điểm lớn:** Chỉ cần **trace** (sum of diagonal), không cần full determinant!
+**Ưu điểm lớn:** Tính trace ($O(d^2)$) rẻ hơn nhiều so với tính determinant ($O(d^3)$). Hơn nữa, chúng ta có thể ước tính nó một cách hiệu quả với độ phức tạp chỉ $O(d)$ bằng **Hutchinson's Trace Estimator**. Người thợ gốm giờ đây có thể theo dõi sự thay đổi thể tích một cách liên tục và hiệu quả.
 
 ### Augmented ODE
 
-Để tính log-likelihood, ta solve ODE augmented:
+Để vừa biến đổi hình dạng, vừa theo dõi "phí co giãn", chúng ta giải một phương trình vi phân kết hợp cả hai:
 
 $$
 \frac{d}{dt} \begin{bmatrix} z(t) \\ \log p_t(z(t)) \end{bmatrix} = \begin{bmatrix} f(z(t), t) \\ -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right) \end{bmatrix}
 $$
+
+Giải phương trình này từ $t=0$ đến $t=1$ sẽ cho chúng ta cả tác phẩm $x=z(1)$ và tổng "phí co giãn" tích lũy trên toàn bộ quá trình.
 
 ### Hutchinson's Trace Estimator
 
@@ -686,9 +704,13 @@ class ContinuousNormalizingFlow(nn.Module):
 
 ## 8. Advanced Topics & FFJORD
 
-### FFJORD Architecture
+### FFJORD: Nghệ thuật điêu khắc tự do
 
-**Free-Form Jacobian of Reversible Dynamics** - state-of-the-art CNF với exact likelihood.
+Nếu Coupling Layers là kỹ thuật "chia để trị" thông minh, thì **FFJORD** (Free-Form Jacobian of Reversible Dynamics) đưa người thợ gốm lên một tầm cao mới: **nghệ thuật điêu khắc tự do**.
+
+Với các kiến trúc trước đây như RealNVP, người thợ bị giới hạn trong các thao tác có cấu trúc (giữ một nửa, nặn nửa kia). FFJORD giải phóng họ khỏi những ràng buộc này. Giờ đây, người thợ có thể dùng cả hai tay, nặn toàn bộ khối đất sét một cách tự do, tạo ra những hình dạng phức tạp và tự nhiên hơn nhiều.
+
+FFJORD là một kiến trúc CNF hiện đại, cho phép sử dụng một mạng neural "tự do" (free-form) để định nghĩa trường vector $f(z, t)$. Nó kết hợp sức mạnh của CNF (kiến trúc không bị ràng buộc) và khả năng tính toán likelihood chính xác thông qua việc ước tính trace một cách hiệu quả.
 
 ```python
 class FFJORD(nn.Module):
