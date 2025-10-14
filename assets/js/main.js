@@ -955,6 +955,22 @@ class BlogApp {
         if (!this.elements.modalContent) return;
         const author = post.author || 'ThanhLamDev';
         const category = post.category || 'Chưa phân loại';
+        
+        // Find next post in same category
+        const nextPost = this.findNextPostInCategory(post);
+        const nextPostHTML = nextPost ? `
+            <div class="next-post-section">
+                <h4>Bài viết tiếp theo:</h4>
+                <ul>
+                    <li>
+                        <a href="#" data-action="open-post" data-slug="${nextPost.slug}">
+                            ${nextPost.title}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        ` : '';
+        
         this.elements.modalContent.innerHTML = `
             <article class="full-post">
                 <header>
@@ -971,11 +987,39 @@ class BlogApp {
                 <div class="full-post__body">
                     ${content}
                 </div>
+                ${nextPostHTML}
             </article>
         `;
         
+        // Attach click handlers for next post link
+        if (nextPost) {
+            this.attachPostOpenHandlers(this.elements.modalContent);
+        }
+        
         // Render LaTeX/KaTeX with delay to ensure DOM is ready
         setTimeout(() => this.renderMath(), 100);
+    }
+    
+    findNextPostInCategory(currentPost) {
+        // Get all posts in the same category
+        const postsInCategory = this.state.posts.filter(
+            post => post.category === currentPost.category
+        );
+        
+        // Sort by date
+        postsInCategory.sort((a, b) => a.dateObject.getTime() - b.dateObject.getTime());
+        
+        // Find current post index
+        const currentIndex = postsInCategory.findIndex(
+            post => post.slug === currentPost.slug
+        );
+        
+        // Return next post if exists
+        if (currentIndex >= 0 && currentIndex < postsInCategory.length - 1) {
+            return postsInCategory[currentIndex + 1];
+        }
+        
+        return null;
     }
     
     renderMath() {

@@ -939,10 +939,4 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 4. **Chen et al. (2018)** - "Neural Ordinary Differential Equations" (NeurIPS Best Paper)
 5. **Grathwohl et al. (2019)** - "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models" (ICLR)
 
----
-
-**Bài viết tiếp theo:**
-- [Real NVP & Glow: Deep Dive](/posts/2025/realnvp-glow)
-- [Rectified Flows: Straight Paths to Generation](/posts/2025/rectified-flows)
-
 <script src="/assets/js/katex-init.js"></script>
