@@ -39,7 +39,8 @@ Generator $G_t$ là quy tắc biến đổi noise $Z$ thành mẫu tại thời 
 - Với SDE/diffusion: generator là toán tử Kolmogorov (Liouville operator).
 - Với GAN: generator là mạng tạo ảnh duy nhất (không thời gian).
 
-Ta muốn học $G_\theta$ sao cho quỹ đạo sinh ra tương đồng với quỹ đạo “chuẩn” $G^*$ (optimal). Mỗi phương pháp xây dựng loss khác nhau để ép $G_\theta$ khớp $G^*$.
+Ta muốn học $G_{\theta}$ sao cho quỹ đạo sinh ra tương đồng với quỹ đạo “chuẩn” $G^{\ast}$ (optimal).  
+Mỗi phương pháp xây dựng một hàm mất mát phù hợp để ép $G_{\theta}$ khớp với $G^{\ast}$.
 
 ## 3. Khung toán học
 
