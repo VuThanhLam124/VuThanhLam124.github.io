@@ -745,8 +745,34 @@ class BlogApp {
     parseMarkdown(raw) {
         if (!raw) return '<p></p>';
 
+        // Remove front matter
         const withoutFrontMatter = raw.replace(/^---[\s\S]*?---\s*/, '').trim();
-        const lines = withoutFrontMatter.split(/\r?\n/);
+        
+        // Use marked.js if available, otherwise fallback to simple parser
+        if (typeof marked !== 'undefined') {
+            // Configure marked to not escape LaTeX
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: true,
+                mangle: false,
+                sanitize: false
+            });
+            
+            try {
+                return marked.parse(withoutFrontMatter);
+            } catch (error) {
+                console.error('Marked.js parsing error:', error);
+                // Fallback to simple parser
+            }
+        }
+        
+        // Fallback: Simple parser (preserve original logic)
+        return this.simpleMarkdownParse(withoutFrontMatter);
+    }
+    
+    simpleMarkdownParse(content) {
+        const lines = content.split(/\r?\n/);
 
         let html = '';
         let paragraphBuffer = [];
@@ -760,14 +786,15 @@ class BlogApp {
         const flushParagraph = () => {
             if (!paragraphBuffer.length) return;
             const text = paragraphBuffer.join(' ');
-            html += `<p>${this.inlineMarkdown(text)}</p>`;
+            // Don't process inline markdown - preserve everything for KaTeX
+            html += `<p>${text}</p>`;
             paragraphBuffer = [];
         };
 
         const flushList = () => {
             if (!listBuffer.length) return;
             const items = listBuffer
-                .map((item) => `<li>${this.inlineMarkdown(item)}</li>`)
+                .map((item) => `<li>${item}</li>`)
                 .join('');
             html += `<ul>${items}</ul>`;
             listBuffer = [];
@@ -869,14 +896,24 @@ class BlogApp {
     }
 
     inlineMarkdown(text) {
-        // Don't touch $ symbols - let KaTeX handle them
-        // Only process other markdown
-        return text
-            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.+?)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
-            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        // IMPORTANT: Preserve LaTeX completely - don't process $ or backslash commands
+        // Only process markdown that doesn't interfere with LaTeX
+        
+        let result = text;
+        
+        // Process code blocks first (safe)
+        result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
+        
+        // Process links - but be careful not to catch \[...\] LaTeX
+        // Only match [text](url) pattern, not \[ or \]
+        result = result.replace(/(?<!\\)\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+        
+        // Process bold/italic - but avoid $$ blocks
+        result = result.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+        result = result.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        result = result.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        
+        return result;
     }
 
     escapeHtml(text) {

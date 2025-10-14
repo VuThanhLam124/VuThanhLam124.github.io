@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaTeX Test</title>
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        body {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+        
+        h1, h2 { color: #0b73b7; }
+        
+        .katex-display {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-left: 3px solid #0b73b7;
+            border-radius: 8px;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>KaTeX Math Rendering Test</h1>
+    
+    <h2>1. Inline Math</h2>
+    <p>
+        This is inline math: $f: \mathbb{R}^d \rightarrow \mathbb{R}^d$, 
+        and here's another: $E = mc^2$.
+    </p>
+    
+    <h2>2. Display Math (Block)</h2>
+    <p>Here's a display equation:</p>
+    
+    $$
+    p_x(x) = p_z(f^{-1}(x)) \left| \det \frac{\partial f^{-1}(x)}{\partial x} \right|
+    $$
+    
+    <p>And another one:</p>
+    
+    $$
+    \log p_x(x) = \log p_z(z) + \log \left| \det \frac{\partial f}{\partial z} \right|^{-1}
+    $$
+    
+    <h2>3. Complex Formulas</h2>
+    
+    $$
+    \frac{dz(t)}{dt} = f(z(t), t, \theta)
+    $$
+    
+    $$
+    \log p_1(z(1)) = \log p_0(z(0)) - \int_0^1 \text{tr}\left(\frac{\partial f}{\partial z(t)}\right) dt
+    $$
+    
+    <h2>4. Matrix Notation</h2>
+    
+    $$
+    J = \begin{bmatrix}
+    I_{d \times d} & 0 \\
+    \frac{\partial y_{d+1:D}}{\partial x_{1:d}} & \text{diag}(\exp(s(x_{1:d})))
+    \end{bmatrix}
+    $$
+    
+    <h2>5. Aligned Equations</h2>
+    
+    $$
+    \begin{aligned}
+    y_{1:d} &= x_{1:d} \\
+    y_{d+1:D} &= x_{d+1:D} \odot \exp(s(x_{1:d})) + t(x_{1:d})
+    \end{aligned}
+    $$
+    
+    <script>
+        // Wait for KaTeX to load, then render
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false,
+                        trust: true
+                    });
+                    console.log('KaTeX rendered successfully!');
+                } else {
+                    console.error('KaTeX not loaded');
+                }
+            }, 500);
+        });
+    </script>
+    
+    <hr style="margin: 3rem 0;">
+    <p style="color: #666; font-size: 0.9rem;">
+        <strong>How to use:</strong> Open this file in your browser. 
+        If all math formulas render correctly with proper typography, 
+        then KaTeX is working! Check the browser console for any errors.
+    </p>
+</body>
+</html>
