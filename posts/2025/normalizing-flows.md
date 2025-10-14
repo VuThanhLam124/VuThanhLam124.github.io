@@ -227,7 +227,7 @@ $$
 
 **Ý nghĩa hình học:** Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đầu. Sau khi người thợ nặn, nó có thể trở thành một hình bình hành bị kéo dài và xoay đi. Ma trận Jacobian mô tả chính xác phép biến đổi từ hình vuông sang hình bình hành đó.
 
-**Định thức:** Giá trị tuyệt đối của định thức, $|\det(J)|$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
+**Định thức:** Giá trị tuyệt đối của định thức, $$|\det(J)|$$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
 
 ### Change of Variables (nhiều chiều)
 
@@ -941,7 +941,6 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 ---
 
 **Bài viết tiếp theo:**
-- [Flow Matching: Từ lý thuyết đến thực hành](/posts/2025/flow-matching-theory)
 - [Real NVP & Glow: Deep Dive](/posts/2025/realnvp-glow)
 - [Rectified Flows: Straight Paths to Generation](/posts/2025/rectified-flows)
 
