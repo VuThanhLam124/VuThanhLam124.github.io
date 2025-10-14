@@ -746,32 +746,16 @@ class BlogApp {
         if (!raw) return '<p></p>';
 
         const withoutFrontMatter = raw.replace(/^---[\s\S]*?---\s*/, '').trim();
-        
-        // Protect LaTeX blocks from markdown parsing
-        const mathBlocks = [];
-        let protected = withoutFrontMatter;
-        
-        // Protect display math $$...$$
-        protected = protected.replace(/\$\$([\s\S]*?)\$\$/g, (match, content) => {
-            const index = mathBlocks.length;
-            mathBlocks.push(`$$${content}$$`);
-            return `__MATH_BLOCK_${index}__`;
-        });
-        
-        // Protect inline math $...$
-        protected = protected.replace(/\$([^\$\n]+?)\$/g, (match, content) => {
-            const index = mathBlocks.length;
-            mathBlocks.push(`$${content}$`);
-            return `__MATH_INLINE_${index}__`;
-        });
-        
-        const lines = protected.split(/\r?\n/);
+        const lines = withoutFrontMatter.split(/\r?\n/);
 
         let html = '';
         let paragraphBuffer = [];
         let listBuffer = [];
         let inCodeBlock = false;
+        let inMathBlock = false;
         let codeBuffer = [];
+        let mathBuffer = [];
+        let codeLanguage = '';
 
         const flushParagraph = () => {
             if (!paragraphBuffer.length) return;
@@ -792,13 +776,23 @@ class BlogApp {
         const flushCode = () => {
             if (!codeBuffer.length) return;
             const content = this.escapeHtml(codeBuffer.join('\n'));
-            html += `<pre><code>${content}</code></pre>`;
+            const lang = codeLanguage ? ` class="language-${codeLanguage}"` : '';
+            html += `<pre><code${lang}>${content}</code></pre>`;
             codeBuffer = [];
+            codeLanguage = '';
+        };
+
+        const flushMath = () => {
+            if (!mathBuffer.length) return;
+            // Keep math blocks as-is for KaTeX to process
+            html += '\n$$\n' + mathBuffer.join('\n') + '\n$$\n';
+            mathBuffer = [];
         };
 
         lines.forEach((line) => {
             const trimmed = line.trim();
 
+            // Handle code blocks
             if (trimmed.startsWith('```')) {
                 if (inCodeBlock) {
                     flushCode();
@@ -806,13 +800,34 @@ class BlogApp {
                 } else {
                     flushParagraph();
                     flushList();
+                    flushMath();
                     inCodeBlock = true;
+                    // Extract language
+                    codeLanguage = trimmed.substring(3).trim();
                 }
                 return;
             }
 
             if (inCodeBlock) {
                 codeBuffer.push(line);
+                return;
+            }
+
+            // Handle display math blocks $$
+            if (trimmed === '$$') {
+                if (inMathBlock) {
+                    flushMath();
+                    inMathBlock = false;
+                } else {
+                    flushParagraph();
+                    flushList();
+                    inMathBlock = true;
+                }
+                return;
+            }
+
+            if (inMathBlock) {
+                mathBuffer.push(line);
                 return;
             }
 
@@ -827,43 +842,41 @@ class BlogApp {
                 flushParagraph();
                 flushList();
                 const level = headingMatch[1].length;
-                html += `<h${level}>${this.inlineMarkdown(
-                    headingMatch[2]
-                )}</h${level}>`;
+                const headingText = headingMatch[2];
+                // Preserve inline math in headings
+                html += `<h${level}>${headingText}</h${level}>`;
                 return;
             }
 
             if (/^[-*]\s+/.test(trimmed)) {
                 flushParagraph();
-                listBuffer.push(trimmed.replace(/^[-*]\s+/, ''));
+                const itemText = trimmed.replace(/^[-*]\s+/, '');
+                // Preserve inline math in list items
+                listBuffer.push(itemText);
                 return;
             }
 
+            // Regular paragraph - preserve inline math
             paragraphBuffer.push(trimmed);
         });
 
         flushParagraph();
         flushList();
         flushCode();
-
-        // Restore math blocks
-        html = html.replace(/__MATH_BLOCK_(\d+)__/g, (match, index) => {
-            return mathBlocks[parseInt(index)];
-        });
-        
-        html = html.replace(/__MATH_INLINE_(\d+)__/g, (match, index) => {
-            return mathBlocks[parseInt(index)];
-        });
+        flushMath();
 
         return html || '<p></p>';
     }
 
     inlineMarkdown(text) {
+        // Don't touch $ symbols - let KaTeX handle them
+        // Only process other markdown
         return text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
             .replace(/`([^`]+)`/g, '<code>$1</code>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
     }
 
     escapeHtml(text) {
@@ -898,14 +911,16 @@ class BlogApp {
             </article>
         `;
         
-        // Render LaTeX/KaTeX if available
-        this.renderMath();
+        // Render LaTeX/KaTeX with delay to ensure DOM is ready
+        setTimeout(() => this.renderMath(), 100);
     }
     
     renderMath() {
         // Check if KaTeX is loaded
         if (typeof renderMathInElement === 'undefined') {
-            console.warn('KaTeX auto-render not loaded yet');
+            console.warn('KaTeX auto-render not loaded yet, retrying...');
+            // Retry after libraries load
+            setTimeout(() => this.renderMath(), 500);
             return;
         }
         
@@ -921,8 +936,10 @@ class BlogApp {
                     ],
                     throwOnError: false,
                     errorColor: '#cc0000',
-                    strict: false
+                    strict: false,
+                    trust: true
                 });
+                console.log('KaTeX rendering completed');
             } catch (error) {
                 console.error('KaTeX rendering error:', error);
             }
