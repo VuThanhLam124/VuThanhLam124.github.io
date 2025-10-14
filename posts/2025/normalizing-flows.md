@@ -1,100 +1,216 @@
-# Normalizing Flows và Continuous Normalizing Flows: Nguồn gốc, Động cơ, Giải thích chi tiết & Ví dụ trực quan
-
-## 1. Nguồn gốc và Lý do xây dựng thuật toán
-
-Trong generative modeling, mục tiêu là học phân phối dữ liệu phức tạp để sinh ra mẫu dữ liệu mới tương tự thật. Các mô hình trước như VAEs (dễ sinh mẫu, nhưng likelihood chỉ xấp xỉ) hoặc GANs (sinh mẫu đẹp, nhưng không tính likelihood) đều có giới hạn. Ngược lại, **Normalizing Flows (NF)** giúp:
-- Tính toán chính xác xác suất từng mẫu.
-- Sinh mẫu hiệu quả qua biến đổi có thể đảo ngược giữa phân phối đơn giản (Gaussian) và dữ liệu thực tế.
-
+---
+title: "Normalizing Flow & Continuous Normalizing Flow"
+date: "2025-01-15"
+category: "flow-based-models"
+tags: ["normalizing-flows", "continuous-normalizing-flows", "neural-ode", "generative-models"]
+description: "Tìm hiểu về Normalizing Flows và Continuous Normalizing Flows - nền tảng của các mô hình generative hiện đại với khả năng tính exact likelihood"
 ---
 
-## 2. Thành phần chi tiết & Ví dụ trực quan
+# Normalizing Flow & Continuous Normalizing Flow
 
-### 2.1 Công thức biến đổi biến ngẫu nhiên
+## Tổng quan
 
-**Ví dụ 1: Biến đổi đơn giản**
+Normalizing Flows (NF) là một họ các mô hình generative cho phép tính toán exact likelihood thông qua chuỗi các biến đổi invertible. Continuous Normalizing Flows (CNF) mở rộng ý tưởng này sang không gian liên tục với Neural ODEs.
 
-Giả sử bạn có một biến ngẫu nhiên chuẩn $z \sim \mathcal{N}(0,1)$ và hàm $f(z) = 2z + 1$. Vậy $x = f(z)$ là phân phối nào? Dùng công thức biến đổi:
-- $f^{-1}(x) = (x - 1)/2$
-- Mật độ $p_x(x) = p_z(f^{-1}(x)) \cdot |df^{-1}/dx|$
-- Với $df^{-1}/dx = 1/2$, nên
+## 1. Normalizing Flows - Foundations
 
-\[
-p_x(x) = \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(x-1)^2}{8}\right) \cdot \frac{1}{2}
-\]
+### 1.1 Change of Variables Formula
 
-Biến đổi kéo giãn và dịch chuyển Gaussian thành Gaussian mới.
+Cho biến đổi invertible $f: \mathbb{R}^d \to \mathbb{R}^d$, với $z \sim p_z(z)$ và $x = f(z)$:
 
-**Ví dụ 2: Biến đổi phi tuyến**
+$$
+p_x(x) = p_z(f^{-1}(x)) \left| \det \frac{\partial f^{-1}}{\partial x} \right|
+$$
 
-Giả sử $f(z) = z^3$.
-- $f^{-1}(x) = x^{1/3}$
-- $df^{-1}/dx = \frac{1}{3}x^{-2/3}$
+Hoặc tương đương:
 
-Mật độ mới sẽ bị bóp méo, không phải Gaussian, và vùng $x$ lớn/nhỏ sẽ scale khác nhau tùy thuộc độ dốc của $f$.
+$$
+\log p_x(x) = \log p_z(z) - \log \left| \det \frac{\partial f}{\partial z} \right|
+$$
 
-### 2.2 Thách thức Jacobian
+### 1.2 Stacking Multiple Flows
 
-**Ví dụ 3: Ảnh số & Ma trận lớn**
+Với chuỗi transformations $f = f_K \circ f_{K-1} \circ ... \circ f_1$:
 
-Với ảnh đầu vào $x \in \mathbb{R}^{4096}$ (64x64 pixels), ma trận Jacobian có $4096^2$ phần tử. Nếu dùng biến đổi tổng quát, việc tính determinant là không khả thi. Vì vậy các kiến trúc như RealNVP, Glow dùng coupling layers đảm bảo việc tính determinant chỉ còn là tích các số (cực kì nhanh).
+$$
+\log p_x(x) = \log p_z(z_0) - \sum_{k=1}^K \log \left| \det \frac{\partial f_k}{\partial z_{k-1}} \right|
+$$
 
-### 2.3 Ghép nhiều flows
+### 1.3 Jacobian Computation Challenge
 
-**Ví dụ 4: Chuỗi biến đổi đơn giản**
+**Vấn đề:** Tính determinant của Jacobian matrix $d \times d$ có độ phức tạp $O(d^3)$ - không khả thi với high-dimensional data.
 
-Thay vì chỉ dùng $f(z)$, ta xếp $f_1, f_2, ..., f_K$ để mô hình hóa dần sự phức tạp. Tưởng tượng như bạn xoay, kéo giãn, lật trong không gian đặc trưng, cứ mỗi biến đổi là một bước tiến sát đến phân phối dữ liệu thực tế hơn.
+**Giải pháp:** Thiết kế architectures với Jacobian có cấu trúc đặc biệt:
+- **Triangular Jacobian**: $O(d)$ computation
+- **Coupling layers**: Split dimensions, transform subset
 
----
+## 2. Continuous Normalizing Flows
 
-## 3. Continuous Normalizing Flows (CNF)
+### 2.1 Từ Discrete đến Continuous
 
-**Ví dụ 5: Dòng nước chảy**
+Thay vì discrete transformations, CNF sử dụng continuous-time dynamics:
 
-Thay vì biến đổi từng bước, CNF là biến đổi liên tục: tưởng tượng một giọt nước di chuyển dọc theo dòng chảy vector field (hàm $f(z, t)$), chuyển từ vị trí gốc (phân phối base) tới vị trí đích (phân phối cuối) qua thời gian $t$.
+$$
+\frac{dz(t)}{dt} = f(z(t), t, \theta)
+$$
 
-Như vẽ xiên một vùng mực nước, mỗi điểm di chuyển theo vector hướng dẫn $f(z, t)$ - không phải nhảy từng bước mà biến đổi dần dần.
+với $z(0) \sim p_0$ (base distribution) và $z(1) = x$ (data distribution).
 
-### Định lý Instantaneous Change of Variables
+### 2.2 Instantaneous Change of Variables
 
-Thay vì đo thể tích của không gian tại điểm cuối bằng Jacobian, ta theo dõi liên tục **tốc độ “co giãn”** thể tích khi nước chảy, rồi tích hợp toàn bộ quá trình lại để tính mật độ cuối cùng.
+Thay vì tính tổng log-det Jacobians, CNF trace evolution của log-density:
 
----
+$$
+\frac{\partial \log p_t(z(t))}{\partial t} = -\text{Tr}\left(\frac{\partial f}{\partial z}\right)
+$$
 
-## 4. Kết nối Neural ODE
+**Augmented ODE:**
 
-**Ví dụ 6: Giải phương trình vi phân bằng máy tính**
+$$
+\frac{d}{dt}\begin{bmatrix} z(t) \\ \log p_t(z(t)) \end{bmatrix} = \begin{bmatrix} f(z(t), t, \theta) \\ -\text{Tr}\left(\frac{\partial f}{\partial z}\right) \end{bmatrix}
+$$
 
-Cũng như dự báo đường đi của vật thể dưới lực tác động, mẫu $z_0$ sẽ “trôi” theo vector field $f(z, t)$ để tới $x$. Máy tính dùng các solver số (thường Runge-Kutta) để tính toán các điểm “nước chảy” cách nhau $\Delta t$ nhỏ, càng nhỏ thì mô phỏng càng chính xác.
+### 2.3 Neural ODE Connection
 
----
+CNF được implement thông qua Neural ODEs:
+- **Forward pass**: Solve ODE từ $t=0$ đến $t=1$ để sinh samples
+- **Backward pass**: Adjoint method để tính gradients
+- **Flexible architectures**: Không yêu cầu invertibility tại mỗi timestep
 
-## 5. Mã nguồn minh hoạ
+## 3. Ưu điểm & Nhược điểm
 
-Một mạng vector field đơn giản (PyTorch):
+### Ưu điểm của Normalizing Flows:
+✅ **Exact likelihood computation** - không cần approximation
+✅ **Exact sampling** - efficient generation process
+✅ **Flexible architectures** (với CNF)
+✅ **Stable training** - không có mode collapse như GANs
+
+### Nhược điểm:
+❌ **Jacobian constraints** - hạn chế architecture design (discrete NF)
+❌ **Computational cost** - CNF yêu cầu ODE solvers
+❌ **Quality trade-off** - thường tạo samples kém hơn GANs/Diffusion
+
+## 4. Code Implementation
+
+### 4.1 Simple Vector Field (PyTorch)
+
 ```python
+import torch
 import torch.nn as nn
+
 class VectorField(nn.Module):
+    """Neural network parameterizing the vector field f(z,t)"""
     def __init__(self, dim, hidden_dim=64):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(dim + 1, hidden_dim),
+            nn.Linear(dim + 1, hidden_dim),  # +1 for time
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
             nn.Linear(hidden_dim, dim)
         )
+    
     def forward(self, t, z):
-        t_expand = t.expand(z.shape[0], 1)
-        tz = torch.cat([t_expand, z], dim=1)
+        # t: scalar time
+        # z: (batch_size, dim)
+        t_vec = t * torch.ones(z.shape[0], 1).to(z.device)
+        tz = torch.cat([t_vec, z], dim=1)
         return self.net(tz)
 ```
 
+### 4.2 CNF with torchdiffeq
+
+```python
+from torchdiffeq import odeint
+
+class CNF(nn.Module):
+    def __init__(self, vector_field):
+        super().__init__()
+        self.vf = vector_field
+        
+    def forward(self, z0, t_span):
+        """
+        z0: initial state (batch_size, dim)
+        t_span: time points to evaluate, e.g., torch.tensor([0., 1.])
+        """
+        # Solve ODE
+        z_t = odeint(self.vf, z0, t_span, method='dopri5')
+        return z_t[-1]  # Return final state
+    
+    def sample(self, num_samples, device='cuda'):
+        """Generate samples from base distribution"""
+        z0 = torch.randn(num_samples, self.vf.net[0].in_features - 1).to(device)
+        t_span = torch.tensor([0., 1.]).to(device)
+        return self.forward(z0, t_span)
+```
+
+### 4.3 Training Loop
+
+```python
+def train_cnf(model, dataloader, num_epochs=100):
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    
+    for epoch in range(num_epochs):
+        for batch in dataloader:
+            x = batch.to(device)  # Real data
+            
+            # Forward: x (t=1) -> z (t=0)
+            t_span = torch.tensor([1., 0.]).to(device)
+            z = model(x, t_span)
+            
+            # Compute negative log-likelihood
+            # (Simplified - full implementation needs log-det computation)
+            prior_logprob = -0.5 * (z**2).sum(dim=1).mean()
+            loss = -prior_logprob
+            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+```
+
+## 5. Applications
+
+### 5.1 Density Estimation
+- Modeling complex distributions
+- Anomaly detection với likelihood thresholds
+
+### 5.2 Generative Modeling
+- Image synthesis
+- Molecular generation
+
+### 5.3 Variational Inference
+- Flexible posterior approximation trong Bayesian inference
+
+## 6. Connections to Flow Matching
+
+Normalizing Flows, đặc biệt là CNF, là nền tảng cho **Flow Matching** - một framework hiện đại hơn:
+
+- **CNF**: Học vector field để transport distributions
+- **Flow Matching**: Regression-based training (không cần ODE solver trong training)
+- **Rectified Flows**: Straighten trajectories để tăng efficiency
+
+Flow Matching addresses computational bottlenecks của CNF trong khi giữ lại flexibility.
+
+## 7. Key Takeaways
+
+1. **Normalizing Flows** transform simple distributions thành complex ones qua invertible mappings
+2. **CNF** mở rộng sang continuous-time với Neural ODEs
+3. **Exact likelihood** là advantage lớn nhất so với GANs
+4. **Computational cost** của ODE solvers là trade-off chính
+5. **Foundation cho Flow Matching** - hiểu NF/CNF là critical để master modern flow-based models
+
+## References
+
+1. Rezende & Mohamed (2015) - "Variational Inference with Normalizing Flows"
+2. Chen et al. (2018) - "Neural Ordinary Differential Equations" (NeurIPS Best Paper)
+3. Grathwohl et al. (2018) - "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models"
+4. Papamakarios et al. (2021) - "Normalizing Flows for Probabilistic Modeling and Inference"
+
 ---
 
-## 6. Tổng kết
-
-- NF cho phép mô hình hoá phân phối phức tạp nhờ biến đổi đơn ánh với tính likelihood chính xác.
-- CNF mở rộng biến đổi sang liên tục, giảm chi phí Jacobian, giúp mạng tự do hơn, cho phép sử dụng các kiến trúc tân tiến như Neural ODE.
-
-Các ví dụ đơn lẻ giúp minh hoạ cách các khái niệm vận dụng vào bài toán thực - từ biến đổi số đơn giản, đến mô phỏng dòng chảy liên tục với neural network.
+**Next Reading:**
+- [Real NVP & Glow: Invertible Architectures](/posts/2025/realnvp-glow)
+- [Flow Matching Theory](/posts/2025/flow-matching-theory)
+- [Rectified Flows](/posts/2025/rectified-flows)
