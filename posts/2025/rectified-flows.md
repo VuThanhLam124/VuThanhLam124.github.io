@@ -47,7 +47,7 @@ $$
 \frac{d x_t}{dt} = v_t(x_t), \quad x_0 \sim \pi_0 \ (\text{Gaussian}), \quad x_1 \sim \pi_1 \ (\text{data})
 $$
 
-> **Chú thích ký hiệu:** $x_t$ là trạng thái tại thời điểm $t$; $\frac{d x_t}{dt}$ (hay $\dot{x}_t$) là đạo hàm theo thời gian; $v_t$ là trường vận tốc; ký hiệu $\sim$ nghĩa là “được lấy mẫu từ”.
+**Chú thích:** $x_t$ là trạng thái tại thời điểm $t$; $\frac{d x_t}{dt}$ (hay $\dot{x}_t$) là đạo hàm theo thời gian; $v_t$ là trường vận tốc; ký hiệu $\sim$ nghĩa là “được lấy mẫu từ”.
 
 Nếu vector field $v_t$ uốn cong, ta phải dùng nhiều bước tích phân ⇒ chậm.
 
@@ -63,7 +63,7 @@ $$
 \mathcal{C} = \mathbb{E}\left[\int_0^1 \|v_t(X_t)\|^2 dt\right]
 $$
 
-> **Chú thích:** $\mathbb{E}[\cdot]$ là kỳ vọng (trung bình); $\|\cdot\|$ là chuẩn Euclid; tích phân từ $0$ đến $1$ đo tổng năng lượng vận tốc trong toàn bộ hành trình.
+**Chú thích:** $\mathbb{E}[\cdot]$ là kỳ vọng (trung bình); $\|\cdot\|$ là chuẩn Euclid; tích phân từ $0$ đến $1$ đo tổng năng lượng vận tốc trong toàn bộ hành trình.
 
 Đường thẳng tối ưu (geodesic) tương ứng với chi phí thấp nhất. Rectified Flows tìm cách xấp xỉ geodesic đó – giống như người thợ tìm cách mài đường truyền ánh sáng ngắn nhất.
 
@@ -77,7 +77,7 @@ $$
 X_t = (1 - t) X_0 + t X_1
 $$
 
-> **Chú thích:** Đây là phép nội suy tuyến tính giữa hai điểm $X_0$ và $X_1$; hệ số $(1-t)$, $t$ đảm bảo khi $t=0$ ta ở $X_0$, khi $t=1$ ta ở $X_1$.
+**Chú thích:** Đây là phép nội suy tuyến tính giữa hai điểm $X_0$ và $X_1$; hệ số $(1-t)$, $t$ đảm bảo khi $t=0$ ta ở $X_0$, khi $t=1$ ta ở $X_1$.
 
 Ta có vận tốc không đổi:
 
@@ -85,7 +85,7 @@ $$
 \dot{X}_t = X_1 - X_0
 $$
 
-> **Chú thích:** Dấu chấm biểu diễn đạo hàm theo thời gian. Vì nội suy tuyến tính nên vận tốc luôn bằng hiệu $X_1 - X_0$.
+**Chú thích:** Dấu chấm biểu diễn đạo hàm theo thời gian. Vì nội suy tuyến tính nên vận tốc luôn bằng hiệu $X_1 - X_0$.
 
 Điều kiện cần: tồn tại coupling đủ tốt giữa hai phân phối để đoạn thẳng này “hợp lý”.
 
@@ -97,7 +97,7 @@ $$
 v_t(x) = \mathbb{E}\big[X_1 - X_0 \mid X_t = x\big]
 $$
 
-> **Chú thích:** Đây là kỳ vọng có điều kiện – trung bình của hiệu $X_1 - X_0$ khi biết trạng thái hiện tại bằng $x$.
+**Chú thích:** Đây là kỳ vọng có điều kiện – trung bình của hiệu $X_1 - X_0$ khi biết trạng thái hiện tại bằng $x$.
 
 Trong thực tế ta dùng mạng neural $v_\theta(x, t)$ để xấp xỉ và tối thiểu hóa:
 
@@ -105,7 +105,7 @@ $$
 \mathcal{L}(\theta) = \mathbb{E}_{t, X_t}\left[\|v_\theta(X_t, t) - (X_1 - X_0)\|^2\right]
 $$
 
-> **Chú thích:** $\mathcal{L}$ là hàm loss; chỉ số $\theta$ biểu diễn tham số mạng; bình phương chuẩn $\|\cdot\|^2$ là mean squared error giữa vận tốc dự đoán và vận tốc mục tiêu.
+**Chú thích:** $\mathcal{L}$ là hàm loss; chỉ số $\theta$ biểu diễn tham số mạng; bình phương chuẩn $\|\cdot\|^2$ là mean squared error giữa vận tốc dự đoán và vận tốc mục tiêu.
 Với $t \sim \mathcal{U}[0, 1]$, $X_t = (1 - t) X_0 + t X_1$.
 
 ### 4.3 Khi coupling chưa tối ưu

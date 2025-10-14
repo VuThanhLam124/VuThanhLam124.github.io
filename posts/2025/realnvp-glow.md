@@ -50,7 +50,7 @@ Bối cảnh đã đủ: chúng ta lùi khỏi câu chuyện, bước vào phầ
 \log p_X(x) = \log p_Z(z_0) - \sum_{k=1}^K \log\left\lvert\det\left(\frac{\partial f_k}{\partial z_{k-1}}\right)\right\rvert
 $$
 
-> **Chú thích ký hiệu:** $p_X$ là mật độ dữ liệu sau toàn bộ flow; $p_Z$ là mật độ base; $f_k$ là phép biến đổi tại lớp $k$; $\frac{\partial f_k}{\partial z_{k-1}}$ là Jacobian; tổng $\sum_{k=1}^K$ cộng đóng góp log-determinant của từng lớp.
+**Chú thích:** $p_X$ là mật độ dữ liệu sau toàn bộ flow; $p_Z$ là mật độ base; $f_k$ là phép biến đổi tại lớp $k$; $\frac{\partial f_k}{\partial z_{k-1}}$ là Jacobian; tổng $\sum_{k=1}^K$ cộng đóng góp log-determinant của từng lớp.
 
 3. **Độ phức tạp tuyến tính** theo số chiều (ảnh $64 \times 64 \times 3$ có 12,288 chiều).
 
@@ -80,7 +80,7 @@ x_B &= z_B \odot \exp(s) + t
 \end{aligned}
 $$
 
-> **Chú thích ký hiệu:** $x_A$ giữ nguyên bằng $z_A$; $x_B$ nhận scale $\exp(s)$ và dịch $t$ dựa trên phần $z_A$; $\odot$ là nhân từng phần tử; $s, t$ do các mạng $S_\theta, T_\theta$ sinh ra.
+**Chú thích:** $x_A$ giữ nguyên bằng $z_A$; $x_B$ nhận scale $\exp(s)$ và dịch $t$ dựa trên phần $z_A$; $\odot$ là nhân từng phần tử; $s, t$ do các mạng $S_\theta, T_\theta$ sinh ra.
 
 Inverse (đi từ data → base) cực kỳ đơn giản:
 
@@ -91,7 +91,7 @@ z_B &= (x_B - t) \odot \exp(-s)
 \end{aligned}
 $$
 
-> **Chú thích:** $z_A, z_B$ là hai phần của latent; phép nhân $\odot$ là nhân theo phần tử; $\exp(-s)$ nghĩa là đảo scale đã áp dụng ở bước forward.
+**Chú thích:** $z_A, z_B$ là hai phần của latent; phép nhân $\odot$ là nhân theo phần tử; $\exp(-s)$ nghĩa là đảo scale đã áp dụng ở bước forward.
 
 **Log-det Jacobian**:
 
@@ -99,7 +99,7 @@ $$
 \log\lvert\det J\rvert = \sum_{i: m_i = 0} s_i
 $$
 
-> **Chú thích:** Ta chỉ cộng các phần tử $s_i$ thuộc nửa được biến đổi (nơi $m_i = 0$). Đây là lý do coupling layer có log-determinant đơn giản.
+**Chú thích:** Ta chỉ cộng các phần tử $s_i$ thuộc nửa được biến đổi (nơi $m_i = 0$). Đây là lý do coupling layer có log-determinant đơn giản.
 ### 4.2 Hoán vị & multi-scale
 
 Nếu ta giữ nguyên cùng một mặt nạ, chỉ đúng một nửa chiều được biến đổi. Vì vậy RealNVP:
@@ -135,7 +135,7 @@ x_2 &= z_2 \exp(0.8 z_1) + 0.5 z_1
 \end{aligned}
 $$
 
-> **Chú thích ký hiệu:** $z_1, z_2$ là hai chiều của biến latent gốc; $x_1, x_2$ là hai chiều sau biến đổi; $\exp(\cdot)$ là hàm mũ; hệ số $0.5$ là dịch chuyển (translation) còn $0.8$ là hệ số scale sinh ra bởi mạng $s(\cdot)$.
+**Chú thích:** $z_1, z_2$ là hai chiều của biến latent gốc; $x_1, x_2$ là hai chiều sau biến đổi; $\exp(\cdot)$ là hàm mũ; hệ số $0.5$ là dịch chuyển (translation) còn $0.8$ là hệ số scale sinh ra bởi mạng $s(\cdot)$.
 
 Inverse:
 
@@ -146,7 +146,7 @@ z_2 &= \left(x_2 - 0.5 x_1\right) \exp(-0.8 x_1)
 \end{aligned}
 $$
 
-> **Chú thích:** Công thức tìm lại $z_2$ dùng đúng hệ số đã áp dụng ở bước forward, chỉ khác dấu ở lũy thừa (nhân với $\exp(-s)$). Tính khả nghịch nằm ở chỗ mọi thao tác đều dùng nhân/chia không làm mất thông tin.
+**Chú thích:** Công thức tìm lại $z_2$ dùng đúng hệ số đã áp dụng ở bước forward, chỉ khác dấu ở lũy thừa (nhân với $\exp(-s)$). Tính khả nghịch nằm ở chỗ mọi thao tác đều dùng nhân/chia không làm mất thông tin.
 
 Log-det Jacobian:
 
@@ -154,7 +154,7 @@ $$
 \log\lvert\det J\rvert = 0.8 x_1
 $$
 
-> **Chú thích:** $J$ là Jacobian của phép biến đổi; $\det J$ đo mức co giãn thể tích; ký hiệu $\lvert\cdot\rvert$ lấy giá trị tuyệt đối; $\log$ là logarit tự nhiên.
+**Chú thích:** $J$ là Jacobian của phép biến đổi; $\det J$ đo mức co giãn thể tích; ký hiệu $\lvert\cdot\rvert$ lấy giá trị tuyệt đối; $\log$ là logarit tự nhiên.
 
 Log-likelihood của điểm $x$:
 
@@ -162,7 +162,7 @@ $$
 \log p_X(x) = \log p_Z(z) - 0.8 x_1
 $$
 
-> **Chú thích:** $p_X$ là mật độ của dữ liệu sau biến đổi, $p_Z$ là mật độ cơ sở (Gaussian). Phần $-0.8x_1$ chính là hiệu chỉnh từ log-determinant ở trên.
+**Chú thích:** $p_X$ là mật độ của dữ liệu sau biến đổi, $p_Z$ là mật độ cơ sở (Gaussian). Phần $-0.8x_1$ chính là hiệu chỉnh từ log-determinant ở trên.
 
 Với $p_Z$ là Gaussian chuẩn, ta có:
 
@@ -170,7 +170,7 @@ $$
 \log p_X(x) = -\frac{1}{2}\left(x_1^2 + \big(x_2 - 0.5 x_1\big)^2 \exp(-1.6 x_1)\right) - \log (2\pi) - 0.8 x_1
 $$
 
-> **Chú thích:** $-\frac{1}{2}(\cdot)$ đến từ log mật độ Gaussian chuẩn; $2\pi$ là hằng số trong phân phối chuẩn 2 chiều; hệ số $1.6 = 2 \times 0.8$ do bình phương hệ số scale.
+**Chú thích:** $-\frac{1}{2}(\cdot)$ đến từ log mật độ Gaussian chuẩn; $2\pi$ là hằng số trong phân phối chuẩn 2 chiều; hệ số $1.6 = 2 \times 0.8$ do bình phương hệ số scale.
 
 Ví dụ số trong Python:
 
@@ -200,7 +200,7 @@ Glow (Kingma & Dhariwal, 2018) kế thừa RealNVP nhưng thêm ba ý tưởng g
    y = s \odot (x - b), \quad \log\lvert\det J\rvert = HW \sum_c \log \lvert s_c\rvert
    $$
    
-   > **Chú thích:** $s$ và $b$ là vectơ scale/bias theo channel; $\odot$ là nhân theo phần tử; $H, W$ là chiều cao, chiều rộng của ảnh; tổng $\sum_c$ chạy qua các channel.
+   **Chú thích:** $s$ và $b$ là vectơ scale/bias theo channel; $\odot$ là nhân theo phần tử; $H, W$ là chiều cao, chiều rộng của ảnh; tổng $\sum_c$ chạy qua các channel.
 
 2. **Invertible 1x1 Convolution**: thay permutation cố định bằng ma trận khả nghịch $W \in \mathbb{R}^{c \times c}$. Với ảnh hình $H \times W$:
    
@@ -208,7 +208,7 @@ Glow (Kingma & Dhariwal, 2018) kế thừa RealNVP nhưng thêm ba ý tưởng g
    \log\lvert\det J\rvert = HW \cdot \log\lvert\det W\rvert
    $$
    
-   > **Chú thích:** $\det W$ là định thức của ma trận vuông $W$ kích thước $c \times c$; nhân với $HW$ vì phép nhân 1x1 áp dụng tại mỗi vị trí pixel. Phân rã $PLU$ giúp tính $\det W$ nhanh qua tích các phần tử đường chéo trên ($u_{ii}$).
+   **Chú thích:** $\det W$ là định thức của ma trận vuông $W$ kích thước $c \times c$; nhân với $HW$ vì phép nhân 1x1 áp dụng tại mỗi vị trí pixel. Phân rã $PLU$ giúp tính $\det W$ nhanh qua tích các phần tử đường chéo trên ($u_{ii}$).
    
    Để tính nhanh, Glow lưu decomposition $W = PLU$ ⇒ $\log\lvert\det W\rvert = \sum_i \log\lvert u_{ii}\rvert$, trong đó $P$ là ma trận hoán vị, $L$ tam giác dưới, $U$ tam giác trên.
 
