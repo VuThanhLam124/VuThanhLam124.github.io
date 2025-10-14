@@ -38,9 +38,11 @@ Anh mở sổ tay, vẽ các điểm mốc theo thời gian $t = 0 \to 1$ rồi 
 - **Flow Matching:** học $v_t(x)$, rồi tích phân (ODE) để tìm vị trí.
 - **Rectified Flow:** cố gắng làm đường đi thẳng để tích phân nhanh hơn.
 - **Flow Map Matching:** bỏ qua bước tích phân, học trực tiếp $\phi_t(x_0)$ sao cho
-  $$
-  X_t = \phi_t(X_0), \quad \phi_0(x) = x, \quad \phi_1(X_0) \sim \text{data}.
-  $$
+$$
+X_t = \phi_t(X_0), \quad \phi_0(x) = x, \quad \phi_1(X_0) \sim \text{data}.
+$$
+
+> **Chú thích ký hiệu:** $\phi_t$ là map đưa trạng thái gốc $X_0$ tới vị trí ở thời điểm $t$; $\phi_0$ là đồng nhất; ký hiệu $\sim$ nghĩa là “có phân phối”.
 
 Ta có thể coi $\phi_t$ là bộ “bản đồ thời gian thực” – tra cứu vị trí ngay lập tức. Đổi lại, ta cần học một hàm có đầu ra có ý nghĩa vật lý mạnh hơn, và phải đảm bảo các bản đồ ghép lại vẫn hợp lý (tính chất composition).
 
@@ -54,11 +56,15 @@ $$
 \phi_t(x) = x + \int_0^t v_s\big(\phi_s(x)\big) ds.
 $$
 
+> **Chú thích:** Tích phân cộng dồn vận tốc theo thời gian; biến $s$ dùng để phân biệt với $t$ trong tích phân.
+
 Ngược lại, nếu biết $\phi_t$, vận tốc suy ra bằng đạo hàm theo thời gian:
 
 $$
 v_t(x) = \left.\frac{d}{dt}\phi_t(z)\right|_{z = \phi_t^{-1}(x)}.
 $$
+
+> **Chú thích:** Ta đạo hàm $\phi_t$ rồi thế $z = \phi_t^{-1}(x)$ để chuyển từ không gian gốc sang vị trí hiện tại.
 
 ### 3.2 Mục tiêu học $\phi_\theta$
 
@@ -74,11 +80,15 @@ $$
 \mathcal{L}_{\text{match}}(\theta) = \mathbb{E}_{X_0, X_1, t}\big[\big\|\phi_\theta(X_0, t) - X_t\big\|^2\big].
 $$
 
+> **Chú thích:** $\mathcal{L}_{\text{match}}$ là loss cốt lõi; ký hiệu $\|\cdot\|$ là chuẩn Euclid; kỳ vọng lấy trung bình trên $X_0, X_1$ và thời gian $t$.
+
 Để các bản đồ ghép được với nhau, thêm loss **composition/consistency**:
 
 $$
 \mathcal{L}_{\text{cons}}(\theta) = \mathbb{E}_{x, s, t}\big[\|\phi_\theta(\phi_\theta(x, s), t) - \phi_\theta(x, s+t)\|^2\big],
 $$
+
+> **Chú thích:** Term này đảm bảo tính chất ghép bản đồ; $s, t$ là hai thời gian nhỏ; $\phi_\theta(\phi_\theta(x, s), t)$ nghĩa là áp dụng map $t$ sau khi đã đi $s$.
 
 trong đó $s, t$ được lấy sao cho $s+t \le 1$.
 
@@ -92,9 +102,11 @@ trong đó $s, t$ được lấy sao cho $s+t \le 1$.
 1. **Chuẩn bị cặp $(X_0, X_1)$**: $X_0$ lấy từ Gaussian chuẩn, $X_1$ từ dữ liệu. Có thể dùng kỹ thuật dequantize đối với ảnh.
 2. **Sampling thời gian**: $t \sim \mathcal{U}[0, 1]$.
 3. **Loss tổng**:
-   $$
-   \mathcal{L} = \mathcal{L}_{\text{match}} + \lambda_{\text{cons}} \mathcal{L}_{\text{cons}} + \lambda_{\text{id}} \| \phi_\theta(x, 0) - x \|^2.
-   $$
+$$
+\mathcal{L} = \mathcal{L}_{\text{match}} + \lambda_{\text{cons}} \mathcal{L}_{\text{cons}} + \lambda_{\text{id}} \| \phi_\theta(x, 0) - x \|^2.
+$$
+
+> **Chú thích:** $\lambda_{\text{cons}}, \lambda_{\text{id}}$ là hệ số điều chỉnh; hạng cuối buộc mô hình giữ identity tại $t=0$.
 4. **Optimization**: Adam / AdamW, warmup learning rate và gradient clipping giúp ổn định vì output có giá trị tuyệt đối lớn.
 
 ## 5. Sampling & composition
