@@ -116,12 +116,12 @@ plt.show()
 
 ### So sánh với các mô hình khác
 
-| Model | Exact Likelihood | Efficient Sampling | Training Stability | Bidirectional |
-|-------|-----------------|-------------------|-------------------|---------------|
-| **VAE** | ✗ (lower bound) | ✓ | ✓ | ✗ |
-| **GAN** | ✗ | ✓ | ✗ | ✗ |
-| **Normalizing Flow** | ✓ | ✓ | ✓ | ✓ |
-| **Diffusion** | ✓ | ✗ (slow) | ✓ | ✗ |
+| Model | Tính toán Likelihood | Sinh mẫu hiệu quả | Huấn luyện ổn định | Biến đổi hai chiều |
+|--------------------|-------------------------|--------------------|--------------------|---------------------|
+| **VAE**            | Không (chặn dưới)       | Có                 | Có                 | Không               |
+| **GAN**            | Không                   | Có                 | Không              | Không               |
+| **Normalizing Flow** | Có (chính xác)          | Có                 | Có                 | Có                  |
+| **Diffusion**      | Có (chính xác)          | Không (chậm)       | Có                 | Không               |
 
 ---
 
@@ -909,11 +909,11 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 ### So sánh Discrete NF vs CNF
 
 | Aspect | Discrete NF | CNF |
-|--------|-------------|-----|
-| Architecture | Constrained (coupling/autoregressive) | Free-form |
-| Memory | $O(K \cdot d)$ (K layers) | $O(d)$ (constant) |
-| Computation | Fast forward pass | Slow (ODE solver) |
-| Expressivity | Limited by architecture | Theoretically unlimited |
+|--------------|---------------------------------------|--------------------------|
+| **Kiến trúc** | Bị ràng buộc (coupling/autoregressive) | Dạng tự do (Free-form)   |
+| **Bộ nhớ**    | $O(K \cdot d)$ (với K lớp)            | $O(d)$ (hằng số)         |
+| **Tính toán**  | Nhanh (một lượt)                       | Chậm (phụ thuộc ODE solver) |
+| **Linh hoạt**  | Giới hạn bởi kiến trúc                | Về lý thuyết là không giới hạn |
 
 ### Applications
 
