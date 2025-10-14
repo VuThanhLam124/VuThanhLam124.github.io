@@ -145,16 +145,16 @@ $$
 Cho phép biến đổi $x = f(z)$ với $f$ khả nghịch:
 
 $$
-p_x(x) = p_z(f^{-1}(x)) \cdot \left|\frac{df^{-1}}{dx}\right|
+p_x(x) = p_z(f^{-1}(x)) \cdot \left\lvert\frac{df^{-1}}{dx}\right\rvert
 $$
 
 Hoặc dùng log (dễ tính toán hơn):
 
 $$
-\log p_x(x) = \log p_z(z) + \log\left|\frac{df^{-1}}{dx}\right|
+\log p_x(x) = \log p_z(z) + \log\left\lvert\frac{df^{-1}}{dx}\right\rvert
 $$
 
-Ở đây, thành phần $\left|\frac{df^{-1}}{dx}\right|$ chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
+Ở đây, thành phần với giá trị tuyệt đối của đạo hàm chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
 
 ### Ví dụ cụ thể
 
@@ -234,14 +234,14 @@ Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đ�
 
 **Định thức:** 
 
-Giá trị tuyệt đối của định thức, $|\det(J)|$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
+Giá trị tuyệt đối của định thức cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
 
 ### Change of Variables (nhiều chiều)
 
 Công thức tổng quát trở thành:
 
 $$
-\log p_x(x) = \log p_z(z) - \log\left|\det\left(\frac{\partial f}{\partial z}\right)\right|
+\log p_x(x) = \log p_z(z) - \log\left\lvert\det\left(\frac{\partial f}{\partial z}\right)\right\rvert
 $$
 
 **Vấn đề lớn:** Việc tính toán định thức của ma trận Jacobian có độ phức tạp $O(d^3)$. Đây là một rào cản khổng lồ. Nếu "tác phẩm" của chúng ta là một bức ảnh 64x64 pixel ($d=4096$), phép tính này gần như bất khả thi.
@@ -337,7 +337,7 @@ $$
 Và log-determinant trở thành một phép cộng:
 
 $$
-\log|\det(J)| = \sum s_i(z_A)
+\log\lvert\det(J)\rvert = \sum s_i(z_A)
 $$
 
 Phép tính từ $O(d^3)$ đã trở thành $O(d)$! Người thợ gốm giờ đây có thể thực hiện một bước nặn phức tạp mà vẫn tính được "phí co giãn" một cách dễ dàng.
@@ -901,7 +901,8 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 
 2. **Change of variables formula**
    - Theo dõi sự thay đổi mật độ qua định thức Jacobian. Công thức log-likelihood:
-     $$ \log p_x(x) = \log p_z(z) - \log\left|\det(J)\right| $$
+     
+     $$\log p_x(x) = \log p_z(z) - \log\lvert\det(J)\rvert$$
 
 3. **Coupling Layers = Kiến trúc thông minh**
    - Jacobian có cấu trúc đặc biệt (triangular)
