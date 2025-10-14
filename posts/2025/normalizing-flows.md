@@ -145,13 +145,13 @@ $$
 Cho phép biến đổi $x = f(z)$ với $f$ khả nghịch:
 
 $$
-p_x(x) = p_z(f^{-1}(x)) \left| \frac{df^{-1}}{dx} \right|
+p_x(x) = p_z(f^{-1}(x)) \cdot \left|\frac{df^{-1}}{dx}\right|
 $$
 
 Hoặc dùng log (dễ tính toán hơn):
 
 $$
-\log p_x(x) = \log p_z(z) + \log \left| \frac{df^{-1}}{dx} \right|
+\log p_x(x) = \log p_z(z) + \log\left|\frac{df^{-1}}{dx}\right|
 $$
 
 **"Phí co giãn"** $\left| \frac{df^{-1}}{dx} \right|$ điều chỉnh mật độ để bảo toàn tổng xác suất.
@@ -230,7 +230,7 @@ $$
 ### Change of Variables (nhiều chiều)
 
 $$
-\log p_x(x) = \log p_z(z) - \log \left| \det \frac{\partial f}{\partial z} \right|
+\log p_x(x) = \log p_z(z) - \log\left|\det\left(\frac{\partial f}{\partial z}\right)\right|
 $$
 
 **Vấn đề lớn:** Tính $\det(J)$ cho ma trận $d \times d$ có độ phức tạp $O(d^3)$!
@@ -311,7 +311,7 @@ $$
 **Determinant cực kỳ đơn giản:**
 
 $$
-\log |\det(J)| = \sum_{i=d/2+1}^{d} s_i(z_{1:d/2})
+\log|\det(J)| = \sum_{i=d/2+1}^{d} s_i(z_{1:d/2})
 $$
 
 Chỉ cần **cộng các phần tử** → $O(d)$ thay vì $O(d^3)$!
@@ -869,7 +869,7 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 
 2. **Change of variables formula**
    - Tracking density changes qua Jacobian determinant
-   - $\log p_x(x) = \log p_z(z) - \log |\det(J)|$
+   - $\log p_x(x) = \log p_z(z) - \log|\det(J)|$
 
 3. **Coupling Layers = Kiến trúc thông minh**
    - Jacobian có cấu trúc đặc biệt (triangular)
