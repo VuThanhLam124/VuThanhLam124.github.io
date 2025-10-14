@@ -140,7 +140,7 @@ $$
 Log-det Jacobian:
 
 $$
-\log|\det J| = 0.8 x_1
+\log\lvert\det J\rvert = 0.8 x_1
 $$
 
 Log-likelihood của điểm $x$:
@@ -180,16 +180,16 @@ Glow (Kingma & Dhariwal, 2018) kế thừa RealNVP nhưng thêm ba ý tưởng g
 1. **ActNorm**: mỗi channel có scale $s$ và bias $b$ được khởi tạo theo mini-batch đầu tiên để đảm bảo zero-mean, unit-var. Biến đổi:
    
    $$
-   y = s \odot (x - b), \quad \log|\det J| = HW \sum_c \log |s_c|
+   y = s \odot (x - b), \quad \log\lvert\det J\rvert = HW \sum_c \log \lvert s_c\rvert
    $$
 
 2. **Invertible 1x1 Convolution**: thay permutation cố định bằng ma trận khả nghịch $W \in \mathbb{R}^{c \times c}$. Với ảnh hình $H \times W$:
    
    $$
-   \log|\det J| = HW \cdot \log|\det W|
+   \log\lvert\det J\rvert = HW \cdot \log\lvert\det W\rvert
    $$
    
-   Để tính nhanh, Glow lưu decomposition $W = PLU$ ⇒ $\log|\det W| = \sum_i \log|u_{ii}|$.
+   Để tính nhanh, Glow lưu decomposition $W = PLU$ ⇒ $\log\lvert\det W\rvert = \sum_i \log\lvert u_{ii}\rvert$.
 
 3. **Multi-scale architecture**: sau $K$ bước, “tách” một nửa channel thành latent, phần còn lại tiếp tục đi qua các scale tiếp theo. Điều này giúp mô hình tập trung vào chi tiết nhỏ ở những tầng sâu.
 
