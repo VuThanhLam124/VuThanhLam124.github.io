@@ -195,10 +195,12 @@ x = 2 * z + 1
 
 # Change of variables
 log_p_z = p_z.log_prob(z)
-log_det_jacobian = -torch.log(torch.tensor(2.0))  # log |df/dz| = log(2)
+# log |df/dz|. We need to subtract log |df/dz|
+log_det_jacobian = torch.log(torch.tensor(2.0))
 log_p_x = log_p_z - log_det_jacobian
 
 # Verify: should match N(1, 2) distribution
+# Note: D.Normal(mean, std_dev)
 p_x_true = D.Normal(1, 2)
 log_p_x_true = p_x_true.log_prob(x)
 
@@ -486,11 +488,19 @@ class NormalizingFlow(nn.Module):
 ### Training example
 
 ```python
+def sample_real_data(batch_size):
+    """
+    Placeholder function to generate dummy data.
+    Replace this with your actual data loading logic.
+    """
+    # Assuming your real data has the same dimension as the flow model (dim=2 in this case)
+    # If your data has a different dimension, change the '2' below accordingly.
+    return torch.randn(batch_size, 2) * 2 + 1 # Example: Gaussian data with mean 1, std dev 2
+
 # Initialize model
 model = NormalizingFlow(dim=2, num_flows=6, hidden_dim=64)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-# Training loop
 for epoch in range(5000):
     # Get batch of real data
     x_batch = sample_real_data(batch_size=256)  # Your dataset
