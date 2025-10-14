@@ -156,6 +156,38 @@ $$
 
 Ở đây, thành phần với giá trị tuyệt đối của đạo hàm chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
 
+### Chứng minh hình học (2 chiều)
+
+1. **Quan sát vùng lân cận của $z$:** chọn điểm $z = (z_1, z_2)$ và lấy quanh đó một ô vuông nhỏ với cạnh $\Delta z_1, \Delta z_2$. Diện tích ban đầu là $\Delta S_z = \Delta z_1 \Delta z_2$.
+2. **Hai vector đặc trưng biến đổi:** xét phép ánh xạ $x = g(z)$. Khi tăng $z$ theo $e_1$ một lượng $\Delta z_1$, ảnh $x$ dịch theo vector thứ nhất $v_1 = \frac{\partial g}{\partial z_1}(z) \,\Delta z_1$. Tương tự, dịch theo $e_2$ tạo vector $v_2 = \frac{\partial g}{\partial z_2}(z) \,\Delta z_2$.
+3. **Diện tích sau biến đổi:** hình bình hành tạo bởi $v_1, v_2$ có diện tích
+   $$
+   \Delta S_x = \left\lvert \det
+   \begin{bmatrix}
+   \dfrac{\partial g_1}{\partial z_1} & \dfrac{\partial g_1}{\partial z_2} \\
+   \dfrac{\partial g_2}{\partial z_1} & \dfrac{\partial g_2}{\partial z_2}
+   \end{bmatrix}
+   \right\rvert \Delta z_1 \Delta z_2,
+   $$
+   tức diện tích được nhân lên bởi $\lvert\det(\partial g / \partial z)\rvert$.
+4. **Bảo toàn xác suất:** khối lượng xác suất phải giữ nguyên trước và sau biến đổi:
+   $$
+   p_Z(z)\,\Delta S_z = p_X(x)\,\Delta S_x.
+   $$
+   Thế hai diện tích và rút gọn $\Delta z_1 \Delta z_2$, ta được
+   $$
+   p_X(x) = \frac{p_Z(z)}{\left\lvert \det \frac{\partial g}{\partial z}(z) \right\rvert}.
+   $$
+5. **Chuyển sang hàm nghịch đảo:** vì $z = g^{-1}(x)$ và $\frac{\partial g}{\partial z}$ là nghịch đảo của Jacobian $\frac{\partial g^{-1}}{\partial x}$ nên
+   $$
+   p_X(x) = p_Z\!\big(g^{-1}(x)\big)\; \left\lvert \det \frac{\partial g^{-1}}{\partial x}(x) \right\rvert.
+   $$
+6. **Logarit hóa:** trong thực hành, tích các định thức qua nhiều lớp dễ gây tràn số. Lấy log biến tích thành tổng:
+   $$
+   \log p_X(x) = \log p_Z\!\big(g^{-1}(x)\big) + \log \left\lvert \det \frac{\partial g^{-1}}{\partial x}(x) \right\rvert,
+   $$
+   đồng thời tổng log-likelihood là hàm mục tiêu thuận tiện để tối ưu.
+
 ### Ví dụ cụ thể
 
 Cho $z \sim \mathcal{N}(0, 1)$ và $x = 2z + 1$:
