@@ -160,22 +160,25 @@ $$
 
 Cho $z \sim \mathcal{N}(0, 1)$ và $x = 2z + 1$:
 
-**Bước 1:** Hàm ngược
+**Bước 1: Hàm ngược**
+
 $$
 f^{-1}(x) = \frac{x - 1}{2}
 $$
 
-**Bước 2:** Đạo hàm
+**Bước 2: Đạo hàm**
+
 $$
 \frac{df^{-1}}{dx} = \frac{1}{2}
 $$
 
-**Bước 3:** Mật độ của $x$
+**Bước 3: Mật độ của x**
+
 $$
 p_x(x) = \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(x-1)^2}{8}\right) \cdot \frac{1}{2}
 $$
 
-Kết quả: $x \sim \mathcal{N}(1, 4)$ (trung bình 1, phương sai 4)
+**Kết quả:** $x \sim \mathcal{N}(1, 4)$ (trung bình 1, phương sai 4)
 
 **Code minh họa:**
 
@@ -225,10 +228,13 @@ J = \frac{\partial f}{\partial z} = \begin{bmatrix}
 \end{bmatrix}
 $$
 
-**Ý nghĩa hình học:** Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đầu. Sau khi người thợ nặn, nó có thể trở thành một hình bình hành bị kéo dài và xoay đi. Ma trận Jacobian mô tả chính xác phép biến đổi từ hình vuông sang hình bình hành đó.
+**Ý nghĩa hình học:** 
 
+Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đầu. Sau khi người thợ nặn, nó có thể trở thành một hình bình hành bị kéo dài và xoay đi. Ma trận Jacobian mô tả chính xác phép biến đổi từ hình vuông sang hình bình hành đó.
 
-**Định thức:** Giá trị tuyệt đối của định thức, $|\det(J)|$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
+**Định thức:** 
+
+Giá trị tuyệt đối của định thức, $|\det(J)|$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
 
 ### Change of Variables (nhiều chiều)
 
@@ -295,9 +301,12 @@ Thay vì biến đổi toàn bộ khối đất sét cùng một lúc, người 
 
 ### Coupling Layer (RealNVP)
 
-**Ý tưởng:** Chia các chiều dữ liệu (dimensions) thành hai phần, $z_A$ và $z_B$.
+**Ý tưởng chính:** Chia các chiều dữ liệu (dimensions) thành hai phần, $z_A$ và $z_B$.
+
 1.  **Giữ nguyên phần A:** $x_A = z_A$. Giống như tay giữ yên một nửa khối đất.
 2.  **Biến đổi phần B:** Nửa thứ hai, $x_B$, được biến đổi bằng một hàm đơn giản (scale và shift), nhưng các tham số của hàm này (độ co giãn `s` và độ dịch chuyển `t`) lại được tính toán từ nửa thứ nhất, $z_A$.
+
+Công thức biến đổi:
 
 $$
 \begin{aligned}
