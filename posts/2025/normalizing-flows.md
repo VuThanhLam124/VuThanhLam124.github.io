@@ -71,7 +71,12 @@ Công thức tổng quát cho sự thay đổi mật độ này là:
 $$
 p_x(x) = p_z(f^{-1}(x)) \left| \frac{d f^{-1}}{dx} \right|
 $$
-Trong ví dụ trên, nó bằng $|1/2| = 1/2$.
+Trong đó $| \frac{d f^{-1}}{dx} |$ chính là "phí co giãn" mà chúng ta phải trả. Trong ví dụ trên, nó bằng $|1/2| = 1/2$.
+
+> **Chú thích toán học:**
+> - $p_z(z)$ là hàm mật độ xác suất của phân phối Gaussian chuẩn, $p_z(z) = \frac{1}{\sqrt{2\pi}} e^{-z^2/2}$.
+> - Khi thay $z = f^{-1}(x) = (x-1)/2$, ta có $p_z(f^{-1}(x)) = \frac{1}{\sqrt{2\pi}} e^{-(x-1)^2/8}$.
+> - Nhân với "phí co giãn" $1/2$, ta được mật độ của $x$: $p_x(x) = \frac{1}{2\sqrt{2\pi}} e^{-(x-1)^2/8}$. Đây chính là hàm mật độ của một phân phối Gaussian mới với trung bình là 1 và phương sai là 4 (độ lệch chuẩn là 2).
 
 ### 4.2. "Phí co giãn": Vai trò của Định thức Jacobian
 
@@ -86,11 +91,28 @@ $$
 $$
 Chúng ta lấy logarit vì nó biến phép nhân thành phép cộng, giúp việc tính toán và tối ưu dễ dàng hơn nhiều, đặc biệt khi chúng ta ghép nhiều phép biến đổi lại với nhau.
 
+> **Góc lập trình:** Trong PyTorch, nếu `z` là đầu vào và `x` là đầu ra của một flow, ta có thể tính log-det-Jacobian một cách hiệu quả nếu phép biến đổi được thiết kế tốt.
+> ```python
+> # Giả sử 'flow' là một module biến đổi
+> x, log_det_jacobian = flow(z) 
+> 
+> # Tính log-likelihood
+> # log_prob_z là log-likelihood của z dưới phân phối base (Gaussian)
+> log_prob_x = log_prob_z + log_det_jacobian
+> ```
+> Mục tiêu của việc training là tối đa hóa `log_prob_x` này.
+
 ## 5. Thách thức thực tế: Vấn đề của dữ liệu lớn
 
 Việc tính định thức Jacobian cho một ma trận $d \times d$ (với $d$ là số chiều dữ liệu) có độ phức tạp tính toán là $O(d^3)$. Với một bức ảnh 64x64 pixel, $d = 4096$. Con số này là không tưởng!
 
 Đây là lúc các kiến trúc thông minh ra đời. Các mô hình như **RealNVP** hay **Glow** thiết kế các phép biến đổi (gọi là *coupling layers*) cực kỳ khéo léo để ma trận Jacobian luôn có dạng tam giác. Nhờ đó, định thức của nó chỉ đơn giản là tích các phần tử trên đường chéo. Độ phức tạp giảm từ $O(d^3)$ xuống chỉ còn $O(d)$! Đây là một bước đột phá giúp Normalizing Flow trở nên thực tế.
+
+> **Ví dụ về Coupling Layer:**
+> Ý tưởng chính là chia các chiều của vector đầu vào $z$ thành 2 phần, $z_1$ và $z_2$.
+> 1.  Phần đầu tiên được giữ nguyên: $x_1 = z_1$.
+> 2.  Phần thứ hai được biến đổi bằng một hàm phụ thuộc vào phần đầu tiên: $x_2 = s(z_1) \odot z_2 + t(z_1)$, trong đó $s$ (scale) và $t$ (translate) là các mạng neural nhỏ.
+> Phép biến đổi này rất dễ đảo ngược và ma trận Jacobian của nó là ma trận tam giác, giúp việc tính định thức trở nên cực nhanh.
 
 ## 6. Continuous Normalizing Flow: Từ rời rạc đến liên tục
 
@@ -102,6 +124,17 @@ Các mô hình như RealNVP thực hiện một chuỗi các phép biến đổi
 Hãy quay lại ví dụ người thợ gốm. Thay vì xem từng động tác riêng lẻ, CNF mô tả toàn bộ quá trình như một video mượt mà. Về mặt toán học, nó mô tả "vận tốc" thay đổi của mỗi điểm trong không gian tại mỗi thời điểm, thông qua một **Phương trình vi phân thông thường (Ordinary Differential Equation - ODE)**.
 
 Mô hình học một trường vector (vector field) $f(z, t)$ để chỉ hướng cho các điểm di chuyển. Lợi ích lớn nhất của CNF là nó mang lại sự linh hoạt tối đa cho kiến trúc mạng, vì chúng ta không còn bị ràng buộc bởi các phép biến đổi phải dễ tính Jacobian nữa. Đây chính là nền tảng cho các mô hình hiện đại hơn như **Flow Matching**.
+
+> **Góc toán học & lập trình:**
+> Phương trình vi phân được giải bằng các "ODE solver". Trong PyTorch, thư viện `torchdiffeq` rất phổ biến cho việc này.
+> $$
+> z(t_1) = z(t_0) + \int_{t_0}^{t_1} f(z(t), t) dt
+> $$
+> Việc tính toán log-density cũng được chuyển thành một ODE khác, giúp tránh hoàn toàn việc tính Jacobian:
+> $$
+> \frac{d \log p(z(t))}{dt} = -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right)
+> $$
+> Dấu vết (Trace) của Jacobian dễ tính hơn nhiều so với định thức (determinant).
 
 ## 7. Tổng kết và bước tiếp theo
 
@@ -118,3 +151,4 @@ Hy vọng qua bài viết này, bạn đã có một cái nhìn trực quan và 
 **Bài viết tiếp theo:**
 - [Flow Matching: Từ lý thuyết đến thực hành](/posts/2025/flow-matching-theory)
 - [Real NVP & Glow: Các kiến trúc có thể đảo ngược](/posts/2025/realnvp-glow)
+- [Rectified Flows: Con đường thẳng đến đích](/posts/2025/rectified-flows)

@@ -760,7 +760,33 @@ class BlogApp {
             });
             
             try {
-                return marked.parse(withoutFrontMatter);
+                // Protect LaTeX blocks before parsing
+                const placeholders = new Map();
+                let i = 0;
+                
+                // Protect display math $$...$$ and \[...\]
+                const protectedDisplay = withoutFrontMatter.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, (match) => {
+                    const id = `__LATEX_PLACEHOLDER_${i++}__`;
+                    placeholders.set(id, match);
+                    return id;
+                });
+
+                // Protect inline math $...$ and \(...\)
+                const protectedInline = protectedDisplay.replace(/(\$[^\$]*?\$|\\\([\s\S]*?\\\))/g, (match) => {
+                    const id = `__LATEX_PLACEHOLDER_${i++}__`;
+                    placeholders.set(id, match);
+                    return id;
+                });
+
+                let html = marked.parse(protectedInline);
+
+                // Restore LaTeX blocks
+                for (const [id, latex] of placeholders.entries()) {
+                    html = html.replace(id, latex);
+                }
+                
+                return html;
+
             } catch (error) {
                 console.error('Marked.js parsing error:', error);
                 // Fallback to simple parser
