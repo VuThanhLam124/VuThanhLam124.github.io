@@ -33,3 +33,5 @@ def preconditioned_denoiser(model, x, sigma):
 - Karras et al. "Elucidating the Design Space of Diffusion-Based Generative Models" NeurIPS 2022
 
 **Tags:** #EDM #DiffusionDesign #OptimalDiffusion
+
+<script src="/assets/js/katex-init.js"></script>

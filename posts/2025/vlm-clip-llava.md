@@ -47,3 +47,5 @@ Trong thư mục ```code/vlm/``` có sẵn script:
 - Distillation sang mô hình nhẹ để deploy trên thiết bị biên.
 
 Bài viết tiếp theo sẽ đào sâu pipeline training LLaVA với dataset custom và thiết lập inference phục vụ production API.
+
+<script src="/assets/js/katex-init.js"></script>

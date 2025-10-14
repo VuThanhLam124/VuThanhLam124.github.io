@@ -126,3 +126,5 @@ class LLaVA(nn.Module):
 - Liu et al. "Improved Baselines with Visual Instruction Tuning" (LLaVA-1.5)
 
 **Tags:** #LLaVA #VLM #InstructionTuning #VisualReasoning
+
+<script src="/assets/js/katex-init.js"></script>

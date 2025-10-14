@@ -442,3 +442,5 @@ Combines best of both worlds: simplicity của Flow Matching + efficiency của 
 ---
 
 **Tags:** #ConditionalFlowMatching #OptimalTransport #GenerativeModels #EfficientTraining
+
+<script src="/assets/js/katex-init.js"></script>

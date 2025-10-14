@@ -55,3 +55,5 @@ File `train.py` cung cấp loop:
 - Kết hợp curriculum scheduler cho ```t``` để học ổn định hơn.
 
 Khóa notebook minh họa cụ thể nằm trong thư mục `code/flow-matching/examples/`. Bạn có thể fork và mở rộng theo dataset riêng của mình.
+
+<script src="/assets/js/katex-init.js"></script>

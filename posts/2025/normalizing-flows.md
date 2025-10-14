@@ -414,3 +414,5 @@ Moving forward: combinations với diffusion models (Rectified Flows, Flow Match
 ---
 
 **Tags:** #NormalizingFlows #CNF #GenerativeModels #NeuralODE #FlowBasedModels #DeepLearning #PyTorch
+
+<script src="/assets/js/katex-init.js"></script>

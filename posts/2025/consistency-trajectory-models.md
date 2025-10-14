@@ -33,3 +33,5 @@ def ctm_loss(model, x):
 - Kim et al. "Consistency Trajectory Models" 2023
 
 **Tags:** #CTM #TrajectoryModels #ConsistencyModels
+
+<script src="/assets/js/katex-init.js"></script>

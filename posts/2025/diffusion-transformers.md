@@ -36,3 +36,5 @@ class DiTBlock(nn.Module):
 - Peebles & Xie "Scalable Diffusion Models with Transformers" ICCV 2023
 
 **Tags:** #DiffusionTransformers #DiT #ScalableModels
+
+<script src="/assets/js/katex-init.js"></script>

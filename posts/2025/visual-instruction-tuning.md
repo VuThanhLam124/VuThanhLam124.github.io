@@ -59,3 +59,5 @@ def create_instruction_sample(image, caption, qa_pairs):
 - Liu et al. "Visual Instruction Tuning" (LLaVA) NeurIPS 2023
 
 **Tags:** #InstructionTuning #VLM #LLaVA
+
+<script src="/assets/js/katex-init.js"></script>

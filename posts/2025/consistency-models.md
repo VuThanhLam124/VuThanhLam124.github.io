@@ -33,3 +33,5 @@ def consistency_training_loss(model, x):
 - Song et al. "Consistency Models" ICML 2023
 
 **Tags:** #ConsistencyModels #OneStepGeneration
+
+<script src="/assets/js/katex-init.js"></script>

@@ -52,3 +52,5 @@ Sampling cơ bản đòi hỏi chạy đủ ```T``` bước reverse. Để tăng
 - Repo open-source: ```openai/guided-diffusion```
 
 Trong các bài viết tiếp theo, chúng ta sẽ xây dựng training script hoàn chỉnh và benchmark các chiến lược sampling trên dataset thực tế.
+
+<script src="/assets/js/katex-init.js"></script>

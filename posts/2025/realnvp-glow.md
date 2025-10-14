@@ -411,3 +411,5 @@ Though newer methods (Flow Matching, Rectified Flows) have emerged, principles t
 ---
 
 **Tags:** #RealNVP #Glow #FlowModels #InvertibleNetworks #GenerativeAI #DeepLearning
+
+<script src="/assets/js/katex-init.js"></script>

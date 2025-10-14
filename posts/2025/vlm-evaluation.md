@@ -95,3 +95,5 @@ def evaluate_generation(predictions, references):
 - Liu et al. "MMBench: Is Your Multi-modal Model an All-around Player?"
 
 **Tags:** #VLMEvaluation #Benchmarks #Metrics
+
+<script src="/assets/js/katex-init.js"></script>

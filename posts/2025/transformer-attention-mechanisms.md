@@ -77,3 +77,5 @@ class MultiHeadAttention(nn.Module):
 - Monitor gradient norm vì attention dễ bị nan nếu init sai.
 
 Trong series kế tiếp, chúng ta sẽ xây dựng Transformer encoder tối ưu hóa bằng FlashAttention và benchmark trên sequence dài.
+
+<script src="/assets/js/katex-init.js"></script>

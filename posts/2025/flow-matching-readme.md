@@ -330,3 +330,4 @@ Contributions welcome! Please:
 
 **Contact:** vuthanhlam848@gmail.com  
 **GitHub:** https://github.com/VuThanhLam124
+<script src="/assets/js/katex-init.js"></script>

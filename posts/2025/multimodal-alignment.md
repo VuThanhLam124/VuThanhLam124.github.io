@@ -46,3 +46,5 @@ class AlignmentModule(nn.Module):
 - Alayrac et al. "Flamingo" NeurIPS 2022
 
 **Tags:** #MultimodalAlignment #VisionLanguage #VLM
+
+<script src="/assets/js/katex-init.js"></script>

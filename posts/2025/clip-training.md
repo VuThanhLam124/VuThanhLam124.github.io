@@ -64,3 +64,5 @@ def zero_shot_classify(model, image, class_names):
 - Radford et al. "Learning Transferable Visual Models from Natural Language Supervision" ICML 2021
 
 **Tags:** #CLIP #ContrastiveLearning #ZeroShot
+
+<script src="/assets/js/katex-init.js"></script>

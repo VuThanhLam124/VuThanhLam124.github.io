@@ -52,3 +52,5 @@ class VisionTokenizer(nn.Module):
 - Dosovitskiy et al. "An Image is Worth 16x16 Words" (ViT)
 
 **Tags:** #VisionEncoder #Tokenization #VLM
+
+<script src="/assets/js/katex-init.js"></script>

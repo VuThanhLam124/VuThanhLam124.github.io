@@ -30,3 +30,5 @@ def ddim_sample(model, steps=50, eta=0.0):
 - Song et al. "Denoising Diffusion Implicit Models" ICLR 2021
 
 **Tags:** #DDIM #FastSampling #DiffusionModels
+
+<script src="/assets/js/katex-init.js"></script>

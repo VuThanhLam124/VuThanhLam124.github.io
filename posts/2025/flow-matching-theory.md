@@ -267,3 +267,4 @@ Flow Matching mang lại một perspective mới cho generative modeling với n
 - Tong et al. "Improving and Generalizing Flow-Based Generative Models" (2023)
 
 **Code repository:** [GitHub - Flow Matching Implementation](https://github.com/VuThanhLam124/flow-matching-pytorch)
+<script src="/assets/js/katex-init.js"></script>

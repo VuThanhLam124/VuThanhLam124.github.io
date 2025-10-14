@@ -38,3 +38,5 @@ class LatentConsistencyModel(nn.Module):
 - Luo et al. "Latent Consistency Models" 2023
 
 **Tags:** #LCM #FastGeneration #LatentDiffusion
+
+<script src="/assets/js/katex-init.js"></script>

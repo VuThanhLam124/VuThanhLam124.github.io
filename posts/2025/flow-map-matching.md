@@ -371,3 +371,5 @@ Trade-off: potentially higher memory footprint, but gains in speed và simplicit
 ---
 
 **Tags:** #FlowMaps #FlowMatching #GenerativeModels #EfficientTraining #DeepLearning
+
+<script src="/assets/js/katex-init.js"></script>

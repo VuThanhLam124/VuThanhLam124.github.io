@@ -460,3 +460,5 @@ Key insight: **Straightness matters!** Iterative refinement (reflow) produces ex
 ---
 
 **Tags:** #RectifiedFlows #OptimalTransport #FastSampling #GenerativeModels #DeepLearning
+
+<script src="/assets/js/katex-init.js"></script>

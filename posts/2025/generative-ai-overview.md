@@ -49,3 +49,5 @@ Variational Autoencoders là nền tảng quan trọng cho latent diffusion và 
 - Tối ưu hóa inference bằng distillation và caching.
 
 Bài viết là "map" làm nền tảng trước khi chúng ta đi sâu vào từng nhánh trong các series kế tiếp.
+
+<script src="/assets/js/katex-init.js"></script>

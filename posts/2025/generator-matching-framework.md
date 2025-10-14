@@ -128,3 +128,5 @@ Generator Matching provides unified view of generative modeling, enabling:
 ---
 
 **Tags:** #GeneratorMatching #UnifiedFramework #GenerativeModels #FlowMatching
+
+<script src="/assets/js/katex-init.js"></script>

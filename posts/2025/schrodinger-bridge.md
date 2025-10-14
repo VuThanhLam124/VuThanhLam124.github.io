@@ -363,3 +363,5 @@ While more complex than deterministic flows, stochasticity can be beneficial for
 ---
 
 **Tags:** #SchrodingerBridge #OptimalTransport #StochasticProcesses #GenerativeModels
+
+<script src="/assets/js/katex-init.js"></script>
