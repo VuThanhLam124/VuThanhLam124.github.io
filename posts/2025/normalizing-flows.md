@@ -64,10 +64,10 @@ Trong AI, chúng ta có nhiều "người thợ" với kỹ năng khác nhau:
 - Không thể cho bạn biết xác suất để tạo ra một tác phẩm cụ thể
 
 **Normalizing Flow** - Nghệ nhân bậc thầy:
-- ✅ Tạo ra tác phẩm chất lượng cao
-- ✅ **Tính được chính xác xác suất** (exact likelihood)
-- ✅ Có thể đi cả hai chiều: tạo mới HOẶC phân tích ngược
-- ✅ Quá trình dạy ổn định
+- Tạo ra tác phẩm chất lượng cao
+- **Tính được chính xác xác suất** (exact likelihood)
+- Có thể đi cả hai chiều: tạo mới HOẶC phân tích ngược
+- Quá trình dạy ổn định
 
 Đây chính là lý do chúng ta cần Normalizing Flow!
 
@@ -891,8 +891,8 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
    - Exact likelihood computation
 
 2. **Change of variables formula**
-   - Tracking density changes qua Jacobian determinant
-   - $\log p_x(x)$ = $\log p_z(z)$ - $\log|\det(J)|$
+   - Theo dõi sự thay đổi mật độ qua định thức Jacobian. Công thức log-likelihood:
+     $$ \log p_x(x) = \log p_z(z) - \log\left|\det(J)\right| $$
 
 3. **Coupling Layers = Kiến trúc thông minh**
    - Jacobian có cấu trúc đặc biệt (triangular)
