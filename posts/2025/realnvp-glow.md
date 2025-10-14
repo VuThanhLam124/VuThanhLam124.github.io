@@ -11,12 +11,12 @@ featured: false
 
 # RealNVP & Glow
 
-**Tiếp tục câu chuyện người thợ gốm ở bài Normalizing Flow, lần này chúng ta theo chân anh ấy khi xưởng gốm chuyển mình thành xưởng pha lê thời gian thực — nơi RealNVP và Glow trở thành “bí kíp gia truyền” mới.**
+**Tiếp nối bài Normalizing Flow, người thợ gốm của chúng ta giờ đã chuyển sang xưởng pha lê – nơi RealNVP và Glow trở thành những kỹ thuật nòng cốt để vừa giữ tính khả nghịch, vừa vận hành đủ nhanh cho khán giả đang chờ.**
 
 ## Mục lục
 
 1. [Câu chuyện về xưởng pha lê thời gian thực](#1-câu-chuyện-về-xưởng-pha-lê-thời-gian-thực)
-2. [Bài toán thực tế: Chuẩn hóa ảnh sản phẩm toàn cầu](#2-bài-toán-thực-tế-chuẩn-hóa-ảnh-sản-phẩm-toàn-cầu)
+2. [Áp lực từ phòng trưng bày pha lê](#2-áp-lực-từ-phòng-trưng-bày-pha-lê)
 3. [Từ trực giác đến RealNVP](#3-từ-trực-giác-đến-realnvp)
 4. [Kiến trúc RealNVP từng lớp](#4-kiến-trúc-realnvp-từng-lớp)
 5. [Ví dụ toán học: Coupling 2D tối giản](#5-ví-dụ-toán-học-coupling-2d-tối-giản)
@@ -29,38 +29,15 @@ featured: false
 
 ## 1. Câu chuyện về xưởng pha lê thời gian thực
 
-Hồi kết bài trước, người thợ gốm đã làm chủ chuỗi biến đổi nghịch bằng đất sét. Nhưng khách hàng ngày càng đòi hỏi: họ muốn sản phẩm sáng, trong, phản chiếu ánh sáng — và muốn **đặt hàng, xem preview, chỉnh sửa** ngay tại chỗ. Xưởng gốm của anh vì thế tái cấu trúc thành một xưởng pha lê kỳ lạ trên dãy Alps: khách bước vào, chọn khối pha lê tròn tiêu chuẩn rồi mô tả món đồ họ muốn — có người thích quả cầu tuyết khắc tên, có người cần bình xoắn nhiều tầng. Người thợ phải **biến đổi** khối pha lê chuẩn thành vô số hình dạng phức tạp mà vẫn đảm bảo:
+Từ khối đất sét của bài trước, người thợ giờ làm việc với khối pha lê chuẩn – biểu tượng cho base Gaussian. Khách bước vào, chọn một mẫu bất kỳ và muốn thấy nó biến thành chiếc bình hay quả cầu theo ý thích. Mỗi thao tác phải đảo ngược được, vì chỉ cần khách đổi ý là anh phải trả khối pha lê về trạng thái ban đầu. Đó chính là trực giác đứng sau **Real-valued Non-Volume Preserving (RealNVP)**: biến đổi được thiết kế để dễ dàng tiến và lùi.
 
-- Không nứt vỡ: mọi thao tác có thể **hoàn tác** khi cần sửa lỗi.
-- Độ trong suốt đồng nhất: phải biết chính xác mật độ vật liệu ở mỗi bước.
+Glow là bước nâng cấp tự nhiên: trước khi nặn tiếp, người thợ xoay nhẹ khối pha lê để ánh sáng rọi đúng góc và chuẩn hóa nhiệt độ của lò nung. Hai động tác này tương ứng với invertible 1x1 convolution và ActNorm – giúp flow linh hoạt hơn mà vẫn kiểm soát được log-determinant một cách gọn gàng.
 
-Người nghệ nhân năm xưa nay đã nâng cấp tay nghề: anh giữ nửa khối pha lê bằng tay trái, dùng tay phải nung, xoắn, kéo giãn phần còn lại. Sau mỗi bước, anh ấy biết chính xác phải trả pha lê về hình tròn thế nào. Đây chính là trực giác của **Real-valued Non-Volume Preserving (RealNVP)**: những phép biến đổi **khả nghịch**, dễ tính toán “phí co giãn” (log-det Jacobian) sau mỗi thao tác.
+## 2. Áp lực từ phòng trưng bày pha lê
 
-Glow xuất hiện khi xưởng mở rộng sang khu “trưng bày ánh sáng”: khách muốn khối pha lê vừa xoắn, vừa có hoa văn quay tròn hòa theo nhạc. Người nghệ nhân quyết định thêm một động tác mới: **xoay cả khối pha lê theo góc học được từ trải nghiệm** (invertible 1x1 conv) trước khi tiếp tục nặn. Động tác xoay có thể hoàn tác, nhưng giúp hoa văn bắt sáng hơn — đó chính là Glow, chương tiếp theo của câu chuyện.
+Phòng trưng bày mới đông khách khiến người thợ phải làm nhanh hơn nhưng không được phép đánh mất sự chính xác. Anh cần một quy trình biến đổi có “vũ đạo” rõ ràng: nửa khối pha lê làm điểm tựa, nửa còn lại biến hóa theo nhịp điệu do các mạng $s(\cdot)$ và $t(\cdot)$ quyết định; mọi thứ có thể đảo ngược tức khắc nếu khách yêu cầu chỉnh sửa. RealNVP cung cấp cấu trúc đó, còn Glow thay việc đổi mặt nạ thủ công bằng một phép xoay học được để ánh sáng được trộn đều hơn.
 
-## 2. Bài toán thực tế: Chuẩn hóa ảnh sản phẩm toàn cầu
-
-Sau hội thảo Normalizing Flow trước đó, một công ty thương mại điện tử đa quốc gia tìm đến xưởng pha lê để nhờ chuyển hóa pipeline kiểm duyệt ảnh của họ. Bài toán đặt ra:
-
-- Ảnh chụp trong điều kiện ánh sáng khác nhau (Châu Âu, Đông Nam Á, Mỹ Latin).
-- Cần tạo ảnh mới với màu nền chuẩn, góc nhìn đúng quy chuẩn, nhưng vẫn giữ sắc thái từng khu vực để phù hợp người dùng.
-- Họ muốn biết **likelihood chính xác** của một ảnh tuân theo phong cách chuẩn để đào thải ảnh “off-brand” và để gợi ý chỉnh sửa.
-
-Tại sao RealNVP/Glow phù hợp?
-
-- **Invertible**: có thể đi từ ảnh chuẩn -> latent gaussian (để phân tích), và ngược lại (để synthesize).
-- **Exact log-likelihood**: đưa ra điểm số định lượng nhằm tự động duyệt ảnh.
-- **Multi-scale Glow**: học được chi tiết nhỏ như phản quang trên chất liệu kim loại (nhờ step invertible 1x1 conv + coupling).
-
-Kết quả triển khai proof-of-concept:
-
-| Mục tiêu | Trước (Manual) | Sau (RealNVP/Glow) |
-|----------|----------------|--------------------|
-| Thời gian xử lý/ảnh | ~120 giây | 8.5 giây (GPU A100) |
-| Tỉ lệ phát hiện ảnh lỗi | 63% | 91% |
-| Điểm nhất quán phong cách (cosine latent) | 0.42 | 0.77 |
-
-Nhờ có khả năng đánh giá xác suất chính xác, đội ngũ có thể thiết lập ngưỡng `log p(x)` để tự động phê duyệt hoặc trả ảnh về cho máy chỉnh sửa generative.
+Bối cảnh đã đủ: chúng ta lùi khỏi câu chuyện, bước vào phần kỹ thuật để xem hai kiến trúc này vận hành ra sao.
 
 ## 3. Từ trực giác đến RealNVP
 
