@@ -154,7 +154,9 @@ $$
 \log p_x(x) = \log p_z(z) + \log\left|\frac{df^{-1}}{dx}\right|
 $$
 
-Ở đây, thành phần $\left|\frac{df^{-1}}{dx}\right|$ chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
+$$
+Ở đây, thành phần \left|\frac{df^{-1}}{dx}\right| chính là "phí co giãn" (stretching fee). Nó là một hệ số điều chỉnh mật độ để đảm bảo tổng xác suất luôn bằng 1, giống như tổng khối lượng đất sét được bảo toàn dù hình dạng thay đổi.
+$$
 
 ### Ví dụ cụ thể
 
@@ -227,7 +229,9 @@ $$
 
 **Ý nghĩa hình học:** Hãy tưởng tượng một hình vuông nhỏ trong khối đất sét ban đầu. Sau khi người thợ nặn, nó có thể trở thành một hình bình hành bị kéo dài và xoay đi. Ma trận Jacobian mô tả chính xác phép biến đổi từ hình vuông sang hình bình hành đó.
 
-**Định thức:** Giá trị tuyệt đối của định thức, $$|\det(J)|$$, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
+$$
+**Định thức:** Giá trị tuyệt đối của định thức, |\det(J)|, cho chúng ta biết **diện tích (hoặc thể tích)** của hình bình hành đó lớn gấp bao nhiêu lần hình vuông ban đầu. Đây chính là "phí co giãn" trong không gian đa chiều!
+$$
 
 ### Change of Variables (nhiều chiều)
 
@@ -889,9 +893,11 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
    - Base distribution (simple) → Data distribution (complex)
    - Exact likelihood computation
 
+$$
 2. **Change of variables formula**
    - Tracking density changes qua Jacobian determinant
-   - $\log p_x(x) = \log p_z(z) - \log|\det(J)|$
+   - \log p_x(x) = \log p_z(z) - \log|\det(J)|
+$$
 
 3. **Coupling Layers = Kiến trúc thông minh**
    - Jacobian có cấu trúc đặc biệt (triangular)
