@@ -3,234 +3,344 @@ title: "Normalizing Flow & Continuous Normalizing Flow: Từ Lý thuyết đến
 date: "2025-01-15"
 category: "flow-based-models"
 tags: ["normalizing-flows", "CNF", "neural-ode", "generative-models", "pytorch"]
-excerpt: "Deep dive vào Normalizing Flows và Continuous Normalizing Flows. Từ change of variables formula, Jacobian determinant, đến Neural ODEs và implementation chi tiết bằng PyTorch."
+excerpt: "Hành trình khám phá Normalizing Flows từ câu chuyện người thợ gốm đến toán học sâu và implementation chi tiết. Kết hợp storytelling, rigorous math với LaTeX đẹp, và complete PyTorch code."
 author: "ThanhLamDev"
-readingTime: 18
+readingTime: 20
 featured: true
 ---
 
-# Normalizing Flow & Continuous Normalizing Flow: Từ Lý thuyết đến Thực hành
+# Normalizing Flow & Continuous Normalizing Flow
 
-Normalizing Flows là một trong những frameworks elegant nhất trong generative modeling, cho phép **exact likelihood computation** và **efficient sampling**. Bài viết này sẽ dẫn bạn từ intuition cơ bản đến mathematical foundations và cuối cùng là full implementation.
+**Hành trình từ Đơn giản đến Phức tạp**
+
+Chào mừng bạn đến với bài viết đầu tiên trong series về Flow-based Models. Thay vì đi thẳng vào công thức khô khan, chúng ta sẽ bắt đầu với một câu chuyện...
 
 ## Mục lục
 
-1. [Giới thiệu: Flow là gì?](#1-giới-thiệu-flow-là-gì)
-2. [Tại sao cần Normalizing Flow?](#2-tại-sao-cần-normalizing-flow)
+1. [Câu chuyện về người thợ gốm](#1-câu-chuyện-về-người-thợ-gốm)
+2. [Từ trực giác đến toán học](#2-từ-trực-giác-đến-toán-học)
 3. [Change of Variables Formula](#3-change-of-variables-formula)
-4. [Jacobian và Computational Challenges](#4-jacobian-và-computational-challenges)
-5. [Normalizing Flows Architecture](#5-normalizing-flows-architecture)
-6. [Continuous Normalizing Flows (CNF)](#6-continuous-normalizing-flows-cnf)
-7. [Implementation với PyTorch](#7-implementation-với-pytorch)
-8. [Training và Sampling](#8-training-và-sampling)
-9. [Advanced Topics](#9-advanced-topics)
-10. [Kết luận](#10-kết-luận)
+4. [Jacobian: "Phí co giãn" của không gian](#4-jacobian-phí-co-giãn-của-không-gian)
+5. [Kiến trúc thông minh: Coupling Layers](#5-kiến-trúc-thông-minh-coupling-layers)
+6. [Continuous Normalizing Flows](#6-continuous-normalizing-flows)
+7. [Implementation đầy đủ với PyTorch](#7-implementation-đầy-đủ-với-pytorch)
+8. [Advanced Topics & FFJORD](#8-advanced-topics--ffjord)
+9. [Kết luận](#9-kết-luận)
 
 ---
 
-## 1. Giới thiệu: Flow là gì?
+## 1. Câu chuyện về người thợ gốm
 
-Hãy tưởng tượng bạn có một khối đất sét hình cầu đơn giản (phân phối Gaussian) và muốn nặn nó thành một hình dạng phức tạp (phân phối dữ liệu thật). Quá trình biến đổi từng bước này chính là một **"flow"**.
+Hãy tưởng tượng bạn là một nghệ nhân gốm. Trước mặt bạn là một khối đất sét hình cầu đơn giản, hoàn hảo, đối xứng - giống như một **phân phối Gaussian chuẩn** trong thống kê.
 
-**Định nghĩa toán học:**
+Nhiệm vụ của bạn? Biến khối đất sét đơn giản đó thành một tác phẩm nghệ thuật phức tạp - có thể là chiếc bình hình ngôi sao, hoặc hình con rồng. Đây chính là **data distribution** trong thế giới AI.
 
-Flow là một chuỗi các phép biến đổi khả nghịch (invertible transformations):
+### Quá trình biến đổi
 
-```
-z_0 → z_1 → z_2 → ... → z_K = x
-```
+Bạn không thể một bước biến khối cầu thành con rồng. Thay vào đó, bạn thực hiện một **chuỗi các thao tác**:
+1. Kéo dài một phần để tạo thân
+2. Nặn nhỏ để tạo đầu
+3. Uốn cong để tạo đuôi
+4. Thêm chi tiết cho cánh, chân...
+
+Mỗi bước là một **phép biến đổi** (transformation). Chuỗi này chính là **"flow"** - dòng chảy của các biến đổi.
+
+### Điều kỳ diệu: Tính khả nghịch
+
+Nếu bạn là một nghệ nhân bậc thầy, bạn có thể làm ngược lại: nhìn vào con rồng hoàn thành, bạn biết chính xác cách "tháo gỡ" từng bước để trở về khối cầu ban đầu. Đây chính là tính **invertible** (khả nghịch) - linh hồn của Normalizing Flow.
+
+### Tại sao cần "người thợ gốm" giỏi?
+
+Trong AI, chúng ta có nhiều "người thợ" với kỹ năng khác nhau:
+
+**VAE (Variational Autoencoder)** - Người thợ tập sự:
+- Có thể tạo ra những tác phẩm "tạm ổn"
+- Nhưng luôn hơi mờ, thiếu sắc nét
+- Chỉ ước tính được "độ khó" làm tác phẩm, không biết chính xác
+
+**GAN (Generative Adversarial Network)** - Nghệ sĩ tài năng nhưng khó tính:
+- Tạo ra tác phẩm cực kỳ đẹp, sắc nét
+- Nhưng quá trình dạy rất khó khăn (training unstable)
+- Không thể cho bạn biết xác suất để tạo ra một tác phẩm cụ thể
+
+**Normalizing Flow** - Nghệ nhân bậc thầy:
+- ✅ Tạo ra tác phẩm chất lượng cao
+- ✅ **Tính được chính xác xác suất** (exact likelihood)
+- ✅ Có thể đi cả hai chiều: tạo mới HOẶC phân tích ngược
+- ✅ Quá trình dạy ổn định
+
+Đây chính là lý do chúng ta cần Normalizing Flow!
+
+---
+
+## 2. Từ trực giác đến toán học
+
+Bây giờ, hãy chuyển câu chuyện thành ngôn ngữ toán học.
+
+### Định nghĩa Flow
+
+**Flow** là một chuỗi các phép biến đổi khả nghịch:
+
+$$
+z_0 \xrightarrow{f_1} z_1 \xrightarrow{f_2} z_2 \xrightarrow{f_3} \cdots \xrightarrow{f_K} z_K = x
+$$
 
 Trong đó:
-- ```z_0``` ~ ```p_0(z)``` là base distribution (thường là Gaussian)
-- ```x = f_K ∘ f_{K-1} ∘ ... ∘ f_1(z_0)``` là data distribution
-- Mỗi ```f_k``` phải có inverse ```f_k^{-1}```
+- $z_0 \sim p_0(z)$ là **base distribution** (khối đất sét ban đầu) - thường là $\mathcal{N}(0, I)$
+- $x = f_K \circ f_{K-1} \circ \cdots \circ f_1(z_0)$ là **data distribution** (tác phẩm hoàn thành)
+- Mỗi $f_k$ phải có hàm ngược $f_k^{-1}$
 
-**Ví dụ đơn giản (1D):**
+**Ví dụ đơn giản nhất (1D):**
 
 ```python
 import torch
+import matplotlib.pyplot as plt
 
 # Base distribution: Standard Gaussian
-z = torch.randn(1000)  # z ~ N(0, 1)
+z = torch.randn(10000)  # z ~ N(0, 1)
 
-# Simple flow: affine transformation
-x = 2 * z + 3  # x = f(z), where f(z) = 2z + 3
+# Flow transformation: affine
+def f(z):
+    return 2 * z + 3  # Scale by 2, shift by 3
 
-# Inverse: f^{-1}(x) = (x - 3) / 2
-z_recovered = (x - 3) / 2
+x = f(z)
+
+# Visualize
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+ax1.hist(z.numpy(), bins=50, density=True, alpha=0.7)
+ax1.set_title("Base Distribution: z ~ N(0, 1)")
+ax2.hist(x.numpy(), bins=50, density=True, alpha=0.7)
+ax2.set_title("Transformed: x = 2z + 3 ~ N(3, 4)")
+plt.show()
 ```
 
-## 2. Tại sao cần Normalizing Flow?
+### So sánh với các mô hình khác
 
-### So sánh với các mô hình khác:
+| Model | Exact Likelihood | Efficient Sampling | Training Stability | Bidirectional |
+|-------|-----------------|-------------------|-------------------|---------------|
+| **VAE** | ✗ (lower bound) | ✓ | ✓ | ✗ |
+| **GAN** | ✗ | ✓ | ✗ | ✗ |
+| **Normalizing Flow** | ✓ | ✓ | ✓ | ✓ |
+| **Diffusion** | ✓ | ✗ (slow) | ✓ | ✗ |
 
-| Model | Exact Likelihood | Efficient Sampling | Training Stability |
-|-------|-----------------|-------------------|-------------------|
-| **VAE** | ✗ (approximate) | ✓ | ✓ |
-| **GAN** | ✗ | ✓ | ✗ (unstable) |
-| **Normalizing Flow** | ✓ | ✓ | ✓ |
-| **Diffusion** | ✓ | ✗ (slow) | ✓ |
-
-**Key advantages của Normalizing Flow:**
-
-1. **Exact likelihood computation**: Tính được chính xác ```p(x)``` cho mọi data point
-2. **Bidirectional mapping**: Có thể chuyển đổi cả 2 chiều ```x ↔ z```
-3. **Stable training**: Không có adversarial loss như GAN
-4. **Interpretable latent space**: ```z``` có ý nghĩa xác suất rõ ràng
+---
 
 ## 3. Change of Variables Formula
 
-### 3.1. Intuition
+### Intuition: Bảo toàn "khối lượng"
 
-Khi ta biến đổi một biến ngẫu nhiên, mật độ xác suất của nó cũng thay đổi. Công thức change of variables giúp ta tracking sự thay đổi này.
+Quay lại ví dụ người thợ gốm. Khi bạn kéo dài một phần của khối đất sét:
+- Vùng bị kéo giãn → mật độ đất sét giảm (thưa hơn)
+- Vùng bị nén lại → mật độ đất sét tăng (đặc hơn)
+- Nhưng **tổng khối lượng đất sét không đổi**!
 
-**Ví dụ trực quan:**
+Trong xác suất, "khối lượng" là tích phân xác suất. Khi biến đổi, mật độ xác suất thay đổi nhưng phải đảm bảo:
 
-Nếu bạn kéo giãn một khối đất sét ra gấp đôi, mật độ của nó sẽ giảm đi một nửa (để bảo toàn khối lượng/xác suất tổng).
+$$
+\int p_x(x) dx = \int p_z(z) dz = 1
+$$
 
-### 3.2. Công thức toán học (1D)
+### Công thức toán học (1D)
 
-Cho biến đổi ```x = f(z)``` với ```f``` khả nghịch:
+Cho phép biến đổi $x = f(z)$ với $f$ khả nghịch:
 
-```
-p_x(x) = p_z(f^{-1}(x)) · |df^{-1}/dx|
-```
+$$
+p_x(x) = p_z(f^{-1}(x)) \left| \frac{df^{-1}}{dx} \right|
+$$
 
-Hoặc dùng log-likelihood (dễ optimize hơn):
+Hoặc dùng log (dễ tính toán hơn):
 
-```
-log p_x(x) = log p_z(z) + log |df^{-1}/dx|
-            = log p_z(z) - log |df/dz|
-```
+$$
+\log p_x(x) = \log p_z(z) + \log \left| \frac{df^{-1}}{dx} \right|
+$$
 
-**Ví dụ cụ thể:**
+**"Phí co giãn"** $\left| \frac{df^{-1}}{dx} \right|$ điều chỉnh mật độ để bảo toàn tổng xác suất.
+
+### Ví dụ cụ thể
+
+Cho $z \sim \mathcal{N}(0, 1)$ và $x = 2z + 1$:
+
+**Bước 1:** Hàm ngược
+$$
+f^{-1}(x) = \frac{x - 1}{2}
+$$
+
+**Bước 2:** Đạo hàm
+$$
+\frac{df^{-1}}{dx} = \frac{1}{2}
+$$
+
+**Bước 3:** Mật độ của $x$
+$$
+p_x(x) = \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{(x-1)^2}{8}\right) \cdot \frac{1}{2}
+$$
+
+Kết quả: $x \sim \mathcal{N}(1, 4)$ (trung bình 1, phương sai 4)
+
+**Code minh họa:**
 
 ```python
 import torch
 import torch.distributions as D
-import matplotlib.pyplot as plt
 
-# Base distribution: z ~ N(0, 1)
+# Base distribution
 p_z = D.Normal(0, 1)
-z = torch.linspace(-4, 4, 1000)
+z = torch.linspace(-5, 5, 1000)
 
 # Transformation: x = 2z + 1
-def f(z):
-    return 2 * z + 1
-
-def f_inv(x):
-    return (x - 1) / 2
+x = 2 * z + 1
 
 # Change of variables
-x = f(z)
 log_p_z = p_z.log_prob(z)
 log_det_jacobian = -torch.log(torch.tensor(2.0))  # log |df/dz| = log(2)
 log_p_x = log_p_z - log_det_jacobian
-p_x = torch.exp(log_p_x)
 
-# Verify: p_x should be N(1, 4)
-p_x_true = D.Normal(1, 2).log_prob(x).exp()
+# Verify: should match N(1, 2) distribution
+p_x_true = D.Normal(1, 2)
+log_p_x_true = p_x_true.log_prob(x)
 
-print(f"Max difference: {(p_x - p_x_true).abs().max():.6f}")  # Should be ~0
+print(f"Max log-prob difference: {(log_p_x - log_p_x_true).abs().max():.6f}")
+# Output: ~0.000000 (perfect match!)
 ```
 
-### 3.3. Công thức tổng quát (Multi-dimensional)
+---
 
-Cho ```x = f(z)``` với ```x, z ∈ ℝ^d```:
+## 4. Jacobian: "Phí co giãn" của không gian
 
-```
-log p_x(x) = log p_z(z) - log |det(∂f/∂z)|
-```
+### Từ 1D sang nhiều chiều
 
-Trong đó ```∂f/∂z``` là **Jacobian matrix**:
+Khi dữ liệu có nhiều chiều (ví dụ: ảnh 64×64 = 4096 dimensions), "phí co giãn" không còn là một số đơn giản. Nó trở thành **định thức (determinant)** của **ma trận Jacobian**.
 
-```
-J = ∂f/∂z = [∂f_i/∂z_j]_{i,j=1}^d
-```
+### Ma trận Jacobian
 
-**Vấn đề:** Computing determinant có complexity ```O(d³)``` - prohibitive cho high-dimensional data!
+Cho $f: \mathbb{R}^d \to \mathbb{R}^d$, Jacobian là ma trận đạo hàm riêng:
 
-### 3.4. Code example: 2D transformation
+$$
+J = \frac{\partial f}{\partial z} = \begin{bmatrix}
+\frac{\partial f_1}{\partial z_1} & \cdots & \frac{\partial f_1}{\partial z_d} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial f_d}{\partial z_1} & \cdots & \frac{\partial f_d}{\partial z_d}
+\end{bmatrix}
+$$
+
+**Ý nghĩa hình học:** Jacobian mô tả cách một vùng không gian nhỏ bị co giãn, xoay, biến dạng.
+
+**Định thức:** $\det(J)$ cho biết **thể tích** của vùng đó thay đổi bao nhiêu lần.
+
+### Change of Variables (nhiều chiều)
+
+$$
+\log p_x(x) = \log p_z(z) - \log \left| \det \frac{\partial f}{\partial z} \right|
+$$
+
+**Vấn đề lớn:** Tính $\det(J)$ cho ma trận $d \times d$ có độ phức tạp $O(d^3)$!
+
+Với ảnh 64×64:
+- $d = 4096$
+- $O(d^3) = O(68{,}719{,}476{,}736)$ operations
+- **Không khả thi!**
+
+### Ví dụ: Affine transformation 2D
 
 ```python
+import torch
+
 def affine_flow_2d(z, A, b):
     """
-    Affine transformation: x = Az + b
+    x = Az + b
+    
     Args:
-        z: (batch_size, 2) input
+        z: (batch_size, 2)
         A: (2, 2) transformation matrix
-        b: (2,) bias vector
+        b: (2,) bias
     Returns:
         x: transformed data
-        log_det_jac: log |det(A)|
+        log_det: log |det(A)|
     """
-    x = z @ A.T + b
-    log_det_jac = torch.logdet(A)
-    return x, log_det_jac
+    x = z @ A.T + b  # Matrix multiplication
+    log_det = torch.logdet(A)  # Log-determinant
+    return x, log_det
 
-# Example usage
-z = torch.randn(100, 2)  # 100 samples from N(0, I)
-A = torch.tensor([[2.0, 0.5], [0.0, 1.5]])
+# Example
+batch_size = 100
+z = torch.randn(batch_size, 2)  # Base samples
+
+A = torch.tensor([[2.0, 0.5], 
+                  [0.0, 1.5]])
 b = torch.tensor([1.0, -0.5])
 
 x, log_det = affine_flow_2d(z, A, b)
-print(f"Log-det Jacobian: {log_det:.4f}")  # log(2.0 * 1.5) = 1.0986
+
+print(f"Log-determinant: {log_det:.4f}")
+# Expected: log(2.0 * 1.5) = log(3.0) ≈ 1.0986
 ```
 
-## 4. Jacobian và Computational Challenges
+---
 
-### 4.1. Vấn đề
+## 5. Kiến trúc thông minh: Coupling Layers
 
-Tính ```det(J)``` cho matrix ```d × d``` cost ```O(d³)```:
-- Image 64×64: ```d = 4096``` → không khả thi!
-- Cần thiết kế architectures thông minh
+### Ý tưởng thiên tài
 
-### 4.2. Giải pháp: Structured Jacobians
+Để tránh tính toán $O(d^3)$, chúng ta thiết kế transformation sao cho Jacobian có **cấu trúc đặc biệt** → tính determinant chỉ mất $O(d)$!
 
-**Coupling Layers** (RealNVP, Glow):
+### Coupling Layer (RealNVP)
 
-Chia ```z``` thành 2 phần ```[z_1, z_2]```:
+**Ý tưởng:** Chia vector $z$ thành 2 nửa:
 
-```
-x_1 = z_1
-x_2 = s(z_1) ⊙ z_2 + t(z_1)
-```
+$$
+\begin{aligned}
+x_{1:d/2} &= z_{1:d/2} \quad \text{(giữ nguyên)} \\
+x_{d/2+1:d} &= z_{d/2+1:d} \odot \exp(s(z_{1:d/2})) + t(z_{1:d/2})
+\end{aligned}
+$$
 
 Trong đó:
-- ```s, t``` là neural networks
-- ```⊙``` là element-wise multiplication
+- $s(\cdot)$: **scale network** (neural net)
+- $t(\cdot)$: **translation network** (neural net)  
+- $\odot$: element-wise multiplication
 
-**Jacobian có dạng:**
+**Jacobian có dạng tam giác:**
 
-```
-J = [I      0   ]
-    [∂t/∂z₁  diag(s(z₁))]
-```
+$$
+J = \begin{bmatrix}
+I_{d/2} & 0 \\
+\frac{\partial x_{d/2+1:d}}{\partial z_{1:d/2}} & \text{diag}(\exp(s(z_{1:d/2})))
+\end{bmatrix}
+$$
 
-**Log-determinant:**
+**Determinant cực kỳ đơn giản:**
 
-```
-log |det(J)| = sum(log |s(z_1)|)  # O(d) complexity!
-```
+$$
+\log |\det(J)| = \sum_{i=d/2+1}^{d} s_i(z_{1:d/2})
+$$
 
-**Implementation:**
+Chỉ cần **cộng các phần tử** → $O(d)$ thay vì $O(d^3)$!
+
+### Implementation PyTorch
 
 ```python
+import torch
+import torch.nn as nn
+
 class CouplingLayer(nn.Module):
+    """RealNVP Coupling Layer"""
+    
     def __init__(self, dim, hidden_dim=128):
         super().__init__()
         self.dim = dim
         self.half_dim = dim // 2
         
-        # Scale and translate networks
-        self.s_net = nn.Sequential(
+        # Scale network: z1 -> s(z1)
+        self.scale_net = nn.Sequential(
             nn.Linear(self.half_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, dim - self.half_dim)
         )
-        self.t_net = nn.Sequential(
+        
+        # Translation network: z1 -> t(z1)
+        self.translate_net = nn.Sequential(
             nn.Linear(self.half_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
@@ -239,25 +349,35 @@ class CouplingLayer(nn.Module):
         )
     
     def forward(self, z):
+        """
+        Forward: z -> x
+        Returns: x, log_det_jacobian
+        """
         z1, z2 = z[:, :self.half_dim], z[:, self.half_dim:]
         
-        s = self.s_net(z1)
-        t = self.t_net(z1)
+        s = self.scale_net(z1)  # Scale
+        t = self.translate_net(z1)  # Translation
         
-        x1 = z1
-        x2 = torch.exp(s) * z2 + t
+        # Transform second half
+        x1 = z1  # First half unchanged
+        x2 = z2 * torch.exp(s) + t
         
         x = torch.cat([x1, x2], dim=1)
-        log_det = s.sum(dim=1)  # Sum over dimensions
+        log_det = s.sum(dim=1)  # Sum of scale parameters
         
         return x, log_det
     
     def inverse(self, x):
+        """
+        Inverse: x -> z
+        Returns: z, log_det_jacobian
+        """
         x1, x2 = x[:, :self.half_dim], x[:, self.half_dim:]
         
-        s = self.s_net(x1)
-        t = self.t_net(x1)
+        s = self.scale_net(x1)
+        t = self.translate_net(x1)
         
+        # Invert transformation
         z1 = x1
         z2 = (x2 - t) * torch.exp(-s)
         
@@ -267,59 +387,51 @@ class CouplingLayer(nn.Module):
         return z, log_det
 ```
 
-## 5. Normalizing Flows Architecture
+### Stacking nhiều Coupling Layers
 
-### 5.1. Stacking multiple flows
-
-Single flow thường không đủ expressive. Ta stack nhiều flows:
-
-```
-x = f_K ∘ f_{K-1} ∘ ... ∘ f_1(z)
-```
-
-Log-likelihood:
-
-```
-log p_x(x) = log p_z(z) - Σ_{k=1}^K log |det(J_k)|
-```
-
-**Complete NF model:**
+Single coupling layer chưa đủ expressive. Stack nhiều layers:
 
 ```python
 class NormalizingFlow(nn.Module):
+    """Stack of Coupling Layers"""
+    
     def __init__(self, dim, num_flows=8, hidden_dim=128):
         super().__init__()
         self.dim = dim
-        self.num_flows = num_flows
         
-        # Stack coupling layers
+        # Create flow layers
         self.flows = nn.ModuleList([
-            CouplingLayer(dim, hidden_dim) 
+            CouplingLayer(dim, hidden_dim)
             for _ in range(num_flows)
         ])
         
-        # Base distribution
-        self.register_buffer('base_mean', torch.zeros(dim))
-        self.register_buffer('base_std', torch.ones(dim))
+        # Permutations between layers (for better mixing)
+        self.permutations = [
+            torch.randperm(dim) for _ in range(num_flows)
+        ]
     
     def forward(self, z):
-        """Transform z -> x, return x and log_det"""
+        """z -> x"""
         log_det_total = 0
         x = z
         
-        for flow in self.flows:
+        for flow, perm in zip(self.flows, self.permutations):
+            x = x[:, perm]  # Permute dimensions
             x, log_det = flow(x)
             log_det_total += log_det
         
         return x, log_det_total
     
     def inverse(self, x):
-        """Transform x -> z, return z and log_det"""
+        """x -> z"""
         log_det_total = 0
         z = x
         
-        for flow in reversed(self.flows):
+        for flow, perm in zip(reversed(self.flows), 
+                             reversed(self.permutations)):
             z, log_det = flow.inverse(z)
+            inv_perm = torch.argsort(perm)  # Inverse permutation
+            z = z[:, inv_perm]
             log_det_total += log_det
         
         return z, log_det_total
@@ -328,12 +440,12 @@ class NormalizingFlow(nn.Module):
         """Compute log p(x)"""
         z, log_det = self.inverse(x)
         
-        # Log prob of base distribution
-        log_p_z = -0.5 * (z**2).sum(dim=1) - 0.5 * self.dim * torch.log(torch.tensor(2 * 3.14159))
+        # Log-prob of base Gaussian
+        log_p_z = -0.5 * (z**2).sum(dim=1) - \
+                  0.5 * self.dim * torch.log(torch.tensor(2 * 3.14159))
         
         # Change of variables
         log_p_x = log_p_z + log_det
-        
         return log_p_x
     
     def sample(self, num_samples):
@@ -343,96 +455,106 @@ class NormalizingFlow(nn.Module):
         return x
 ```
 
-### 5.2. Training example
+### Training example
 
 ```python
 # Initialize model
-model = NormalizingFlow(dim=2, num_flows=8, hidden_dim=64)
+model = NormalizingFlow(dim=2, num_flows=6, hidden_dim=64)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training loop
-for epoch in range(1000):
+for epoch in range(5000):
     # Get batch of real data
-    x_real = data_loader.get_batch()  # (batch_size, dim)
+    x_batch = sample_real_data(batch_size=256)  # Your dataset
     
     # Compute negative log-likelihood
-    log_p_x = model.log_prob(x_real)
-    loss = -log_p_x.mean()
+    log_p_x = model.log_prob(x_batch)
+    loss = -log_p_x.mean()  # Maximize likelihood = minimize NLL
     
     # Optimize
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
     
-    if epoch % 100 == 0:
-        print(f"Epoch {epoch}, NLL: {loss.item():.4f}")
+    if epoch % 500 == 0:
+        print(f"Epoch {epoch:4d} | NLL: {loss.item():.4f}")
 
-# Sample from trained model
-samples = model.sample(1000)
+# Generate samples
+with torch.no_grad():
+    samples = model.sample(1000)
 ```
 
-## 6. Continuous Normalizing Flows (CNF)
+---
 
-### 6.1. Motivation
+## 6. Continuous Normalizing Flows
 
-Discrete flows có hạn chế:
-- Phải thiết kế architectures đặc biệt (coupling layers, autoregressive)
-- Số lượng parameters tăng tuyến tính với số flows
+### Từ rời rạc sang liên tục
 
-**CNF idea:** Thay vì discrete steps, dùng **continuous-time dynamics**!
+Quay lại ví dụ người thợ gốm. Thay vì xem từng động tác rời rạc (như flipbook), **CNF** mô tả toàn bộ quá trình như một video mượt mà, liên tục.
 
-### 6.2. ODE formulation
+**Discrete NF:**
+$$
+z_0 \to z_1 \to z_2 \to \cdots \to z_K = x
+$$
 
-CNF define trajectory của data point qua ODE:
-
-```
-dz(t)/dt = f(z(t), t; θ)
-```
+**Continuous NF:**
+$$
+\frac{dz(t)}{dt} = f(z(t), t; \theta) \quad \text{với } t \in [0, 1]
+$$
 
 Trong đó:
-- ```t ∈ [0, 1]``` là "time" parameter
-- ```z(0) ~ p_0``` (base distribution)
-- ```z(1) = x ~ p_data```
-- ```f(·, ·; θ)``` là learned **vector field**
+- $z(0) \sim p_0$ (base distribution)
+- $z(1) = x \sim p_{\text{data}}$
+- $f(\cdot, \cdot; \theta)$ là **vector field** học được
 
-**Intuition:** Thay vì "nhảy" rời rạc, data point "trôi" liên tục theo vector field.
+### Ý nghĩa
 
-### 6.3. Instantaneous change of variables
+- $f(z, t)$ cho biết "vận tốc" của điểm $z$ tại thời điểm $t$
+- Tưởng tượng dòng nước chảy: mỗi giọt nước (data point) di chuyển theo hướng được chỉ định bởi vector field
+
+### Instantaneous Change of Variables
 
 Log-density evolution theo thời gian:
 
-```
-d log p(z(t))/dt = -Tr(∂f/∂z(t))
-```
+$$
+\frac{d \log p_t(z(t))}{dt} = -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right)
+$$
 
-**Augmented ODE** (solve cả ```z``` và ```log p``` cùng lúc):
+**Ưu điểm lớn:** Chỉ cần **trace** (sum of diagonal), không cần full determinant!
 
-```
-d/dt [z(t)       ] = [f(z(t), t)              ]
-     [log p(z(t))]   [-Tr(∂f/∂z(t))]
-```
+### Augmented ODE
 
-**Key insight:** Chỉ cần trace (sum of diagonal), không cần full determinant!
+Để tính log-likelihood, ta solve ODE augmented:
 
-### 6.4. Hutchinson's trace estimator
+$$
+\frac{d}{dt} \begin{bmatrix} z(t) \\ \log p_t(z(t)) \end{bmatrix} = \begin{bmatrix} f(z(t), t) \\ -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right) \end{bmatrix}
+$$
 
-Tính ```Tr(∂f/∂z)``` chính xác vẫn cost ```O(d²)```. Dùng **stochastic estimator**:
+### Hutchinson's Trace Estimator
 
-```
-Tr(∂f/∂z) ≈ E_ε[ε^T (∂f/∂z) ε]  với ε ~ N(0, I)
-```
+Tính trace chính xác vẫn cost $O(d^2)$. Dùng **stochastic estimator**:
 
-Chỉ cần 1 sample ```ε``` và 1 vector-Jacobian product → ```O(d)```!
+$$
+\text{Tr}(J) = \mathbb{E}_{\epsilon \sim \mathcal{N}(0, I)} [\epsilon^T J \epsilon]
+$$
+
+Chỉ cần:
+- Sample 1 vector $\epsilon$
+- Tính vector-Jacobian product $J\epsilon$ (via autograd)
+- Dot product $\epsilon^T (J\epsilon)$
+
+→ $O(d)$ complexity!
 
 **Implementation:**
 
 ```python
-def hutchinson_trace_estimator(f, z, num_samples=1):
+def hutchinson_trace(func, z, num_samples=1):
     """
     Estimate tr(df/dz) using Hutchinson's estimator
+    
     Args:
-        f: function z -> f(z)
-        z: input tensor (batch_size, dim)
+        func: function z -> f(z)
+        z: input (batch_size, dim)
         num_samples: number of random vectors
     Returns:
         trace estimate (batch_size,)
@@ -441,15 +563,15 @@ def hutchinson_trace_estimator(f, z, num_samples=1):
     trace = 0
     
     for _ in range(num_samples):
-        # Random Rademacher vector
+        # Random Rademacher vector (+1 or -1)
         eps = torch.randint(0, 2, (batch_size, dim), device=z.device) * 2 - 1
         eps = eps.float()
         
-        # Compute ε^T (∂f/∂z) ε using vector-Jacobian product
+        # Compute ε^T (∂f/∂z) ε
         z.requires_grad_(True)
-        f_z = f(z)
+        f_z = func(z)
         
-        eps_jac_eps = torch.autograd.grad(
+        vjp = torch.autograd.grad(
             outputs=f_z,
             inputs=z,
             grad_outputs=eps,
@@ -457,20 +579,25 @@ def hutchinson_trace_estimator(f, z, num_samples=1):
             retain_graph=True
         )[0]
         
-        trace += (eps * eps_jac_eps).sum(dim=1)
+        trace += (eps * vjp).sum(dim=1)
     
     return trace / num_samples
 ```
 
-## 7. Implementation với PyTorch
+---
 
-### 7.1. Vector field network
+## 7. Implementation đầy đủ với PyTorch
+
+### Vector Field Network
 
 ```python
 class TimeConditionedVectorField(nn.Module):
     """Vector field f(z, t) for CNF"""
-    def __init__(self, dim, hidden_dim=64, time_embed_dim=32):
+    
+    def __init__(self, dim, hidden_dim=128, time_embed_dim=32):
         super().__init__()
+        
+        # Time embedding network
         self.time_embed = nn.Sequential(
             nn.Linear(1, time_embed_dim),
             nn.Tanh(),
@@ -478,8 +605,11 @@ class TimeConditionedVectorField(nn.Module):
             nn.Tanh()
         )
         
+        # Main network
         self.net = nn.Sequential(
             nn.Linear(dim + time_embed_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
@@ -487,42 +617,58 @@ class TimeConditionedVectorField(nn.Module):
         )
     
     def forward(self, t, z):
-        # Note: torchdiffeq expects (t, z) order
-        # t: scalar, z: (batch_size, dim)
+        """
+        Note: torchdiffeq expects signature (t, z)
+        
+        Args:
+            t: scalar time
+            z: (batch_size, dim)
+        Returns:
+            dz/dt: (batch_size, dim)
+        """
         batch_size = z.shape[0]
+        
+        # Embed time
         t_embed = self.time_embed(t.view(1, 1).expand(batch_size, 1))
+        
+        # Concatenate z and time embedding
         tz = torch.cat([z, t_embed], dim=1)
+        
         return self.net(tz)
 ```
 
-### 7.2. CNF với torchdiffeq
+### CNF với torchdiffeq
 
 ```python
 from torchdiffeq import odeint
 
-class CNF(nn.Module):
-    def __init__(self, dim, hidden_dim=64):
+class ContinuousNormalizingFlow(nn.Module):
+    """Basic CNF without trace computation"""
+    
+    def __init__(self, dim, hidden_dim=128):
         super().__init__()
         self.dim = dim
         self.vf = TimeConditionedVectorField(dim, hidden_dim)
-        
+    
     def forward(self, z0, t_span=None):
         """
         Integrate from t=0 to t=1
+        
         Args:
             z0: initial state (batch_size, dim)
             t_span: time points (default: [0, 1])
         Returns:
-            z_trajectory: all states along path
+            trajectory of states
         """
         if t_span is None:
-            t_span = torch.tensor([0., 1.])
+            t_span = torch.tensor([0., 1.]).to(z0.device)
         
+        # Solve ODE
         z_traj = odeint(
             self.vf,
             z0,
             t_span,
-            method='dopri5',  # Adaptive step-size Runge-Kutta
+            method='dopri5',  # Adaptive Runge-Kutta
             rtol=1e-5,
             atol=1e-7
         )
@@ -530,70 +676,64 @@ class CNF(nn.Module):
         return z_traj
     
     def sample(self, num_samples, device='cuda'):
-        """Generate samples from base distribution"""
+        """Generate samples"""
         z0 = torch.randn(num_samples, self.dim).to(device)
         z_traj = self.forward(z0)
-        return z_traj[-1]  # Return final state
-    
-    def log_prob(self, x):
-        """
-        Compute log p(x) via backward integration
-        Returns log probability for each sample
-        """
-        # Integrate backward: x (t=1) -> z0 (t=0)
-        t_span = torch.tensor([1., 0.])
-        z_traj = odeint(self.vf, x, t_span, method='dopri5')
-        z0 = z_traj[-1]
-        
-        # Compute trace term (simplified - full version needs augmented ODE)
-        # This is placeholder - see FFJORD for complete implementation
-        log_p_z0 = -0.5 * (z0**2).sum(dim=1) - 0.5 * self.dim * np.log(2 * np.pi)
-        
-        return log_p_z0  # Should include trace correction
+        return z_traj[-1]  # Return x = z(t=1)
 ```
 
-### 7.3. FFJORD: Full CNF implementation
+---
+
+## 8. Advanced Topics & FFJORD
+
+### FFJORD Architecture
+
+**Free-Form Jacobian of Reversible Dynamics** - state-of-the-art CNF với exact likelihood.
 
 ```python
 class FFJORD(nn.Module):
-    """
-    Free-Form Jacobian of Reversible Dynamics
-    Complete CNF with efficient trace estimation
-    """
-    def __init__(self, dim, hidden_dim=64):
+    """Complete CNF with exact log-likelihood computation"""
+    
+    def __init__(self, dim, hidden_dim=128):
         super().__init__()
         self.dim = dim
         self.vf = TimeConditionedVectorField(dim, hidden_dim)
     
     def _augmented_dynamics(self, t, state):
         """
-        Compute augmented dynamics: [dz/dt, d(log p)/dt]
-        state: [z, log_p] concatenated
+        Augmented ODE: [dz/dt, d(log p)/dt]
+        
+        Args:
+            state: [z, log_p] concatenated (batch_size, dim+1)
+        Returns:
+            [dz/dt, dlogp/dt] (batch_size, dim+1)
         """
         z = state[:, :self.dim]
         
-        # Compute dz/dt
+        # Compute dz/dt = f(z, t)
         dz_dt = self.vf(t, z)
         
         # Compute trace using Hutchinson estimator
-        trace = hutchinson_trace_estimator(
-            lambda z_: self.vf(t, z_), 
-            z, 
+        trace = hutchinson_trace(
+            lambda z_: self.vf(t, z_),
+            z,
             num_samples=1
         )
         
-        # d(log p)/dt = -trace
+        # d(log p)/dt = -tr(df/dz)
         dlogp_dt = -trace
         
         # Concatenate
         return torch.cat([dz_dt, dlogp_dt.unsqueeze(1)], dim=1)
     
     def forward(self, z0, t_span=None):
+        """Forward integration with log-prob tracking"""
         if t_span is None:
-            t_span = torch.tensor([0., 1.])
+            t_span = torch.tensor([0., 1.]).to(z0.device)
+        
+        batch_size = z0.shape[0]
         
         # Initialize augmented state: [z, log_p=0]
-        batch_size = z0.shape[0]
         logp_0 = torch.zeros(batch_size, 1).to(z0)
         state_0 = torch.cat([z0, logp_0], dim=1)
         
@@ -602,20 +742,31 @@ class FFJORD(nn.Module):
             self._augmented_dynamics,
             state_0,
             t_span,
-            method='dopri5'
+            method='dopri5',
+            rtol=1e-5,
+            atol=1e-7
         )
         
         return state_traj
     
     def log_prob(self, x):
-        """Compute log p(x) exactly"""
-        # Backward integration
-        t_span = torch.tensor([1., 0.])
+        """
+        Compute log p(x) exactly via backward integration
+        
+        Args:
+            x: data points (batch_size, dim)
+        Returns:
+            log_p_x: (batch_size,)
+        """
+        # Integrate backward: x (t=1) -> z0 (t=0)
+        t_span = torch.tensor([1., 0.]).to(x.device)
         batch_size = x.shape[0]
         
+        # Initialize: [x, log_p=0]
         logp_1 = torch.zeros(batch_size, 1).to(x)
         state_1 = torch.cat([x, logp_1], dim=1)
         
+        # Solve ODE
         state_traj = odeint(
             self._augmented_dynamics,
             state_1,
@@ -628,29 +779,34 @@ class FFJORD(nn.Module):
         delta_logp = state_0[:, self.dim]
         
         # Base distribution log-prob
-        log_p_z0 = -0.5 * (z0**2).sum(dim=1) - 0.5 * self.dim * np.log(2 * np.pi)
+        log_p_z0 = -0.5 * (z0**2).sum(dim=1) - \
+                   0.5 * self.dim * torch.log(torch.tensor(2 * 3.14159))
         
         # Add change-of-variables correction
         log_p_x = log_p_z0 - delta_logp
         
         return log_p_x
+    
+    def sample(self, num_samples, device='cuda'):
+        """Generate samples"""
+        z0 = torch.randn(num_samples, self.dim).to(device)
+        state_traj = self.forward(z0)
+        return state_traj[-1, :, :self.dim]  # Extract z(t=1)
 ```
 
-## 8. Training và Sampling
-
-### 8.1. Training CNF
+### Training FFJORD
 
 ```python
 import numpy as np
 
-# Initialize
+# Initialize model
 model = FFJORD(dim=2, hidden_dim=128).cuda()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 # Training loop
 for epoch in range(5000):
-    # Sample batch
-    x_batch = sample_data(batch_size=256)  # Your data
+    # Sample batch from real data
+    x_batch = sample_real_data(batch_size=128)
     x_batch = torch.tensor(x_batch).float().cuda()
     
     # Compute negative log-likelihood
@@ -660,243 +816,111 @@ for epoch in range(5000):
     # Optimize
     optimizer.zero_grad()
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    
+    # Gradient clipping (important for stability)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    
     optimizer.step()
     
     if epoch % 500 == 0:
         print(f"Epoch {epoch:4d} | NLL: {loss.item():.4f}")
+        
+        # Visualize samples
+        with torch.no_grad():
+            samples = model.sample(1000).cpu().numpy()
+            plt.scatter(samples[:, 0], samples[:, 1], alpha=0.3)
+            plt.title(f"Epoch {epoch}")
+            plt.show()
 ```
 
-### 8.2. Sampling
+### Regularization Techniques
 
-```python
-# Generate samples
-with torch.no_grad():
-    z0 = torch.randn(1000, 2).cuda()
-    state_traj = model.forward(z0)
-    samples = state_traj[-1, :, :2]  # Extract z(t=1)
-    
-# Visualize
-import matplotlib.pyplot as plt
-samples_np = samples.cpu().numpy()
-plt.scatter(samples_np[:, 0], samples_np[:, 1], alpha=0.3)
-plt.title("Generated Samples")
-plt.show()
-```
+**Kinetic Energy Regularization:**
 
-## 9. Advanced Topics
-
-### 9.1. Augmented flows
-
-Thêm auxiliary dimensions để tăng expressivity:
-
-```
-z_aug = [z, u]  với u ~ N(0, I_k)
-```
-
-### 9.2. Regularization techniques
-
-**Kinetic energy regularization:**
-
-```
-L_reg = λ · E_t[||f(z(t), t)||²]
-```
+$$
+\mathcal{L}_{\text{reg}} = \lambda \int_0^1 \|f(z(t), t)\|^2 dt
+$$
 
 Giúp vector field smooth hơn, giảm NFE (number of function evaluations).
 
-### 9.3. Neural ODE solvers
-
-- **Dopri5**: Adaptive 5th-order Runge-Kutta (default)
-- **Euler**: Simple, fast but less accurate
-- **Adaptive Heun**: Good trade-off
-
-**Choosing solver:**
-
 ```python
-odeint(func, z0, t_span, method='dopri5', rtol=1e-5, atol=1e-7)
+def kinetic_energy_loss(model, z0, lambda_reg=0.01):
+    """Compute kinetic energy regularization"""
+    t_samples = torch.linspace(0, 1, 10).to(z0.device)
+    
+    ke_loss = 0
+    for t in t_samples:
+        z_t = odeint(model.vf, z0, torch.tensor([0., t.item()]))[1]
+        v_t = model.vf(t, z_t)
+        ke_loss += (v_t ** 2).sum(dim=1).mean()
+    
+    return lambda_reg * ke_loss / len(t_samples)
 ```
 
-Lower tolerance → more accurate but slower.
+---
 
-## 10. Kết luận
+## 9. Kết luận
 
-**Key takeaways:**
+### Key Takeaways
 
-1. **Normalizing Flows** biến đổi simple distribution thành complex data distribution qua invertible transformations
-2. **Change of variables** formula tracking density changes qua Jacobian determinant
-3. **Coupling layers** giúp compute determinant hiệu quả (```O(d)``` thay vì ```O(d³)```)
-4. **CNF** extend idea sang continuous-time với Neural ODEs
-5. **Trace estimation** (Hutchinson) giúp CNF scalable
-6. **FFJORD** là state-of-the-art CNF architecture
+1. **Normalizing Flow = Chuỗi biến đổi khả nghịch**
+   - Base distribution (simple) → Data distribution (complex)
+   - Exact likelihood computation
 
-**So sánh CNF vs Discrete NF:**
+2. **Change of variables formula**
+   - Tracking density changes qua Jacobian determinant
+   - $\log p_x(x) = \log p_z(z) - \log |\det(J)|$
+
+3. **Coupling Layers = Kiến trúc thông minh**
+   - Jacobian có cấu trúc đặc biệt (triangular)
+   - $O(d)$ thay vì $O(d^3)$ complexity
+
+4. **CNF = Continuous-time dynamics**
+   - ODE formulation: $dz/dt = f(z, t)$
+   - Trace thay vì determinant
+
+5. **FFJORD = State-of-the-art**
+   - Free-form architectures
+   - Hutchinson trace estimator
+   - Exact likelihood với efficient computation
+
+### So sánh Discrete NF vs CNF
 
 | Aspect | Discrete NF | CNF |
 |--------|-------------|-----|
-| Architecture constraints | ✗ (cần coupling/autoregressive) | ✓ (free-form) |
-| Memory cost | Tăng tuyến tính với K flows | Constant |
+| Architecture | Constrained (coupling/autoregressive) | Free-form |
+| Memory | $O(K \cdot d)$ (K layers) | $O(d)$ (constant) |
 | Computation | Fast forward pass | Slow (ODE solver) |
-| Expressivity | Limited | Theoretically unlimited |
+| Expressivity | Limited by architecture | Theoretically unlimited |
 
-**Applications:**
+### Applications
 
-- Density estimation
-- Variational inference
-- Molecular generation
-- Image synthesis
-- Time series modeling
+- **Density estimation**: Modeling complex distributions
+- **Variational inference**: Flexible posteriors trong Bayesian models
+- **Generative modeling**: Image/audio/molecular generation
+- **Anomaly detection**: Out-of-distribution detection via likelihood
 
-**Future directions:**
+### Future Directions
 
-- Combine CNF with diffusion models → Rectified Flows, Flow Matching
-- Efficient ODE solvers for faster sampling
-- Better regularization for smoother flows
+- **Flow Matching**: Regression-based training (không cần ODE solver)
+- **Rectified Flows**: Straighten trajectories cho faster sampling
+- **Diffusion + Flows**: Kết hợp ưu điểm của cả hai
 
 ---
 
 ## Tài liệu tham khảo
 
-1. Rezende & Mohamed (2015) - "Variational Inference with Normalizing Flows"
-2. Dinh et al. (2017) - "Density estimation using Real NVP"
-3. Kingma & Dhariwal (2018) - "Glow: Generative Flow using Invertible 1x1 Convolutions"
-4. Chen et al. (2018) - "Neural Ordinary Differential Equations" (NeurIPS Best Paper)
-5. Grathwohl et al. (2019) - "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models"
+1. **Rezende & Mohamed (2015)** - "Variational Inference with Normalizing Flows" (ICML)
+2. **Dinh et al. (2017)** - "Density estimation using Real NVP" (ICLR)
+3. **Kingma & Dhariwal (2018)** - "Glow: Generative Flow using Invertible 1x1 Convolutions" (NeurIPS)
+4. **Chen et al. (2018)** - "Neural Ordinary Differential Equations" (NeurIPS Best Paper)
+5. **Grathwohl et al. (2019)** - "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models" (ICLR)
+
+---
 
 **Bài viết tiếp theo:**
 - [Flow Matching: Từ lý thuyết đến thực hành](/posts/2025/flow-matching-theory)
-- [Real NVP & Glow: Invertible Architectures](/posts/2025/realnvp-glow)
-- [Rectified Flows](/posts/2025/rectified-flows)
+- [Real NVP & Glow: Deep Dive](/posts/2025/realnvp-glow)
+- [Rectified Flows: Straight Paths to Generation](/posts/2025/rectified-flows)
 
 <script src="/assets/js/katex-init.js"></script>
-
----
-
-## 1. Câu chuyện về người thợ gốm: "Flow" là gì?
-
-Hãy tưởng tượng bạn là một người thợ gốm. Nhiệm vụ của bạn là tạo ra những chiếc bình gốm có hình dạng phức tạp (ví dụ: hình ngôi sao, hình con mèo). Tuy nhiên, bạn chỉ được bắt đầu với một khối đất sét hình cầu đơn giản.
-
-Quá trình bạn nhào nặn, kéo, đẩy, và biến đổi khối đất sét hình cầu đó thành hình ngôi sao chính là một **"flow"** (dòng chảy). Đó là một chuỗi các phép biến đổi liên tiếp.
-
-Quan trọng hơn, nếu bạn là một người thợ giỏi, bạn có thể làm ngược lại: biến chiếc bình hình ngôi sao trở lại thành khối cầu ban đầu. Quá trình biến đổi này có thể **đảo ngược (invertible)**.
-
-Trong AI, "flow" cũng có ý nghĩa tương tự:
-> **Flow** là một chuỗi các phép biến đổi toán học giúp chuyển một phân phối xác suất đơn giản (khối đất sét hình cầu) thành một phân phối phức tạp (chiếc bình hình ngôi sao).
-
-## 2. Bài toán của AI: Tại sao cần một "người thợ gốm" giỏi?
-
-Trong lĩnh vực mô hình sinh, mục tiêu của chúng ta là dạy cho máy tính cách tạo ra dữ liệu mới (ví dụ: ảnh khuôn mặt, giọng nói, văn bản) giống hệt dữ liệu thật.
-
-Các "người thợ gốm" (mô hình) trước đây có một vài vấn đề:
-- **VAE (Variational Autoencoder):** Giống như một người thợ mới vào nghề. Anh ta có thể tạo ra những chiếc bình trông khá giống hình ngôi sao, nhưng chúng thường hơi "mờ" và không sắc nét. Anh ta cũng chỉ có thể ước lượng "độ khó" để tạo ra một chiếc bình chứ không tính chính xác được.
-- **GAN (Generative Adversarial Network):** Giống như một nghệ sĩ tài năng nhưng tính khí thất thường. Anh ta có thể tạo ra những chiếc bình hình ngôi sao cực kỳ đẹp và sắc nét. Tuy nhiên, quá trình dạy anh ta rất khó khăn (training không ổn định). Tệ hơn, anh ta không thể cho bạn biết xác suất để tạo ra một chiếc bình cụ thể là bao nhiêu. Anh ta chỉ biết "vẽ" thôi.
-
-Đây là lúc chúng ta cần một phương pháp tốt hơn.
-
-## 3. Normalizing Flow: Người thợ gốm vừa khéo tay, vừa minh bạch
-
-**Normalizing Flow (NF)** là một loại mô hình sinh giống như một người thợ gốm bậc thầy, kết hợp ưu điểm của cả hai:
-
-1.  **Sinh mẫu chất lượng cao:** Giống như GAN, NF có thể tạo ra dữ liệu sắc nét và chân thực.
-2.  **Tính toán xác suất chính xác (Exact Likelihood):** Đây là điểm ăn tiền! Không giống GAN, NF có thể cho bạn biết chính xác xác suất để một mẫu dữ liệu (một chiếc bình cụ thể) tồn tại trong phân phối mà nó đã học. Điều này cực kỳ hữu ích trong các ứng dụng khoa học cần sự đo lường chính xác.
-
-Cái tên "Normalizing" (chuẩn hóa) đến từ việc mô hình học cách biến đổi phân phối dữ liệu phức tạp *trở về* một phân phối "chuẩn" (thường là phân phối Gaussian). Vì phép biến đổi này đảo ngược được, chúng ta cũng có thể đi theo chiều ngược lại: từ phân phối chuẩn sinh ra dữ liệu phức tạp.
-
-## 4. Phép màu toán học: Làm sao để theo dõi sự biến đổi?
-
-Khi người thợ gốm biến đổi khối đất, mật độ của đất sét ở các vùng khác nhau sẽ thay đổi. Vùng bị kéo giãn ra sẽ có mật độ thấp hơn, vùng bị nén lại sẽ có mật độ cao hơn. Toán học cũng cần một cách để theo dõi sự "co giãn" này của không gian xác suất.
-
-### 4.1. Công thức Biến đổi Biến số (Change of Variables)
-
-Hãy bắt đầu với một ví dụ 1D siêu đơn giản.
-Giả sử chúng ta có một biến ngẫu nhiên $z$ tuân theo phân phối Gaussian chuẩn (hình chuông đối xứng quanh 0). Ta định nghĩa một biến mới $x$ bằng một phép biến đổi đơn giản: $x = 2z + 1$.
-
-- **Phép biến đổi:** $f(z) = 2z + 1$
-- **Phép biến đổi ngược:** $f^{-1}(x) = (x-1)/2$
-
-Phân phối của $x$ sẽ trông như thế nào? Nó vẫn là hình chuông, nhưng đã bị "kéo giãn" ra gấp 2 lần và "dịch chuyển" sang phải 1 đơn vị. Vì nó bị kéo giãn, chiều cao của đường cong mật độ xác suất phải giảm đi một nửa để đảm bảo tổng diện tích dưới đường cong vẫn bằng 1.
-
-Công thức tổng quát cho sự thay đổi mật độ này là:
-$$
-p_x(x) = p_z(f^{-1}(x)) \left| \frac{d f^{-1}}{dx} \right|
-$$
-Trong đó $| \frac{d f^{-1}}{dx} |$ chính là "phí co giãn" mà chúng ta phải trả. Trong ví dụ trên, nó bằng $|1/2| = 1/2$.
-
-> **Chú thích toán học:**
-> - $p_z(z)$ là hàm mật độ xác suất của phân phối Gaussian chuẩn, $p_z(z) = \frac{1}{\sqrt{2\pi}} e^{-z^2/2}$.
-> - Khi thay $z = f^{-1}(x) = (x-1)/2$, ta có $p_z(f^{-1}(x)) = \frac{1}{\sqrt{2\pi}} e^{-(x-1)^2/8}$.
-> - Nhân với "phí co giãn" $1/2$, ta được mật độ của $x$: $p_x(x) = \frac{1}{2\sqrt{2\pi}} e^{-(x-1)^2/8}$. Đây chính là hàm mật độ của một phân phối Gaussian mới với trung bình là 1 và phương sai là 4 (độ lệch chuẩn là 2).
-
-### 4.2. "Phí co giãn": Vai trò của Định thức Jacobian
-
-Trong không gian nhiều chiều (ví dụ: một bức ảnh), "phí co giãn" không còn là một con số đơn giản nữa. Nó trở thành **định thức (determinant)** của **ma trận Jacobian**.
-
-> **Ma trận Jacobian** là một ma trận chứa tất cả các đạo hàm riêng của phép biến đổi. Nó cho biết một vùng không gian nhỏ bị co giãn, xoay, và biến dạng như thế nào.
-> **Định thức của Jacobian** là một con số duy nhất cho biết thể tích của vùng không gian đó thay đổi bao nhiêu lần.
-
-Công thức log-likelihood trong không gian nhiều chiều trở thành:
-$$
-\log p_x(x) = \log p_z(z) - \log \left| \det \frac{\partial f}{\partial z} \right|
-$$
-Chúng ta lấy logarit vì nó biến phép nhân thành phép cộng, giúp việc tính toán và tối ưu dễ dàng hơn nhiều, đặc biệt khi chúng ta ghép nhiều phép biến đổi lại với nhau.
-
-> **Góc lập trình:** Trong PyTorch, nếu `z` là đầu vào và `x` là đầu ra của một flow, ta có thể tính log-det-Jacobian một cách hiệu quả nếu phép biến đổi được thiết kế tốt.
-> ```python
-> # Giả sử 'flow' là một module biến đổi
-> x, log_det_jacobian = flow(z) 
-> 
-> # Tính log-likelihood
-> # log_prob_z là log-likelihood của z dưới phân phối base (Gaussian)
-> log_prob_x = log_prob_z + log_det_jacobian
-> ```
-> Mục tiêu của việc training là tối đa hóa `log_prob_x` này.
-
-## 5. Thách thức thực tế: Vấn đề của dữ liệu lớn
-
-Việc tính định thức Jacobian cho một ma trận $d \times d$ (với $d$ là số chiều dữ liệu) có độ phức tạp tính toán là $O(d^3)$. Với một bức ảnh 64x64 pixel, $d = 4096$. Con số này là không tưởng!
-
-Đây là lúc các kiến trúc thông minh ra đời. Các mô hình như **RealNVP** hay **Glow** thiết kế các phép biến đổi (gọi là *coupling layers*) cực kỳ khéo léo để ma trận Jacobian luôn có dạng tam giác. Nhờ đó, định thức của nó chỉ đơn giản là tích các phần tử trên đường chéo. Độ phức tạp giảm từ $O(d^3)$ xuống chỉ còn $O(d)$! Đây là một bước đột phá giúp Normalizing Flow trở nên thực tế.
-
-> **Ví dụ về Coupling Layer:**
-> Ý tưởng chính là chia các chiều của vector đầu vào $z$ thành 2 phần, $z_1$ và $z_2$.
-> 1.  Phần đầu tiên được giữ nguyên: $x_1 = z_1$.
-> 2.  Phần thứ hai được biến đổi bằng một hàm phụ thuộc vào phần đầu tiên: $x_2 = s(z_1) \odot z_2 + t(z_1)$, trong đó $s$ (scale) và $t$ (translate) là các mạng neural nhỏ.
-> Phép biến đổi này rất dễ đảo ngược và ma trận Jacobian của nó là ma trận tam giác, giúp việc tính định thức trở nên cực nhanh.
-
-## 6. Continuous Normalizing Flow: Từ rời rạc đến liên tục
-
-Các mô hình như RealNVP thực hiện một chuỗi các phép biến đổi *rời rạc*. Hãy tưởng tượng nó như một cuốn sách lật (flipbook), mỗi trang là một bước biến đổi.
-
-**Continuous Normalizing Flow (CNF)** đưa ý tưởng này lên một tầm cao mới:
-> Thay vì các bước nhảy rời rạc, tại sao không mô tả sự biến đổi như một dòng chảy *liên tục* và mượt mà theo thời gian?
-
-Hãy quay lại ví dụ người thợ gốm. Thay vì xem từng động tác riêng lẻ, CNF mô tả toàn bộ quá trình như một video mượt mà. Về mặt toán học, nó mô tả "vận tốc" thay đổi của mỗi điểm trong không gian tại mỗi thời điểm, thông qua một **Phương trình vi phân thông thường (Ordinary Differential Equation - ODE)**.
-
-Mô hình học một trường vector (vector field) $f(z, t)$ để chỉ hướng cho các điểm di chuyển. Lợi ích lớn nhất của CNF là nó mang lại sự linh hoạt tối đa cho kiến trúc mạng, vì chúng ta không còn bị ràng buộc bởi các phép biến đổi phải dễ tính Jacobian nữa. Đây chính là nền tảng cho các mô hình hiện đại hơn như **Flow Matching**.
-
-> **Góc toán học & lập trình:**
-> Phương trình vi phân được giải bằng các "ODE solver". Trong PyTorch, thư viện `torchdiffeq` rất phổ biến cho việc này.
-> $$
-> z(t_1) = z(t_0) + \int_{t_0}^{t_1} f(z(t), t) dt
-> $$
-> Việc tính toán log-density cũng được chuyển thành một ODE khác, giúp tránh hoàn toàn việc tính Jacobian:
-> $$
-> \frac{d \log p(z(t))}{dt} = -\text{Tr}\left(\frac{\partial f}{\partial z(t)}\right)
-> $$
-> Dấu vết (Trace) của Jacobian dễ tính hơn nhiều so với định thức (determinant).
-
-## 7. Tổng kết và bước tiếp theo
-
-- **Flow** là một chuỗi các phép biến đổi có thể đảo ngược.
-- **Normalizing Flow** là một mô hình sinh mạnh mẽ, vừa tạo ra mẫu chất lượng cao, vừa tính được xác suất chính xác.
-- Chìa khóa toán học là **công thức biến đổi biến số** và **định thức Jacobian** để theo dõi sự thay đổi mật độ xác suất.
-- Các kiến trúc thông minh như **coupling layers** giúp NF trở nên khả thi trên thực tế.
-- **CNF** là một bước tiến hóa, mô tả dòng chảy như một quá trình liên tục bằng ODE.
-
-Hy vọng qua bài viết này, bạn đã có một cái nhìn trực quan và dễ hiểu về Normalizing Flow. Trong các bài viết tiếp theo, chúng ta sẽ đi sâu hơn vào các kiến trúc cụ thể và cách chúng hoạt động.
-
----
-
-**Bài viết tiếp theo:**
-- [Flow Matching: Từ lý thuyết đến thực hành](/posts/2025/flow-matching-theory)
-- [Real NVP & Glow: Các kiến trúc có thể đảo ngược](/posts/2025/realnvp-glow)
-- [Rectified Flows: Con đường thẳng đến đích](/posts/2025/rectified-flows)
