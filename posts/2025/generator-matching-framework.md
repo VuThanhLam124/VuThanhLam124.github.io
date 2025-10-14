@@ -33,7 +33,8 @@ GMF giúp anh so sánh, kết hợp và lựa chọn kỹ thuật phù hợp ch�
 
 ## 2. Trực giác: Generator là gì?
 
-- **Generator** $G_t$ là quy tắc biến đổi noise $Z$ thành mẫu tại thời gian $t$.
+Generator $G_t$ là quy tắc biến đổi noise $Z$ thành mẫu tại thời gian $t$. Một vài ví dụ quen thuộc:
+
 - Với ODE: generator gắn với trường vận tốc.
 - Với SDE/diffusion: generator là toán tử Kolmogorov (Liouville operator).
 - Với GAN: generator là mạng tạo ảnh duy nhất (không thời gian).
