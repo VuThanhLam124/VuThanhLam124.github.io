@@ -1,7 +1,45 @@
 ---
 title: "Multimodal Alignment: Đồng bộ hóa không gian thị giác và ngôn ngữ"
 date: "2025-03-27"
-category: "vision-language-models"
+### 3.3 Liên hệ xác suất
+
+Loss InfoNCE tương đương tối đa hóa lower bound của Mutual Information $I(X;Y)$. Đây là lý do alignment giúp hệ thống "hiểu" mối quan hệ giữa ảnh và câu chữ tốt hơn.
+
+**Chứng minh trực quan:**
+
+InfoNCE loss có dạng:
+
+$$
+\mathcal{L}_{\text{InfoNCE}} = -\mathbb{E}\left[\log \frac{f(x, y^+)}{\sum_{i=1}^K f(x, y_i)}\right]
+$$
+
+trong đó $y^+$ là positive pair, $\{y_i\}$ là tập K negative samples. Khi $K \to \infty$:
+
+$$
+\mathcal{L}_{\text{InfoNCE}} \geq -I(X;Y) + \log K
+$$
+
+Do đó minimize loss $\Rightarrow$ maximize mutual information giữa ảnh và text.
+
+### 3.4 Temperature scaling: vai trò của $\tau$
+
+Temperature $\tau$ điều chỉnh "độ tự tin" của model:
+
+- **$\tau$ nhỏ** (0.01-0.05): softmax sắc nét, model phải rất chắc chắn về cặp đúng
+- **$\tau$ lớn** (0.1-0.5): softmax mượt hơn, model học "từ từ" hơn
+
+Trong CLIP, $\tau$ được khởi tạo ở 0.07 và được học cùng với các tham số khác:
+
+$$
+\tau = \text{clamp}(\exp(\log \tau_0), \tau_{\min}, \tau_{\max})
+$$
+
+**Ví dụ số:**
+
+Giả sử có 3 caption với similarity scores: $[0.9, 0.3, 0.2]$
+
+- Với $\tau = 0.1$: softmax $\approx [0.996, 0.002, 0.002]$ (rất tự tin)
+- Với $\tau = 0.5$: softmax $\approx [0.65, 0.20, 0.15]$ (ít tự tin hơn)egory: "vision-language-models"
 tags: ["vlm", "alignment", "clip", "align", "contrastive-learning"]
 excerpt: "Câu chuyện tiếp nối của hướng dẫn viên bảo tàng: sau khi đã token hóa bức tranh, cô cần đồng bộ hóa chuỗi hình ảnh với câu chữ bằng contrastive learning (CLIP, ALIGN) và kỹ thuật calibration thực tế."
 author: "ThanhLamDev"
@@ -33,26 +71,60 @@ Sau buổi hướng dẫn đầu tiên, cô nhận ra một vấn đề: khi mô
 
 ## 2. Khái niệm alignment và InfoNCE loss
 
-Điểm cốt lõi của CLIP/ALIGN là **contrastive learning**: kéo cặp (ảnh, mô tả) thật lại gần, đẩy các cặp sai ra xa. Cho batch $\{(x_i, y_i)\}_{i=1}^N$ với $x_i$ là ảnh, $y_i$ là văn bản. Ta encode thành $v_i = f_{	ext{img}}(x_i)$ và $t_i = g_{	ext{text}}(y_i)$ rồi chuẩn hóa để $\|v_i\|=\|t_i\|=1$. Loss InfoNCE dạng đối xứng:
+Điểm cốt lõi của CLIP/ALIGN là **contrastive learning**: kéo cặp (ảnh, mô tả) thật lại gần, đẩy các cặp sai ra xa. Cho batch với $N$ cặp:
 
 $$
-\mathcal{L}_{\text{clip}} = \frac{1}{2}\left(\mathcal{L}_{\text{img}\rightarrow\text{text}} + \mathcal{L}_{\text{text}\rightarrow\text{img}}\right),
-$$
-trong đó
-$$
-\mathcal{L}_{\text{img}\rightarrow\text{text}} = -\frac{1}{N}\sum_{i=1}^N \log \frac{\exp(v_i^\top t_i / \tau)}{\sum_{j=1}^N \exp(v_i^\top t_j / \tau)}.
+\{(x_i, y_i)\}_{i=1}^N
 $$
 
-$\tau$ là hệ số nhiệt độ (temperature) được học, giúp điều chỉnh độ sắc nét của phân phối.
+trong đó $x_i$ là ảnh, $y_i$ là văn bản. Ta encode thành:
+
+$$
+v_i = f_{\text{img}}(x_i), \quad t_i = g_{\text{text}}(y_i)
+$$
+
+rồi chuẩn hóa để đảm bảo:
+
+$$
+\lVert v_i \rVert = \lVert t_i \rVert = 1
+$$
+
+**Loss InfoNCE dạng đối xứng:**
+
+$$
+\mathcal{L}_{\text{clip}} = \frac{1}{2}\left(\mathcal{L}_{\text{img}\rightarrow\text{text}} + \mathcal{L}_{\text{text}\rightarrow\text{img}}\right)
+$$
+
+trong đó:
+
+$$
+\mathcal{L}_{\text{img}\rightarrow\text{text}} = -\frac{1}{N}\sum_{i=1}^N \log \frac{\exp(v_i^\top t_i / \tau)}{\sum_{j=1}^N \exp(v_i^\top t_j / \tau)}
+$$
+
+**Giải thích các thành phần:**
+
+- $\tau$ là hệ số nhiệt độ (temperature) được học, giúp điều chỉnh độ sắc nét của phân phối
+- Tử số: độ tương đồng giữa ảnh $i$ với caption đúng $t_i$
+- Mẫu số: tổng độ tương đồng với tất cả caption trong batch (bao gồm cả đúng và sai)
+- Loss này khuyến khích embedding ảnh $v_i$ gần với caption đúng $t_i$ hơn so với các caption sai $t_j$ ($j \neq i$)
 
 ## 3. Toán học chi tiết
 
 ### 3.1 Chuẩn hóa embedding
 
 $$
-\hat{v}_i = \frac{v_i}{\|v_i\|_2}, \quad \hat{t}_i = \frac{t_i}{\|t_i\|_2}.
+\hat{v}_i = \frac{v_i}{\lVert v_i \rVert_2}, \quad \hat{t}_i = \frac{t_i}{\lVert t_i \rVert_2}
 $$
-Điều này biến cosine similarity thành tích vô hướng $\hat{v}_i^\top \hat{t}_j$ – dễ tính và ổn định.
+
+**Tại sao chuẩn hóa quan trọng?**
+
+Điều này biến cosine similarity thành tích vô hướng $\hat{v}_i^\top \hat{t}_j$ – dễ tính và ổn định. Cụ thể:
+
+$$
+\text{cosine\_sim}(v_i, t_j) = \frac{v_i^\top t_j}{\lVert v_i \rVert \cdot \lVert t_j \rVert} = \hat{v}_i^\top \hat{t}_j
+$$
+
+Sau khi chuẩn hóa, similarity score nằm trong khoảng $[-1, 1]$, giúp training ổn định hơn.
 
 ### 3.2 Gradient insight
 
@@ -99,35 +171,232 @@ Các bước chính:
 
 ## 6. Ví dụ PyTorch: contrastive training loop
 
+### 6.1 Implementation cơ bản
+
 ```python
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
-def contrastive_step(model, batch, optimizer, tau):
+class CLIPModel(nn.Module):
+    def __init__(self, vision_encoder, text_encoder, embed_dim=512):
+        super().__init__()
+        self.vision_encoder = vision_encoder
+        self.text_encoder = text_encoder
+        
+        # Learnable temperature parameter
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        
+    def encode_image(self, images):
+        features = self.vision_encoder(images)
+        return F.normalize(features, dim=-1)
+    
+    def encode_text(self, texts):
+        features = self.text_encoder(texts)
+        return F.normalize(features, dim=-1)
+    
+    def forward(self, images, texts):
+        image_features = self.encode_image(images)   # [B, d]
+        text_features = self.encode_text(texts)       # [B, d]
+        
+        # Scaled similarity matrix
+        logit_scale = self.logit_scale.exp()
+        logits_per_image = logit_scale * image_features @ text_features.T  # [B, B]
+        logits_per_text = logits_per_image.T
+        
+        return logits_per_image, logits_per_text
+
+def contrastive_loss(logits_per_image, logits_per_text):
+    """
+    Compute symmetric contrastive loss
+    
+    Args:
+        logits_per_image: [B, B] similarity matrix from image perspective
+        logits_per_text: [B, B] similarity matrix from text perspective
+    
+    Returns:
+        loss: scalar contrastive loss
+    """
+    batch_size = logits_per_image.shape[0]
+    labels = torch.arange(batch_size, device=logits_per_image.device)
+    
+    # Image-to-text loss
+    loss_i2t = F.cross_entropy(logits_per_image, labels)
+    
+    # Text-to-image loss
+    loss_t2i = F.cross_entropy(logits_per_text, labels)
+    
+    # Symmetric loss
+    loss = (loss_i2t + loss_t2i) / 2
+    
+    return loss
+
+def training_step(model, batch, optimizer):
     images, texts = batch
-    v = model.encode_image(images)        # [B, d]
-    t = model.encode_text(texts)          # [B, d]
-
-    v = F.normalize(v, dim=-1)
-    t = F.normalize(t, dim=-1)
-
-    logits = v @ t.T / tau
-    labels = torch.arange(len(images), device=images.device)
-
-    loss_i = F.cross_entropy(logits, labels)
-    loss_t = F.cross_entropy(logits.T, labels)
-    loss = (loss_i + loss_t) / 2
-
+    
+    # Forward pass
+    logits_per_image, logits_per_text = model(images, texts)
+    
+    # Compute loss
+    loss = contrastive_loss(logits_per_image, logits_per_text)
+    
+    # Backward pass
     optimizer.zero_grad()
     loss.backward()
+    
+    # Clip gradients for stability
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    
     optimizer.step()
-
-    return loss.item()
+    
+    # Log metrics
+    with torch.no_grad():
+        acc_i2t = (logits_per_image.argmax(dim=1) == torch.arange(len(images), device=images.device)).float().mean()
+        acc_t2i = (logits_per_text.argmax(dim=1) == torch.arange(len(texts), device=texts.device)).float().mean()
+    
+    return {
+        'loss': loss.item(),
+        'acc_i2t': acc_i2t.item(),
+        'acc_t2i': acc_t2i.item(),
+        'temperature': model.logit_scale.exp().item()
+    }
 ```
 
-**Chú thích:**
-- `logits = v @ t.T / tau` tạo ma trận similarity $N\times N$.
-- Tính cross-entropy hai chiều để đối xử công bằng ảnh → text và text → ảnh.
+**Chú thích chi tiết:**
+
+- `logits = v @ t.T / tau` tạo ma trận similarity $N\times N$ - mỗi ảnh so sánh với mọi caption
+- `labels = torch.arange(B)` - diagonal chính là cặp đúng (ảnh 0 với caption 0, ảnh 1 với caption 1,...)
+- Tính cross-entropy hai chiều để đối xử công bằng ảnh → text và text → ảnh
+- Gradient clipping tránh exploding gradients khi batch size lớn
+
+### 6.2 Training loop hoàn chỉnh với hard negative mining
+
+```python
+import torch
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+def train_epoch(model, dataloader, optimizer, scheduler, device, epoch):
+    model.train()
+    total_loss = 0
+    
+    pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
+    for batch_idx, (images, texts) in enumerate(pbar):
+        images = images.to(device)
+        texts = texts.to(device)
+        
+        metrics = training_step(model, (images, texts), optimizer)
+        total_loss += metrics['loss']
+        
+        # Update learning rate
+        scheduler.step()
+        
+        # Log progress
+        pbar.set_postfix({
+            'loss': f"{metrics['loss']:.4f}",
+            'acc_i2t': f"{metrics['acc_i2t']:.2%}",
+            'acc_t2i': f"{metrics['acc_t2i']:.2%}",
+            'temp': f"{metrics['temperature']:.4f}",
+            'lr': f"{optimizer.param_groups[0]['lr']:.2e}"
+        })
+    
+    return total_loss / len(dataloader)
+
+# Full training setup
+def train_clip_model(model, train_loader, val_loader, epochs=30):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    
+    # Optimizer with different learning rates for different components
+    vision_params = list(model.vision_encoder.parameters())
+    text_params = list(model.text_encoder.parameters())
+    other_params = [model.logit_scale]
+    
+    optimizer = torch.optim.AdamW([
+        {'params': vision_params, 'lr': 1e-5, 'weight_decay': 0.2},
+        {'params': text_params, 'lr': 1e-5, 'weight_decay': 0.2},
+        {'params': other_params, 'lr': 1e-4, 'weight_decay': 0.0}
+    ])
+    
+    # Cosine annealing scheduler
+    total_steps = len(train_loader) * epochs
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=total_steps, eta_min=1e-7
+    )
+    
+    best_val_loss = float('inf')
+    
+    for epoch in range(epochs):
+        # Training
+        train_loss = train_epoch(model, train_loader, optimizer, scheduler, device, epoch)
+        
+        # Validation
+        val_loss = validate(model, val_loader, device)
+        
+        print(f"Epoch {epoch}: Train Loss = {train_loss:.4f}, Val Loss = {val_loss:.4f}")
+        
+        # Save best model
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'val_loss': val_loss,
+            }, 'best_clip_model.pt')
+
+@torch.no_grad()
+def validate(model, dataloader, device):
+    model.eval()
+    total_loss = 0
+    
+    for images, texts in dataloader:
+        images, texts = images.to(device), texts.to(device)
+        logits_i, logits_t = model(images, texts)
+        loss = contrastive_loss(logits_i, logits_t)
+        total_loss += loss.item()
+    
+    return total_loss / len(dataloader)
+```
+
+### 6.3 Zero-shot inference
+
+```python
+@torch.no_grad()
+def zero_shot_classification(model, image, class_names, device, template="a photo of a {}"):
+    model.eval()
+    
+    # Encode image
+    image = image.unsqueeze(0).to(device)
+    image_features = model.encode_image(image)  # [1, d]
+    
+    # Encode all class names
+    text_tokens = [template.format(c) for c in class_names]
+    text_features = model.encode_text(text_tokens)  # [num_classes, d]
+    
+    # Compute similarities
+    logit_scale = model.logit_scale.exp()
+    logits = logit_scale * image_features @ text_features.T  # [1, num_classes]
+    probs = F.softmax(logits, dim=-1)
+    
+    # Get top predictions
+    top5_probs, top5_indices = probs[0].topk(5)
+    
+    results = []
+    for prob, idx in zip(top5_probs, top5_indices):
+        results.append({
+            'class': class_names[idx],
+            'confidence': prob.item()
+        })
+    
+    return results
+
+# Usage example
+class_names = ['cat', 'dog', 'bird', 'fish']
+predictions = zero_shot_classification(model, test_image, class_names, device)
+for pred in predictions:
+    print(f"{pred['class']}: {pred['confidence']:.2%}")
+```
 
 ## 7. Đo lường, calibration và xử lý sai lệch
 
