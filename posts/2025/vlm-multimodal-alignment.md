@@ -408,7 +408,7 @@ for pred in predictions:
 
 ## 8. Liên kết với các bài tiếp theo
 
-Sau khi bảo đảm “ảnh nào đi với lời nào”, cô hướng dẫn viên quan tâm tới việc mô hình có thể xử lý nhiều nhiệm vụ cùng lúc (captioning, QA, matching). Bài 3 sẽ giới thiệu **pretraining objectives hybrid** – giúp mô hình vừa giỏi retrieval, vừa giỏi sinh mô tả. Bài 4 sẽ bàn về **efficient architectures** để hệ thống chạy nhanh trong tour đông khách.
+Sau khi bảo đảm “ảnh nào đi với lời nào”, cô hướng dẫn viên quan tâm tới việc mô hình có thể xử lý nhiều nhiệm vụ cùng lúc (captioning, QA, matching).
 
 ## 9. Tài liệu tham khảo
 
