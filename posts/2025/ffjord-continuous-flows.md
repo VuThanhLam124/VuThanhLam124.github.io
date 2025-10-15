@@ -11,7 +11,7 @@ featured: false
 
 # FFJORD Continuous Flows: Bẻ cong dòng chảy bằng Neural ODE
 
-**Trong xưởng pha lê, sau khi khám phá Rectified Flow và Flow Map Matching, người thợ nhận ra vẫn còn một giới hạn: mọi kỹ thuật trước đó đều dựa trên những “nhịp bước” rời rạc – dù đã làm đường thẳng, anh vẫn phải tích phân từng đoạn. Tình cờ, một nhà vật lý mang tới cuộn giấy ghi chú về *Neural ODE* và mô hình FFJORD của Grathwohl et al. (NeurIPS 2019). Cô hướng dẫn viên bảo tàng – vốn luôn thích liên hệ với dòng chảy ánh sáng – nhận ra đây là mảnh ghép để kể câu chuyện liên tục từ nguồn sáng tới tác phẩm cuối.**
+**Trong xưởng pha lê, sau khi khám phá Rectified Flow và Flow Map Matching, người thợ nhận ra vẫn còn một giới hạn: mọi kỹ thuật trước đó đều dựa trên những “nhịp bước” rời rạc – dù đã làm đường thẳng, anh vẫn phải tích phân từng đoạn. Tình cờ, một nhà vật lý mang tới cuộn giấy ghi chú về *Neural ODE* và mô hình FFJORD của Grathwohl et al. (NeurIPS 2019). Người thợ hiểu rằng đây chính là chìa khóa để điều khiển dòng thuỷ tinh một cách liên tục từ khối nguyên bản tới tác phẩm hoàn thiện.**
 
 ---
 
@@ -40,11 +40,11 @@ featured: false
 
 ## 1. Câu chuyện: Dòng sông thuỷ tinh không bị đập vỡ
 
-Những ngày gần đây, khách bảo tàng yêu cầu xem bản dựng “chuyển động mượt mà” của một bức tượng pha lê được tạo hình từ khối kính nguyên thuỷ. Người thợ pha lê muốn mô phỏng dòng chảy này như một dòng sông – không ngắt quãng, không khúc cua đột ngột. Nếu Flow Matching là các “bước nhảy” được sắp xếp cẩn thận, thì FFJORD mang tới ý tưởng rằng **dòng chảy có thể được điều khiển liên tục** bằng ODE:
+Những ngày gần đây, khách ghé xưởng yêu cầu xem bản dựng “chuyển động mượt mà” của một bức tượng pha lê được tạo hình từ khối kính nguyên thuỷ. Người thợ pha lê muốn mô phỏng dòng chảy này như một dòng sông – không ngắt quãng, không khúc cua đột ngột. Nếu Flow Matching là các “bước nhảy” được sắp xếp cẩn thận, thì FFJORD mang tới ý tưởng rằng **dòng chảy có thể được điều khiển liên tục** bằng ODE:
 
 > “Ta không dẫn đường từng bước nữa. Ta viết ra phương trình vận tốc liên tục, rồi để dòng chảy tự giải bằng toán học.”
 
-Cô hướng dẫn viên giải thích với du khách: “Chúng tôi mô phỏng quỹ đạo của mỗi hạt thuỷ tinh bằng một phương trình vi phân. Khi tích phân từ $t = 0$ đến $t = 1$, hạt sẽ chuyển từ phân phối chuẩn (khối pha lê nguyên bản) tới hình dáng cuối cùng.”
+Anh ghi chú vào sổ tay thợ: “Mỗi hạt thuỷ tinh khi tích phân từ $t = 0$ đến $t = 1$ sẽ chuyển từ phân phối chuẩn (khối pha lê nguyên bản) tới hình dáng cuối cùng.”  
 
 Đó chính là tinh thần của **Continuous Normalizing Flow (CNF)** và FFJORD – Free-form Continuous Dynamics for Scalable Reversible Generative Models.
 
@@ -264,7 +264,7 @@ Trong ứng dụng thực tế, chúng ta thêm **mini-batch**, `optimizer = tor
 | Linh hoạt kiến trúc | Phải giữ cấu trúc affine | Cao nhưng không likelihood | **Cao** (f bất kỳ, chỉ cần Lipschitz) |
 | Ứng dụng | Density estimation, Flow-based GAN | Diffusion/Flow hybrid | Density estimation, playback liên tục |
 
-Như vậy, FFJORD phù hợp khi ta cần **density chính xác + động lực học liên tục** (ví dụ, mô phỏng thời gian trong bảo tàng) và chấp nhận chi phí tính toán cao hơn.
+Như vậy, FFJORD phù hợp khi ta cần **density chính xác + động lực học liên tục** (ví dụ, mô phỏng thời gian biến đổi trong xưởng) và chấp nhận chi phí tính toán cao hơn.
 
 ---
 
@@ -277,7 +277,7 @@ Như vậy, FFJORD phù hợp khi ta cần **density chính xác + động lực
 5. **Early stopping** dựa trên NLL trên validation; chú ý **thời gian training** dài hơn (MNIST ~ 12 giờ trên V100).  
 6. **Kiểm tra solver**: log số bước ODE (`nfe` – number of function evaluations). Nếu vượt 1000, cần điều chỉnh kiến trúc $f_\theta$ (giảm độ sâu, dùng activation smooth).  
 
-Trong bối cảnh bảo tàng, cô hướng dẫn viên chỉ dùng FFJORD để **học mô hình phân phối nền** (ví dụ, cấu trúc khách tham quan) – phần inference realtime vẫn nhờ Rectified Flow để đáp ứng nhanh.
+Trong xưởng, người thợ dùng FFJORD để **học mô hình phân phối nền** (ví dụ, hình dạng trung bình của các mẫu pha lê) – phần tạo mẫu realtime vẫn nhờ Rectified Flow để đáp ứng nhanh.
 
 ---
 
@@ -287,7 +287,7 @@ Trong bối cảnh bảo tàng, cô hướng dẫn viên chỉ dùng FFJORD đ�
 - **Flow Map Matching**: lưu bản đồ quỹ đạo – *khôi phục trạng thái* tức thì.  
 - **FFJORD** (bài này): cho phép mô hình hoá dòng chảy liên tục với **likelihood chính xác**, nên rất phù hợp khi muốn phân tích thống kê hoặc huấn luyện hybrid với mô hình xác suất khác.
 
-Cô hướng dẫn viên kết luận trong cuốn nhật ký:
+Người thợ ghi chú vào cuốn nhật ký của xưởng:
 
 > “Khi cần kể câu chuyện liên tục về cách ánh sáng biến đổi – FFJORD là công cụ để ghi lại từng khoảnh khắc, đảm bảo mỗi bước đều có thể giải thích bằng toán học.”
 
