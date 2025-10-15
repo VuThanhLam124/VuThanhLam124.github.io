@@ -108,13 +108,21 @@ Nhìn vào timeline, cô rút ra 3 xu hướng:
 
 Định lý rate–distortion (Shannon 1948) cho biết giới hạn lý tưởng giữa bitrate $R$ (bit trung bình trên mỗi mẫu) và độ méo $D$ khi nén tín hiệu $X$.
 
-Với tập hợp tất cả các phân phối $p(\hat{x}|x)$ sao cho $\mathbb{E}[d(x,\hat{x})] \le D$, ta có:
+**Công thức cơ bản:**
+
+Với tập hợp tất cả các phân phối điều kiện sao cho độ méo kỳ vọng không vượt quá $D$:
 
 $$
-R(D) = \inf_{p(\hat{x}|x)} I(X; \hat{X})
+p(\hat{x} \mid x): \mathbb{E}[d(x,\hat{x})] \le D
 $$
 
-Trong deep learning, $p(\hat{x}|x)$ được tham số hoá bằng encoder–decoder với latent $z$. Bằng cách giới hạn kích thước codebook hoặc đặt entropy penalty, ta điều khiển $R$.
+ta có rate–distortion function:
+
+$$
+R(D) = \inf_{p(\hat{x} \mid x)} I(X; \hat{X})
+$$
+
+Trong deep learning, phân phối điều kiện được tham số hoá bằng encoder–decoder với latent $z$. Bằng cách giới hạn kích thước codebook hoặc đặt entropy penalty, ta điều khiển $R$.
 
 **Ý nghĩa với VLM:**
 
@@ -292,14 +300,20 @@ $$
 Loss:
 
 $$
-\mathbb{E}_{x}\left[-\log p(z|y) - \log p(y)\right] + \lambda \, d(x, \hat{x})
+\mathbb{E}_{x}\left[-\log p(z \mid y) - \log p(y)\right] + \lambda \, d(x, \hat{x})
 $$
 
 Hyperprior giúp entropy model chính xác hơn, nén tốt hơn VQ fixed codebook.
 
 ### 5.2. Autoregressive vs factorized: trade-off tốc độ ↔ chất lượng
 
-- **Autoregressive (PixelCNN, Transformer):** $p(z) = \prod_i p(z_i|z_{<i})$ → chất lượng cao, nhưng decode chậm (O(L)).  
+- **Autoregressive (PixelCNN, Transformer):** 
+
+$$
+p(z) = \prod_i p(z_i \mid z_{<i})
+$$
+
+→ chất lượng cao, nhưng decode chậm (O(L)).  
 - **Factorized:** giả sử độc lập, decode nhanh, nhưng quality thấp.  
 - **Semi-autoregressive:** chia nhóm, decode song song trong nhóm.
 
