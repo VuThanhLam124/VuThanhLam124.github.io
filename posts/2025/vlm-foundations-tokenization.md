@@ -229,7 +229,13 @@ $$
 
 **Chú thích:**
 
-$E_{\text{mod}}$ đánh dấu token ảnh; $E_{\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\tilde{z}_{0,0}, \ldots, \tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\text{LLM}}$.
+$E_{\text{mod}}$ đánh dấu token ảnh; $E_{\text{pos}}$ giữ vị trí patch. Chuỗi cuối được ký hiệu:
+
+$$
+Z = [\tilde{z}_{0,0}, \ldots, \tilde{z}_{N_H-1,N_W-1}]
+$$
+
+sẽ được projector đưa sang không gian $d_{\text{LLM}}$.
 
 ## 6. Ví dụ PyTorch: chuẩn bị token cho LLM
 
