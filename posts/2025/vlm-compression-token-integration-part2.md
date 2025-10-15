@@ -11,7 +11,7 @@ featured: false
 
 # Compression & Token Integration (Phần II): Neural codec, tích hợp vào LLM và huấn luyện đa giai đoạn
 
-**Phần II tiếp tục hành trình của cô hướng dẫn viên và người thợ pha lê tại Bảo tàng Giao Thoa. Sau khi đã nắm vững nền tảng vector quantization ở phần I, họ chuyển sang bài toán lớn hơn: làm sao để đưa token ảnh vào LLM với chi phí context tối ưu, đồng thời duy trì độ trung thực khi reasoning đa bước. Tất cả các kỹ thuật cutting-edge – từ hyperprior codec, Perceiver Resampler, PaLM-E, Kosmos-2 đến pipeline fine-tuning với RLHF – sẽ được giải thích chi tiết trong bài này.**
+**Phần II tiếp tục hành trình của cô hướng dẫn viên cùng đội kỹ thuật đa phương thức tại Bảo tàng Giao Thoa. Sau khi đã nắm vững nền tảng vector quantization ở phần I, họ chuyển sang bài toán lớn hơn: làm sao để đưa token ảnh vào LLM với chi phí context tối ưu, đồng thời duy trì độ trung thực khi reasoning đa bước. Tất cả các kỹ thuật cutting-edge – từ hyperprior codec, Perceiver Resampler, PaLM-E, Kosmos-2 đến pipeline fine-tuning với RLHF – sẽ được giải thích chi tiết trong bài này.**
 
 ---
 
@@ -78,7 +78,7 @@ featured: false
   - Vector quantization, VQ-VAE, VQ-GAN, MaskGIT.
   - Pipeline encoder–decoder, EMA, metric đánh giá.
   - Code VQ-VAE từ đầu, checklist thực nghiệm.
-- Phần II tiếp tục với các chủ đề nâng cao mà người thợ và cô hướng dẫn viên phải xử lý khi triển khai thực tế:
+- Phần II tiếp tục với các chủ đề nâng cao mà đội kỹ thuật và cô hướng dẫn viên phải xử lý khi triển khai thực tế:
   1. Neural codec sử dụng hyperprior và entropy model để đạt bitrate thấp hơn.
   2. Các kiến trúc state-of-the-art cho token hóa ảnh (Sea-Former, LiT-Codec).
   3. Cách tích hợp token với LLM lớn (PaLM-E, Kosmos-2, IDEFICS-2, Gemini).
@@ -923,7 +923,7 @@ def evaluate_model(model, tokenizer, dataset, mapper, metric_fn):
   - Kiến trúc VQ-VAE, VQ-GAN, MaskGIT.
   - Neural codec hyperprior, Perceiver Resampler, PaLM-E, Kosmos-2, IDEFICS-2, Gemini.
   - Chiến lược tích hợp token ảnh vào LLM, pipeline huấn luyện và benchmark.
-- Với kiến thức này, cô hướng dẫn viên và người thợ pha lê có thể xây dựng hệ thống VLM nén ảnh thành token văn bản, phục vụ khách tham quan một cách hiệu quả, minh bạch và có thể kiểm chứng.
+- Với kiến thức này, cô hướng dẫn viên và đội kỹ thuật của bảo tàng có thể xây dựng hệ thống VLM nén ảnh thành token văn bản, phục vụ khách tham quan một cách hiệu quả, minh bạch và có thể kiểm chứng.
 - Độc giả có thể quay lại [Phần I](/posts/2025/vlm-compression-token-integration-part1) để xem lại nền tảng, hoặc tiếp tục nghiên cứu các bài khác trong series VLM.
 
 ---

@@ -11,7 +11,7 @@ featured: false
 
 # Compression & Token Integration (Phần I): Nền tảng toán học và kiến trúc lượng tử hóa
 
-**Phần I mở đầu bộ đôi bài viết chuyên sâu về cách nén ảnh thành chuỗi token để đưa trực tiếp vào LLM. Từ góc nhìn của cô hướng dẫn viên tại Bảo tàng Giao Thoa, chúng ta quay lại phòng thí nghiệm cùng người thợ pha lê – nơi mọi phép tính, mọi biến đổi đều phải được ghi chép cẩn thận trước khi một bức tranh hay bức tượng được chuyển thành những ký hiệu mà LLM hiểu được.**
+**Phần I mở đầu bộ đôi bài viết chuyên sâu về cách nén ảnh thành chuỗi token để đưa trực tiếp vào LLM. Từ góc nhìn của cô hướng dẫn viên tại Bảo tàng Giao Thoa, chúng ta bước vào phòng nghiên cứu đa phương thức của bảo tàng – nơi mọi phép tính, mọi biến đổi đều được ghi chép cẩn thận trước khi một bức tranh hay bức tượng được chuyển thành những ký hiệu mà LLM hiểu được.**
 
 ---
 
@@ -67,7 +67,7 @@ featured: false
 Phần I có nhiệm vụ đặt nền móng lý thuyết và kiến trúc cho việc nén ảnh thành token.
 Tất cả những khái niệm xuất hiện trong bài đều được định nghĩa và giải thích kỹ lưỡng trước khi sử dụng trong các phần tiếp theo.
 
-- Chúng ta sẽ bắt đầu bằng bối cảnh câu chuyện tại Bảo tàng Giao Thoa, nơi người thợ pha lê và cô hướng dẫn viên cùng hợp tác để số hóa các tác phẩm nghệ thuật.
+- Chúng ta sẽ bắt đầu bằng bối cảnh câu chuyện tại Bảo tàng Giao Thoa, nơi đội kỹ thuật multimodal và cô hướng dẫn viên cùng hợp tác để số hóa các tác phẩm nghệ thuật.
 - Từ nguồn ảnh thực tế, chúng ta xây dựng một pipeline toán học chặt chẽ: mô hình hóa ảnh như biến ngẫu nhiên, áp dụng information theory để định lượng chi phí truyền thông tin.
 - Tiếp theo, bài viết lần lượt trình bày vector quantization, VQ-VAE, VQ-GAN, MaskGIT – những khối xây dựng cốt lõi giúp biến ảnh thành chuỗi mã rời rạc.
 - Mỗi kiến trúc sẽ được mô tả chi tiết: từ công thức loss, gradient, cách cập nhật codebook cho tới khó khăn thực nghiệm.
@@ -79,7 +79,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 
 ## 2. Lược đồ tổng thể: từ photon đến token
 
-Để hình dung rõ pipeline, hãy mô tả từng bước mà phòng thí nghiệm của người thợ phải thực hiện.
+Để hình dung rõ pipeline, hãy mô tả từng bước mà phòng nghiên cứu của đội kỹ thuật phải thực hiện.
 
 1. **Thu nhận ánh sáng**  
    - Camera hoặc cảm biến nắm bắt photon, chuyển đổi thành tín hiệu analog điện.
@@ -104,7 +104,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
    - Loss tái tạo + regularizer đảm bảo $\hat{X}$ gần $X$.
 
 6. **Mapping sang vocab text**  
-   - Người thợ tạo ánh xạ $k \mapsto$ token văn bản, ví dụ `<v123>`.
+   - Pipeline ánh xạ $k \mapsto$ token văn bản, ví dụ `<v123>`.
    - Chuỗi token ảnh được ghép vào prompt LLM.
 
 7. **Integration**  
