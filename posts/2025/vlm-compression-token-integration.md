@@ -206,7 +206,7 @@ Tức là gradient đi qua như thể lượng tử hoá là identity. Dù bias,
 Loss tổng quát:
 
 $$
-\mathcal{L}_{\text{VQ-VAE}} = \|x - \hat{x}\|_2^2 + \| \text{sg}[z_e] - e_k\|_2^2 + \beta \|z_e - \text{sg}[e_k]\|_2^2
+\mathcal{L}_{\text{VQ-VAE}} = \lVert x - \hat{x} \rVert_2^2 + \lVert \text{sg}[z_e] - e_k \rVert_2^2 + \beta \lVert z_e - \text{sg}[e_k] \rVert_2^2
 $$
 
 - Term thứ hai kéo codebook về latent (codebook update).  
@@ -246,7 +246,7 @@ $$
 Giúp ảnh tái tạo sắc nét (giảm blur). Đồng thời, perceptual loss dùng feature từ VGG/LPIPS:
 
 $$
-\mathcal{L}_{\text{perc}} = \sum_l \frac{1}{N_l} \| \phi_l(x) - \phi_l(\hat{x}) \|_2^2
+\mathcal{L}_{\text{perc}} = \sum_l \frac{1}{N_l} \lVert \phi_l(x) - \phi_l(\hat{x}) \rVert_2^2
 $$
 
 Trong bảo tàng, khi hiển thị tranh cổ, perceptual loss đảm bảo texture gỗ, vệt cọ không biến mất.
@@ -637,7 +637,7 @@ Input: Codebook {e_k}, decay γ, batch latent {z_e}
 For each mini-batch:
   # Bước gán
   for i in batch:
-      k_i = argmin_k ||z_e[i] - e_k||_2^2
+      k_i = argmin_k ‖z_e[i] - e_k‖_2^2
   # Bước cập nhật
   for k in 1..K:
       N_k = number of i with k_i = k
@@ -649,7 +649,7 @@ For each mini-batch:
 
 ```
 # Forward
-z_q = e_{k}  where k = argmin ||z_e - e_k||
+z_q = e_{k}  where k = argmin ‖z_e - e_k‖
 # Backward
 ∂L/∂z_e ≈ ∂L/∂z_q
 ∂L/∂e_k accumulates from (z_e - e_k)
