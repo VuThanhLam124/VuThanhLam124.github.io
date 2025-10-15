@@ -2,8 +2,37 @@
 title: "Foundations: Vision Encoder và Image Tokenization"
 date: "2025-03-25"
 category: "vision-language-models"
-tags: ["vlm", "vision-encoder", "tokenization", "vit", "cnn"]
-excerpt: "Khởi đầu series VLM với câu chuyện của một hướng dẫn viên bảo tàng: làm sao chuyển từng bức tranh thành chuỗi thông tin để khách khiếm thị và khiếm thính cùng hiểu."
+tags: ["vlm", "vision-encoder", "tokenization", "vit### 5.2 Lin### 5.1 Trích patch
+
+$$
+\text{Patch}_{i,j} = X[iP:(i+1)P, \; jP:(j+1)P, :],\quad 0 \le i < N_H, 0 \le j < N_W.
+$$
+
+Flatten patch thành vector $p_{i,j} \in \mathbb{R}^{3P^2}$. 
+
+**Giải thích:** Đây là bước "cắt tranh" ra $N$ mảnh nhỏ.
+
+### 5.2 Linear embeddingding
+
+$$
+z_{i,j} = W_E p_{i,j} + b_E, \quad W_E \in \mathbb{R}^{d \times 3P^2}.
+$$
+
+**Giải thích:** 
+
+Vector $z_{i,j}$ là "từ vựng" mô tả patch $(i,j)$ trong không gian $d$ chiều. Trong câu chuyện, đây tương tự mảnh thông tin mà hướng dẫn viên ghi lại cho cư dân Lời Sáng.
+
+### 5.3 Thêm positional & modality encoding
+
+$$
+\tilde{z}_{i,j} = z_{i,j} + E_{\text{pos}}(i,j) + E_{\text{mod}}
+$$
+
+**Chú thích:** 
+
+Thành phần $E_{\text{mod}}$ đánh dấu token ảnh; $E_{\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\tilde{z}_{0,0}, \ldots, \tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\text{LLM}}$.
+
+## 6. Ví dụ PyTorch: chuẩn bị token cho LLMerpt: "Khởi đầu series VLM với câu chuyện của một hướng dẫn viên bảo tàng: làm sao chuyển từng bức tranh thành chuỗi thông tin để khách khiếm thị và khiếm thính cùng hiểu."
 author: "ThanhLamDev"
 readingTime: 24
 featured: false
@@ -38,7 +67,12 @@ Một buổi sáng, cô hướng dẫn viên đón một đoàn khách đặc bi
 
 ## 2. Tại sao phải token hóa hình ảnh?
 
-- Ngôn ngữ xử lý chuỗi; ảnh lại là tensor ba chiều. Tokenization là phép biến đổi $f_{\text{vision}}: \mathbb{R}^{H \times W \times 3} \rightarrow \mathbb{R}^{N \times d}$ để ánh xạ ảnh thành chuỗi $N$ vector chiều $d$ mà mô hình ngôn ngữ có thể tiếp nhận giống như token văn bản.
+**Lý do chính:**
+
+- Ngôn ngữ xử lý chuỗi; ảnh lại là tensor ba chiều. Tokenization là phép biến đổi để ánh xạ ảnh thành chuỗi $N$ vector chiều $d$ mà mô hình ngôn ngữ có thể tiếp nhận giống như token văn bản.
+
+$$f_{\text{vision}}: \mathbb{R}^{H \times W \times 3} \rightarrow \mathbb{R}^{N \times d}$$
+
 - Quyết định tokenization tác động tới ba yếu tố: **độ chính xác** (alignment ở bài 2), **chi phí tính toán** (bài 4) và **khả năng reasoning đa bước** (bài 7).
 - Về mặt xác suất, tokenization tương ứng với việc xây dựng phân phối ẩn $q(Z \mid X)$ cho chuỗi latent $Z$; các bài sau sẽ khai thác phân phối này khi tối ưu objective hybrid.
 
@@ -63,10 +97,15 @@ Tại phòng thí nghiệm của bảo tàng, cô dùng **máy chia patch** (ViT
 
 1. **Chia patch:** mỗi patch kích thước $P \times P$.
 2. **Khắc chữ lên patch** (linear embedding):
+   
    $$
    z_{i,j} = W_E \cdot \text{vec}\big(X[iP:(i+1)P, jP:(j+1)P,:]\big) + b_E,\quad W_E \in \mathbb{R}^{d \times 3P^2}.
    $$
-3. **Thêm vị trí & modality:** $\tilde{z}_{i,j} = z_{i,j} + E_{\text{pos}}(i,j) + E_{\text{mod}}$.
+
+3. **Thêm vị trí & modality:** 
+
+   $$\tilde{z}_{i,j} = z_{i,j} + E_{\text{pos}}(i,j) + E_{\text{mod}}.$$
+
 4. **Hội nghị tự chú ý:**
    $$
    \text{Attention}(Q,K,V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d}}\right)V,\quad Q=ZW_Q,\; K=ZW_K,\; V=ZW_V.
@@ -83,13 +122,16 @@ Các biến thể: ViT-B/16, ViT-L/14 khác độ sâu và chiều embedding; EV
 
 Khi dẫn tour lưu động, cô chuyển sang **bộ quét CNN/Hybrid** vì gọn nhẹ và xử lý nhanh hơn.
 
+**Quy trình:**
+
 - **Quét ảnh:** convolution sinh feature map $F \in \mathbb{R}^{h \times w \times c}$.
 - **Gộp vùng thành token:**
-  $$
-  t_k = \frac{1}{|R_k|} \sum_{(u,v)\in R_k} F[u,v,:],
-  $$
+  
+  $$t_k = \frac{1}{\lvert R_k\rvert} \sum_{(u,v)\in R_k} F[u,v,:]$$
+  
   với $R_k$ là vùng receptive.
-- **Flatten thành chuỗi**: sắp xếp $\{t_k\}$ thành $T \in \mathbb{R}^{N \times c}$ và đưa vào projector.
+  
+- **Flatten thành chuỗi**: sắp xếp các token thành $T \in \mathbb{R}^{N \times c}$ và đưa vào projector.
 
 Sơ đồ:
 ```
@@ -100,10 +142,10 @@ ResNet, ConvNeXt phù hợp edge device; Swin Transformer, CoAtNet kết hợp c
 
 ### 3.3 Multi-scale & feature pyramid
 
-Khi thuyết minh trước khán phòng lớn, cô chuẩn bị **nhiều độ phân giải** của cùng bức tranh để hệ thống hiểu được cả chi tiết và tổng thể. Encoder sinh $Z^{(s)}$; sau đó:
-$$
-Z = \text{Concat}(Z^{(1)}, Z^{(2)}, \ldots) \quad \text{hoặc} \quad Z = \text{Attention}(Z^{(1)}, Z^{(2)}, \ldots).
-$$
+Khi thuyết minh trước khán phòng lớn, cô chuẩn bị **nhiều độ phân giải** của cùng bức tranh để hệ thống hiểu được cả chi tiết và tổng thể. Encoder sinh các feature ở nhiều scale; sau đó kết hợp:
+
+$$Z = \text{Concat}(Z^{(1)}, Z^{(2)}, \ldots) \quad \text{hoặc} \quad Z = \text{Attention}(Z^{(1)}, Z^{(2)}, \ldots).$$
+
 Nhờ vậy, câu chuyện mô tả được cả chi tiết nhỏ (mặt nước) lẫn bối cảnh lớn (bầu trời).
 
 Sơ đồ multi-scale:
@@ -139,16 +181,23 @@ class MultiScaleTokenizer(nn.Module):
 
 ## 4. Quy trình tokenization từng bước
 
-1. **Chuẩn hóa ảnh**: $X \leftarrow \text{Resize}(X, H \times W)$, sau đó chuẩn hóa bằng mean/std của encoder (ví dụ CLIP mean = (0.481, 0.457, 0.408)).
-2. **Patchify / Feature extraction**: thu tensor $Z \in \mathbb{R}^{B \times N \times d}$.
-3. **Projection tới không gian LLM**:
-   $$
-   Y = \text{LayerNorm}(Z) W_{\text{proj}} + b_{\text{proj}}, \quad W_{\text{proj}} \in \mathbb{R}^{d \times d_{\text{LLM}}}.
-   $$
-4. **Thêm embedding modality & vị trí**: $Y = Y + E_{\text{mod}} + E_{\text{pos}}$.
-5. **Ghép prompt**: chèn token đặc biệt `<IMG_TOKEN>` và `<IMG_END>` bao quanh chuỗi $Y$ khi đưa vào LLM.
+1. **Chuẩn hóa ảnh**: Resize ảnh $X$ về kích thước $H \times W$, sau đó chuẩn hóa bằng mean/std của encoder (ví dụ CLIP mean = (0.481, 0.457, 0.408)).
 
-> **Chú thích:** LayerNorm trước projection giúp ổn định gradient; $E_{\text{mod}}$ đánh dấu đây là token ảnh, giúp LLM phân biệt với token văn bản.
+2. **Patchify / Feature extraction**: Thu được tensor $Z \in \mathbb{R}^{B \times N \times d}$.
+
+3. **Projection tới không gian LLM**:
+   
+   $$Y = \text{LayerNorm}(Z) W_{\text{proj}} + b_{\text{proj}}, \quad W_{\text{proj}} \in \mathbb{R}^{d \times d_{\text{LLM}}}.$$
+
+4. **Thêm embedding modality & vị trí**: 
+
+   $$Y = Y + E_{\text{mod}} + E_{\text{pos}}.$$
+
+5. **Ghép prompt**: Chèn token đặc biệt `<IMG_TOKEN>` và `<IMG_END>` bao quanh chuỗi $Y$ khi đưa vào LLM.
+
+**Lưu ý:** 
+
+LayerNorm trước projection giúp ổn định gradient; $E_{\text{mod}}$ đánh dấu đây là token ảnh, giúp LLM phân biệt với token văn bản.
 
 ## 5. Chi tiết toán học: từ patch tới embedding
 
@@ -207,7 +256,9 @@ def build_prompt(vision_tokens, text_tokens):
     return torch.cat([img_tokens + vision_tokens, text_tokens], dim=1)
 ```
 
-**Chú thích:** `forward_features` của ViT trả về patch embedding trước CLS token; nếu muốn giữ CLS, cần concatenate thủ công. Hàm `build_prompt` minh họa cách nối token ảnh với token văn bản khi inference.
+**Chú thích:** 
+
+Hàm `forward_features` của ViT trả về patch embedding trước CLS token; nếu muốn giữ CLS, cần concatenate thủ công. Hàm `build_prompt` minh họa cách nối token ảnh với token văn bản khi inference.
 
 ## 7. Best practices & bảng so sánh
 
@@ -219,7 +270,8 @@ def build_prompt(vision_tokens, text_tokens):
 | Tiết kiệm bộ nhớ | Token merging 0.5 hoặc Perceiver Resampler | khác biệt sẽ phân tích ở bài “Compression” |
 | Edge deployment | ConvNeXt-Tiny + pooling | phù hợp 8GB VRAM |
 
-Tips thực tế:
+**Tips thực tế:**
+
 - Chuẩn hóa ảnh trong `DataLoader` để đảm bảo batch consistency.
 - Cache vision features trong multi-turn chat để không encode lại ảnh.
 - Dùng mixed precision (bf16) và `channels_last` để tối ưu throughput.
