@@ -172,11 +172,7 @@ $$
 
 ### 5.3 Thêm positional & modality encoding
 
-$$
-\tilde{z}_{i,j} = z_{i,j} + E_{\text{pos}}(i,j) + E_{\text{mod}}.
-$$
-
-$E_{\text{mod}}$ giúp LLM biết rằng token này xuất phát từ ảnh; $E_{\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\tilde{z}_{0,0}, \dots, \tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\text{LLM}}$.
+\n::: math\n\\[\\tilde{z}_{i,j} = z_{i,j} + E_{\\text{pos}}(i,j) + E_{\\text{mod}}\\]\\n:::\n\n**Chú thích:** $E_{\\text{mod}}$ đánh dấu token ảnh; $E_{\\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\\tilde{z}_{0,0}, \\\.\\,. , \\tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\\text{LLM}}$.
 
 ## 6. Ví dụ PyTorch: chuẩn bị token cho LLM
 
