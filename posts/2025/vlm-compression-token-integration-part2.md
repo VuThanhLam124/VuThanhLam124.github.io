@@ -94,15 +94,15 @@ featured: false
 
 - Ballé et al. (2018) đề xuất mô hình có hai nhánh:
   - **Main encoder** $g_a$: $y = g_a(x)$.
-  - **Hyper encoder** $h_a$: $z = h_a(|y|)$ (dùng giá trị tuyệt đối).
+  - **Hyper encoder** $h_a$: $z = h_a\!\left(\left| y \right|\right)$.
   - **Hyper decoder** $h_s$: dự đoán tham số scale $\sigma$ cho phân phối của $y$.
   - **Main decoder** $g_s$: tái tạo ảnh $\hat{x} = g_s(\hat{y})$.
 - Loss:
   $$
-  \mathcal{L} = \mathbb{E}[-\log p_{\hat{y}|\hat{z}}(\hat{y}|\hat{z})] + \mathbb{E}[-\log p_{\hat{z}}(\hat{z})] + \lambda \mathbb{E}[d(x, \hat{x})].
+  \mathcal{L} = \mathbb{E}\left[-\log p_{\hat{y} \mid \hat{z}}(\hat{y} \mid \hat{z})\right] + \mathbb{E}\left[-\log p_{\hat{z}}(\hat{z})\right] + \lambda \mathbb{E}[d(x, \hat{x})].
   $$
 - Ý nghĩa:
-  - $p_{\hat{y}|\hat{z}}$ mô hình hoá entropy mã chính.
+  - $p_{\hat{y} \mid \hat{z}}$ mô hình hoá entropy mã chính.
   - $p_{\hat{z}}$ mô hình hoá entropy của hyper latent.
 
 ### 2.2. Entropy model học được và arithmetic coding
@@ -110,7 +110,7 @@ featured: false
 - Để chuyển xác suất thành bitstream, ta dùng arithmetic coding (hoặc range coding).
 - Pipeline:
   1. Từ $z$, dự đoán $\mu_y$, $\sigma_y$.
-  2. Xem $y$ theo phân phối $p(y|\mu_y, \sigma_y)$ (thường Gaussian).
+  2. Xem $y$ theo phân phối $p\left(y \mid \mu_y, \sigma_y\right)$ (thường Gaussian).
   3. Lượng tử hoá $y$ → $\hat{y}$, encode chênh lệch bằng probability mass function.
   4. Sử dụng arithmetic coder để viết bitstream.
 - Arithmetic coding đảm bảo số bit gần nhất với $-\log_2 p(\hat{y})$.
@@ -118,7 +118,7 @@ featured: false
 
 ### 2.3. Gaussian, Laplace, logistic: chọn distribution nào?
 
-- **Gaussian**: $p(x|\mu,\sigma) = \frac{1}{\sqrt{2\pi}\sigma} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$.
+- **Gaussian**: $p(x \mid \mu,\sigma) = \frac{1}{\sqrt{2\pi}\sigma} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$.
   - Thích hợp khi residual gần zero mean.
 - **Laplace**: tail dày hơn, phù hợp khi residual có phân phối heavy-tail.
 - **Logistic**: convenient vì CDF có dạng sigmoid; logistic mixture (HiFiC) cho flexibility.
@@ -127,9 +127,9 @@ featured: false
 
 ### 2.4. Analytic gradient cho loss hyperprior
 
-- Loss term $-\log p_{\hat{y}|\hat{z}}$:
+- Loss term $-\log p_{\hat{y} \mid \hat{z}}$:
   $$
-  -\log p_{\hat{y}|\hat{z}}(\hat{y}|\hat{z}) = \frac{(\hat{y}-\mu(\hat{z}))^2}{2\sigma^2(\hat{z})} + \log \sigma(\hat{z}) + C.
+  -\log p_{\hat{y} \mid \hat{z}}(\hat{y} \mid \hat{z}) = \frac{(\hat{y}-\mu(\hat{z}))^2}{2\sigma^2(\hat{z})} + \log \sigma(\hat{z}) + C.
   $$
 - Gradient wrt $\mu$: $\frac{\hat{y}-\mu}{\sigma^2}$.
 - Gradient wrt $\sigma$: $-\frac{(\hat{y}-\mu)^2}{\sigma^3} + \frac{1}{\sigma}$.

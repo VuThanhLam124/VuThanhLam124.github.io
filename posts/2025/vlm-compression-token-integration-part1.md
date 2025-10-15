@@ -122,7 +122,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 - Hàm $X: \Omega \to \mathbb{R}^{H \times W \times C}$ đo được theo sigma-algebra $\mathcal{F}$.
 - Phân phối thật $p_{\text{data}}$ không thể truy cập trực tiếp; ta làm việc với phân phối thực nghiệm $\hat{p}_{\text{data}}$ dựa trên tập mẫu $\{x^{(i)}\}_{i=1}^N$.
 - Mục đích nén: tìm ánh xạ $Q: \mathbb{R}^{H \times W \times C} \to \mathcal{Z}^L$ (chuỗi mã) sao cho:
-  1. **Tốc độ** $R = \frac{1}{N} \sum_{i=1}^N \log_2 |\mathcal{Z}|$ càng nhỏ càng tốt.
+  1. **Tốc độ** $R = \frac{1}{N} \sum_{i=1}^N \log_2 \left|\mathcal{Z}\right|$ càng nhỏ càng tốt.
   2. **Độ méo** $D = \frac{1}{N} \sum_{i=1}^N d(x^{(i)}, \hat{x}^{(i)})$ không vượt quá ngưỡng đặt trước.
 
 ### 3.2. Entropy, cross-entropy và KL divergence
