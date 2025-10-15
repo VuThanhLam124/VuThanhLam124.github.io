@@ -63,7 +63,9 @@ Một buổi sáng, cô hướng dẫn viên đón một đoàn khách đặc bi
 1. **Dùng Vision Encoder** trích xuất đặc trưng từng vùng ảnh.
 2. **Token hóa** các đặc trưng đó thành chuỗi vector – giống như ghi chú chi tiết để mô hình ngôn ngữ tạo lời mô tả chính xác.
 
-> *Ghi chú xuyên suốt series:* Các bài viết tiếp theo sẽ mô tả cách cô phối hợp với những kỹ thuật khác (alignment, instruction tuning, compression...). Bài hôm nay tập trung vào bước nền tảng: chuyển ảnh thành "ngôn ngữ trung gian".
+**Ghi chú xuyên suốt series:**
+
+Các bài viết tiếp theo sẽ mô tả cách cô phối hợp với những kỹ thuật khác (alignment, instruction tuning, compression...). Bài hôm nay tập trung vào bước nền tảng: chuyển ảnh thành "ngôn ngữ trung gian".
 
 ## 2. Tại sao phải token hóa hình ảnh?
 
@@ -221,7 +223,13 @@ $$
 
 ### 5.3 Thêm positional & modality encoding
 
-\n::: math\n\\[\\tilde{z}_{i,j} = z_{i,j} + E_{\\text{pos}}(i,j) + E_{\\text{mod}}\\]\\n:::\n\n**Chú thích:** $E_{\\text{mod}}$ đánh dấu token ảnh; $E_{\\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\\tilde{z}_{0,0}, \\\.\\,. , \\tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\\text{LLM}}$.
+$$
+\tilde{z}_{i,j} = z_{i,j} + E_{\text{pos}}(i,j) + E_{\text{mod}}
+$$
+
+**Chú thích:**
+
+$E_{\text{mod}}$ đánh dấu token ảnh; $E_{\text{pos}}$ giữ vị trí patch. Chuỗi cuối $Z = [\tilde{z}_{0,0}, \ldots, \tilde{z}_{N_H-1,N_W-1}]$ sẽ được projector đưa sang không gian $d_{\text{LLM}}$.
 
 ## 6. Ví dụ PyTorch: chuẩn bị token cho LLM
 
