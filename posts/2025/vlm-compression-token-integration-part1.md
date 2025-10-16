@@ -122,7 +122,11 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 - Hàm $X: \Omega \to \mathbb{R}^{H \times W \times C}$ đo được theo sigma-algebra $\mathcal{F}$.
 - Phân phối thật $p_{\text{data}}$ không thể truy cập trực tiếp; ta làm việc với phân phối thực nghiệm $\hat{p}_{\text{data}}$ dựa trên tập mẫu $\{x^{(i)}\}_{i=1}^N$.
 - Mục đích nén: tìm ánh xạ $Q: \mathbb{R}^{H \times W \times C} \to \mathcal{Z}^L$ (chuỗi mã) sao cho:
-  1. **Tốc độ** $R = \frac{1}{N} \sum_{i=1}^N \log_2 \left|\mathcal{Z}\right|$ càng nhỏ càng tốt.
+  1. **Tốc độ**
+     $$
+     R = \frac{1}{N} \sum_{i=1}^N \log_2 \left( \left\lvert \mathcal{Z} \right\rvert \right)
+     $$
+     càng nhỏ càng tốt.
   2. **Độ méo** $D = \frac{1}{N} \sum_{i=1}^N d(x^{(i)}, \hat{x}^{(i)})$ không vượt quá ngưỡng đặt trước.
 
 ### 3.2. Entropy, cross-entropy và KL divergence
@@ -135,7 +139,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 
 ### 3.3. Mutual information và vai trò trong VLM
 
-- Mutual information $I(X; Y) = H(X) - H(X|Y)$ đo lượng thông tin chung giữa hai biến.
+- Mutual information $I(X; Y) = H(X) - H(X \mid Y)$ đo lượng thông tin chung giữa hai biến.
 - Khi chuỗi token ảnh được ghép với văn bản, mutual information giữa token và caption phải đủ lớn để LLM khai thác.
 - Trong VQ-VAE, ta tối ưu sao cho embedding $Z_q$ giữ information về $X$ → tương đương maximize $I(X; Z_q)$ dưới ràng buộc bitrate.
 
@@ -144,7 +148,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 - Với biến nguồn $X$ và biến tái tạo $\hat{X}$, distortion function $d: \mathcal{X} \times \hat{\mathcal{X}} \to \mathbb{R}_{\ge 0}$.
 - Rate–distortion function:
   $$
-  R(D) = \min_{p(\hat{x}|x): \mathbb{E}[d(X, \hat{X})] \le D} I(X; \hat{X}).
+  R(D) = \min_{p(\hat{x} \mid x): \mathbb{E}[d(X, \hat{X})] \le D} I(X; \hat{X}).
   $$
 - $R(D)$ là cận dưới thông tin cho mọi scheme nén: không thể đạt bitrate trung bình thấp hơn $R(D)$ với distortion không vượt quá $D$.
 - **Tiên đề**:
@@ -179,9 +183,9 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 - AutoEncoder tiêu chuẩn tối ưu $\|x - \hat{x}\|^2$ nhưng không kiểm soát bitrate. VQ-VAE bổ sung lượng tử hoá để ràng buộc entropy latent.
 - VAE tối ưu Evidence Lower Bound:
   $$
-  \text{ELBO} = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z)).
+  \text{ELBO} = \mathbb{E}_{q_\phi(z \mid x)}\left[\log p_\theta(x \mid z)\right] - D_{\text{KL}}\!\left(q_\phi(z \mid x) \, \middle\| \, p(z)\right).
   $$
-- Nếu $q_\phi(z|x)$ bị ràng buộc trở thành phân phối rời rạc với entropy hữu hạn, ta thu được formulation tương tự rate–distortion.
+- Nếu $q_\phi(z \mid x)$ bị ràng buộc trở thành phân phối rời rạc với entropy hữu hạn, ta thu được formulation tương tự rate–distortion.
 - Kết luận: VQ-VAE là cầu nối giữa AutoEncoder và lý thuyết nén.
 
 ---
@@ -203,7 +207,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 
 - Lloyd–Max (Generalized Lloyd Algorithm – GLA) tối ưu codebook theo hai bước lặp:
   1. **Assignment step (E-step)**: với codebook hiện tại, gán mỗi điểm $z$ vào cluster $S_k = \{z: k = \arg\min_j \|z - e_j\|^2\}$.
-  2. **Update step (M-step)**: cập nhật $e_k = \frac{1}{|S_k|} \sum_{z \in S_k} z$.
+  2. **Update step (M-step)**: cập nhật $e_k = \frac{1}{\left\lvert S_k \right\rvert} \sum_{z \in S_k} z$.
 - Algorithm hội tụ tới điểm dừng local optimum.
 - Trực giác: ta xây dựng Voronoi partition trong không gian latent; mỗi centroid là barycenter của cluster.
 - Đối với VQ-VAE, assignment step diễn ra trong forward pass (argmin), update step được thực hiện qua EMA.
@@ -214,7 +218,7 @@ Phần II (ở file khác) sẽ tiếp tục các nội dung nâng cao: hyperpri
 - Lý do: assignment step giảm $D$ vì chọn cluster tối ưu; update step tính trung bình → gradient zero.
 - **Điều kiện cần**:  
   - $S_k$ là Voronoi region: $\forall z \in S_k, \|z - e_k\|^2 \le \|z - e_j\|^2$ với mọi $j$.
-  - $e_k$ là centroid: $\nabla_{e_k} D = 0$ ⇒ $e_k = \frac{1}{|S_k|} \sum_{z \in S_k} z$.
+  - $e_k$ là centroid: $\nabla_{e_k} D = 0$ ⇒ $e_k = \frac{1}{\left\lvert S_k \right\rvert} \sum_{z \in S_k} z$.
 - **Điều kiện đủ cục bộ**: Hessian là ma trận dương xác định trong không gian tangent.
 
 ### 4.4. K-means, GLA và các biến thể
@@ -404,8 +408,8 @@ Ví dụ cho thấy codebook cần bao phủ dải giá trị lớn; patch brigh
 
 ### 5.12. Regularization bổ sung cho codebook
 
-- **Orthogonality penalty**: $\lambda \sum_{i \neq j} |e_i^\top e_j|$ giúp codeword phân tán.
-- **Norm penalty**: $||e_k||_2$ trong khoảng [a, b] để tránh codeword norm quá lớn.
+- **Orthogonality penalty**: $\lambda \sum_{i \neq j} \left\lvert e_i^\top e_j \right\rvert$ giúp codeword phân tán.
+- **Norm penalty**: $\lVert e_k \rVert_2$ trong khoảng [a, b] để tránh codeword norm quá lớn.
 - **Diversity loss**: maximize determinant của Gram matrix, khuyến khích spanning.
 
 ### 5.13. Batch norm vs instance norm trong encoder

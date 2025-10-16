@@ -94,7 +94,7 @@ featured: false
 
 - Ballé et al. (2018) đề xuất mô hình có hai nhánh:
   - **Main encoder** $g_a$: $y = g_a(x)$.
-  - **Hyper encoder** $h_a$: $z = h_a\!\left(\left| y \right|\right)$.
+  - **Hyper encoder** $h_a$: $z = h_a\!\left(\left\lvert y \right\rvert\right)$.
   - **Hyper decoder** $h_s$: dự đoán tham số scale $\sigma$ cho phân phối của $y$.
   - **Main decoder** $g_s$: tái tạo ảnh $\hat{x} = g_s(\hat{y})$.
 - Loss:
@@ -972,7 +972,7 @@ $$
 L^{\text{PPO}} = \mathbb{E}\left[\min\left(r_t(\theta) A_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) A_t\right) - \beta \text{KL}(P_\theta || P_{\text{ref}})\right].
 $$
 
-- $r_t(\theta) = \frac{P_\theta(a_t|s_t)}{P_{\theta_{\text{old}}}(a_t|s_t)}$.
+- $r_t(\theta) = \frac{P_\theta(a_t \mid s_t)}{P_{\theta_{\text{old}}}(a_t \mid s_t)}$.
 - $\beta$ điều chỉnh khoảng cách tới policy tham chiếu (SFT).
 
 ### 15.4. Cơ chế toolformer trong Gemini
