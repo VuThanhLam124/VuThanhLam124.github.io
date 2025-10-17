@@ -158,35 +158,328 @@ $$
 
 ### Chứng minh hình học (2 chiều)
 
-1. **Quan sát vùng lân cận của $z$:** chọn điểm $z = (z_1, z_2)$ và lấy quanh đó một ô vuông nhỏ với cạnh $\Delta z_1, \Delta z_2$. Diện tích ban đầu là $\Delta S_z = \Delta z_1 \Delta z_2$.
-2. **Hai vector đặc trưng biến đổi:** xét phép ánh xạ $x = g(z)$. Khi tăng $z$ theo $e_1$ một lượng $\Delta z_1$, ảnh $x$ dịch theo vector thứ nhất $v_1 = \frac{\partial g}{\partial z_1}(z) \,\Delta z_1$. Tương tự, dịch theo $e_2$ tạo vector $v_2 = \frac{\partial g}{\partial z_2}(z) \,\Delta z_2$.
-3. **Diện tích sau biến đổi:** hình bình hành tạo bởi $v_1, v_2$ có diện tích
-   $$
-   \Delta S_x = \left\lvert \det
-   \begin{bmatrix}
-   \dfrac{\partial g_1}{\partial z_1} & \dfrac{\partial g_1}{\partial z_2} \\
-   \dfrac{\partial g_2}{\partial z_1} & \dfrac{\partial g_2}{\partial z_2}
-   \end{bmatrix}
-   \right\rvert \Delta z_1 \Delta z_2,
-   $$
-   tức diện tích được nhân lên bởi $\lvert\det(\partial g / \partial z)\rvert$.
-4. **Bảo toàn xác suất:** khối lượng xác suất phải giữ nguyên trước và sau biến đổi:
-   $$
-   p_Z(z)\,\Delta S_z = p_X(x)\,\Delta S_x.
-   $$
-   Thế hai diện tích và rút gọn $\Delta z_1 \Delta z_2$, ta được
-   $$
-   p_X(x) = \frac{p_Z(z)}{\left\lvert \det \frac{\partial g}{\partial z}(z) \right\rvert}.
-   $$
-5. **Chuyển sang hàm nghịch đảo:** vì $z = g^{-1}(x)$ và $\frac{\partial g}{\partial z}$ là nghịch đảo của Jacobian $\frac{\partial g^{-1}}{\partial x}$ nên
-   $$
-   p_X(x) = p_Z\!\big(g^{-1}(x)\big)\; \left\lvert \det \frac{\partial g^{-1}}{\partial x}(x) \right\rvert.
-   $$
-6. **Logarit hóa:** trong thực hành, tích các định thức qua nhiều lớp dễ gây tràn số. Lấy log biến tích thành tổng:
-   $$
-   \log p_X(x) = \log p_Z\!\big(g^{-1}(x)\big) + \log \left\lvert \det \frac{\partial g^{-1}}{\partial x}(x) \right\rvert,
-   $$
-   đồng thời tổng log-likelihood là hàm mục tiêu thuận tiện để tối ưu.
+Hãy cùng hiểu tại sao công thức Change of Variables hoạt động thông qua một cách tiếp cận hình học trực quan. Chúng ta sẽ xem xét không gian 2 chiều để dễ hình dung, nhưng ý tưởng tổng quát hoá cho bất kỳ số chiều nào.
+
+#### Bước 1: Xây dựng hình vuông nhỏ trong không gian ban đầu
+
+Hãy tưởng tượng bạn đang làm việc với một lưới tọa độ 2D, không gian $Z = (z_1, z_2)$. Chọn một điểm bất kỳ $z = (z_1, z_2)$ trên không gian này.
+
+Bây giờ, vẽ một **hình vuông nhỏ** xung quanh điểm $z$:
+- Cạnh dọc: độ dài $\Delta z_1$ (dọc theo trục $z_1$)
+- Cạnh ngang: độ dài $\Delta z_2$ (dọc theo trục $z_2$)
+
+**Diện tích của hình vuông này:**
+$$
+\Delta S_z = \Delta z_1 \times \Delta z_2
+$$
+
+```
+Không gian Z (ban đầu):
+
+    z₂ ↑
+       │
+       │    ┌─────┐  ← Hình vuông nhỏ
+       │    │  z  │     Diện tích = Δz₁ × Δz₂
+       │    └─────┘
+       │
+       └──────────→ z₁
+```
+
+**Ý nghĩa xác suất:** Nếu $p_Z(z)$ là hàm mật độ xác suất tại điểm $z$, thì "khối lượng xác suất" trong hình vuông nhỏ này xấp xỉ bằng:
+$$
+\text{Khối lượng}_Z \approx p_Z(z) \times \Delta S_z = p_Z(z) \times \Delta z_1 \times \Delta z_2
+$$
+
+#### Bước 2: Biến đổi hình vuông qua hàm $g$
+
+Giờ áp dụng phép biến đổi $x = g(z)$ để chuyển từ không gian $Z$ sang không gian $X$. Hàm $g$ có dạng:
+$$
+x = g(z) = \begin{bmatrix} g_1(z_1, z_2) \\ g_2(z_1, z_2) \end{bmatrix}
+$$
+
+**Câu hỏi quan trọng:** Hình vuông nhỏ ban đầu sẽ biến thành hình gì trong không gian $X$?
+
+Để trả lời, chúng ta quan sát các **góc của hình vuông** bị biến đổi như thế nào. Hình vuông có 4 góc:
+- $(z_1, z_2)$ - góc dưới trái
+- $(z_1 + \Delta z_1, z_2)$ - góc dưới phải
+- $(z_1, z_2 + \Delta z_2)$ - góc trên trái  
+- $(z_1 + \Delta z_1, z_2 + \Delta z_2)$ - góc trên phải
+
+Khi các góc này đi qua hàm $g$, chúng tạo thành một **hình bình hành** (không còn là hình vuông nữa!).
+
+```
+Không gian X (sau biến đổi):
+
+    x₂ ↑
+       │          ╱‾‾‾╲
+       │         ╱  x  ╲  ← Hình bình hành
+       │        ╱       ╲    (bị kéo dãn, xoay)
+       │       ╲_______╱
+       │
+       └────────────────→ x₁
+```
+
+#### Bước 3: Tính các cạnh của hình bình hành bằng đạo hàm riêng
+
+Để hiểu hình bình hành này, chúng ta cần biết độ dài và hướng của 2 cạnh xuất phát từ điểm $g(z)$.
+
+**Cạnh thứ nhất** - khi dịch chuyển $\Delta z_1$ theo hướng $z_1$ (giữ nguyên $z_2$):
+
+Điểm ban đầu: $(z_1, z_2) \to g(z_1, z_2)$
+
+Điểm sau khi dịch: $(z_1 + \Delta z_1, z_2) \to g(z_1 + \Delta z_1, z_2)$
+
+Vector thay đổi (xấp xỉ bằng đạo hàm riêng):
+$$
+\vec{v}_1 = g(z_1 + \Delta z_1, z_2) - g(z_1, z_2) \approx \frac{\partial g}{\partial z_1}(z) \times \Delta z_1
+$$
+
+Viết chi tiết từng thành phần:
+$$
+\vec{v}_1 = \begin{bmatrix} 
+\dfrac{\partial g_1}{\partial z_1} \times \Delta z_1 \\[0.3em]
+\dfrac{\partial g_2}{\partial z_1} \times \Delta z_1 
+\end{bmatrix}
+$$
+
+**Cạnh thứ hai** - khi dịch chuyển $\Delta z_2$ theo hướng $z_2$ (giữ nguyên $z_1$):
+
+Tương tự, vector thay đổi là:
+$$
+\vec{v}_2 = g(z_1, z_2 + \Delta z_2) - g(z_1, z_2) \approx \frac{\partial g}{\partial z_2}(z) \times \Delta z_2
+$$
+
+Viết chi tiết:
+$$
+\vec{v}_2 = \begin{bmatrix} 
+\dfrac{\partial g_1}{\partial z_2} \times \Delta z_2 \\[0.3em]
+\dfrac{\partial g_2}{\partial z_2} \times \Delta z_2 
+\end{bmatrix}
+$$
+
+#### Bước 4: Diện tích hình bình hành = Định thức ma trận
+
+Hình bình hành được tạo bởi 2 vector $\vec{v}_1$ và $\vec{v}_2$. Công thức tính diện tích hình bình hành trong không gian 2D là:
+
+$$
+\text{Diện tích} = \left| \det \begin{bmatrix} v_1 & v_2 \end{bmatrix} \right|
+$$
+
+Thay các thành phần của $\vec{v}_1$ và $\vec{v}_2$ vào:
+
+$$
+\Delta S_x = \left| \det \begin{bmatrix} 
+\dfrac{\partial g_1}{\partial z_1} \Delta z_1 & \dfrac{\partial g_1}{\partial z_2} \Delta z_2 \\[0.5em]
+\dfrac{\partial g_2}{\partial z_1} \Delta z_1 & \dfrac{\partial g_2}{\partial z_2} \Delta z_2
+\end{bmatrix} \right|
+$$
+
+Đưa $\Delta z_1$ và $\Delta z_2$ ra ngoài định thức (tính chất của định thức):
+
+$$
+\Delta S_x = \left| \det \begin{bmatrix} 
+\dfrac{\partial g_1}{\partial z_1} & \dfrac{\partial g_1}{\partial z_2} \\[0.5em]
+\dfrac{\partial g_2}{\partial z_1} & \dfrac{\partial g_2}{\partial z_2}
+\end{bmatrix} \right| \times \Delta z_1 \times \Delta z_2
+$$
+
+Ma trận này chính là **ma trận Jacobian** $J = \frac{\partial g}{\partial z}$. Vậy:
+
+$$
+\boxed{\Delta S_x = \left| \det(J) \right| \times \Delta S_z}
+$$
+
+**Ý nghĩa:** Định thức Jacobian cho biết **hệ số co dãn diện tích** khi biến đổi từ không gian $Z$ sang không gian $X$. 
+- Nếu $|\det(J)| = 2$, diện tích tăng gấp đôi (giãn ra)
+- Nếu $|\det(J)| = 0.5$, diện tích giảm một nửa (co lại)
+
+#### Bước 5: Bảo toàn khối lượng xác suất
+
+Đây là bước **quan trọng nhất**. Trong xác suất, "khối lượng" phải được bảo toàn qua phép biến đổi.
+
+**Khối lượng xác suất trong không gian Z:**
+$$
+\text{Khối lượng}_Z = p_Z(z) \times \Delta S_z
+$$
+
+**Khối lượng xác suất trong không gian X:**
+$$
+\text{Khối lượng}_X = p_X(x) \times \Delta S_x
+$$
+
+**Điều kiện bảo toàn:** Hai khối lượng này phải bằng nhau!
+$$
+p_Z(z) \times \Delta S_z = p_X(x) \times \Delta S_x
+$$
+
+Thay $\Delta S_x = |\det(J)| \times \Delta S_z$ vào:
+$$
+p_Z(z) \times \Delta S_z = p_X(x) \times |\det(J)| \times \Delta S_z
+$$
+
+Chia cả hai vế cho $\Delta S_z$:
+$$
+p_Z(z) = p_X(x) \times |\det(J)|
+$$
+
+Sắp xếp lại:
+$$
+\boxed{p_X(x) = \frac{p_Z(z)}{|\det(J)|}}
+$$
+
+Với $J = \frac{\partial g}{\partial z}$ là Jacobian của hàm biến đổi $g: z \to x$.
+
+#### Bước 6: Chuyển sang hàm nghịch đảo
+
+Trong thực tế, chúng ta thường có $x$ (data) và muốn tìm $z = g^{-1}(x)$ (latent code). Vì thế, thuận tiện hơn nếu biểu diễn theo Jacobian của hàm nghịch đảo.
+
+**Quan hệ giữa Jacobian thuận và nghịch:**
+$$
+\frac{\partial g}{\partial z} \times \frac{\partial g^{-1}}{\partial x} = I
+$$
+
+Lấy định thức hai vế:
+$$
+\det\left(\frac{\partial g}{\partial z}\right) \times \det\left(\frac{\partial g^{-1}}{\partial x}\right) = 1
+$$
+
+Suy ra:
+$$
+\left|\det\left(\frac{\partial g}{\partial z}\right)\right| = \frac{1}{\left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+$$
+
+Thay vào công thức trên:
+$$
+\boxed{p_X(x) = p_Z(g^{-1}(x)) \times \left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+$$
+
+#### Bước 7: Logarit hóa để tính toán ổn định
+
+Trong thực tế, khi stack nhiều lớp biến đổi, các định thức nhân với nhau có thể rất lớn hoặc rất nhỏ, gây tràn số (overflow/underflow). Giải pháp: **lấy logarit**!
+
+$$
+\boxed{\log p_X(x) = \log p_Z(g^{-1}(x)) + \log \left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+$$
+
+**Ưu điểm:**
+- Phép nhân → Phép cộng (ổn định hơn)
+- Tối ưu hóa dễ dàng hơn (gradient descent trên log-likelihood)
+- Tránh tràn số
+
+#### Ví dụ cụ thể: Biến đổi Affine 2D
+
+Cho phép biến đổi:
+$$
+g(z) = Az + b \quad \text{với} \quad A = \begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}, \quad b = \begin{bmatrix} 1 \\ -1 \end{bmatrix}
+$$
+
+**Bước 1:** Ma trận Jacobian
+$$
+J = \frac{\partial g}{\partial z} = A = \begin{bmatrix} 2 & 1 \\ 0 & 3 \end{bmatrix}
+$$
+
+**Bước 2:** Tính định thức
+$$
+\det(J) = 2 \times 3 - 1 \times 0 = 6
+$$
+
+**Bước 3:** Diện tích co dãn
+- Một hình vuông có diện tích 1 trong không gian $Z$
+- Sẽ biến thành hình bình hành có diện tích 6 trong không gian $X$
+- Diện tích tăng 6 lần!
+
+**Bước 4:** Mật độ xác suất
+$$
+p_X(x) = \frac{p_Z(z)}{6}
+$$
+
+Vì diện tích tăng 6 lần, mật độ phải giảm 6 lần để bảo toàn tổng xác suất = 1.
+
+**Visualization với code:**
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+
+# Định nghĩa phép biến đổi
+A = np.array([[2, 1], [0, 3]])
+b = np.array([1, -1])
+
+def transform(z):
+    return A @ z + b
+
+# Tạo hình vuông trong không gian Z
+square_z = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
+
+# Biến đổi sang không gian X
+parallelogram_x = np.array([transform(pt) for pt in square_z])
+
+# Vẽ
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Không gian Z
+ax1.add_patch(Polygon(square_z, fill=False, edgecolor='blue', linewidth=2))
+ax1.scatter([0], [0], color='red', s=100, zorder=5)
+ax1.set_xlim(-0.5, 2)
+ax1.set_ylim(-0.5, 2)
+ax1.set_aspect('equal')
+ax1.grid(True, alpha=0.3)
+ax1.set_title('Không gian Z (ban đầu)\nDiện tích = 1', fontsize=12)
+ax1.set_xlabel('z₁')
+ax1.set_ylabel('z₂')
+
+# Không gian X
+ax2.add_patch(Polygon(parallelogram_x, fill=False, edgecolor='red', linewidth=2))
+ax2.scatter([1], [-1], color='red', s=100, zorder=5)
+ax2.set_xlim(-0.5, 4)
+ax2.set_ylim(-2, 4)
+ax2.set_aspect('equal')
+ax2.grid(True, alpha=0.3)
+ax2.set_title('Không gian X (sau biến đổi)\nDiện tích = 6', fontsize=12)
+ax2.set_xlabel('x₁')
+ax2.set_ylabel('x₂')
+
+plt.tight_layout()
+plt.show()
+
+print(f"Định thức Jacobian: {np.linalg.det(A)}")
+print(f"Diện tích hình vuông ban đầu: 1")
+print(f"Diện tích hình bình hành sau biến đổi: {np.linalg.det(A)}")
+```
+
+#### Tổng kết trực quan
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  CHANGE OF VARIABLES - TRỰC QUAN HÌNH HỌC                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Không gian Z          Biến đổi g          Không gian X      │
+│                                                               │
+│    ┌─────┐                              ╱────╲              │
+│    │  z  │            ───────>         ╱  x   ╲             │
+│    └─────┘                            ╱________╲             │
+│                                                               │
+│  Diện tích: ΔSz                     Diện tích: ΔSx           │
+│                                                               │
+│  Mật độ: p_Z(z)                     Mật độ: p_X(x)           │
+│                                                               │
+│  Khối lượng = p_Z(z) × ΔSz    =    p_X(x) × ΔSx              │
+│                                                               │
+│              ΔSx = |det(J)| × ΔSz                             │
+│                                                               │
+│              p_X(x) = p_Z(z) / |det(J)|                       │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Điểm mấu chốt cần nhớ:**
+
+1. **Diện tích thay đổi** theo hệ số $|\det(J)|$
+2. **Mật độ thay đổi ngược chiều** để bảo toàn khối lượng xác suất
+3. **Định thức Jacobian** là "phí co giãn" của không gian
+4. Công thức tổng quát hóa cho không gian bất kỳ chiều nào
 
 ### Ví dụ cụ thể
 
