@@ -21,6 +21,8 @@ Sau loạt vụ án ảnh giả mạo lan truyền trên mạng, một thám t�
 
 1. [Câu chuyện điều tra nhiễu](#1-câu-chuyện-điều-tra-nhiễu)  
 2. [Trực giác: Forward diffusion](#2-trực-giác-forward-diffusion)  
+   - [Cấu trúc Markov của chuỗi nhiễu](#21-cấu-trúc-markov-của-chuỗi-nhiễu)  
+   - [Ví dụ điều tra 2x2 pixel](#22-ví-dụ-điều-tra-2x2-pixel)  
 3. [Reverse diffusion và cấu trúc trung bình](#3-reverse-diffusion-và-cấu-trúc-trung-bình)  
 4. [DDPM objective: dẫn xuất từng bước](#4-ddpm-objective-dẫn-xuất-từng-bước)  
 5. [Parameterization và lịch nhiễu](#5-parameterization-và-lịch-nhiễu)  
@@ -57,13 +59,81 @@ trong đó $\beta_t \in (0, 1)$ là lượng nhiễu thêm ở bước $t$. Sau 
 
 ### Công thức rút gọn theo $x_0$
 
-DDPM có ưu điểm quan trọng: phân phối $x_t$ theo $x_0$ có dạng khép kín:
+DDPM có ưu điểm quan trọng: phân phối $x_t$ theo $x_0$ có dạng khép kín.
+Bằng cách thay thế đệ quy $x_t = \sqrt{\alpha_t} x_{t-1} + \sqrt{1-\alpha_t}\, \epsilon_t$ liên tiếp, ta thu được:
 
 $$
 q(x_t \mid x_0) = \mathcal{N}\left(x_t; \sqrt{\bar{\alpha}_t} \, x_0, (1 - \bar{\alpha}_t) I \right),
 $$
 
-trong đó $\alpha_t = 1 - \beta_t$ và $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$. Công thức này cho phép thám tử tạo ra bất kỳ bước nhiễu nào trực tiếp từ ảnh gốc mà không cần mô phỏng toàn bộ chuỗi – rất hữu ích khi xây dựng loss hay sinh dữ liệu huấn luyện.
+trong đó $\alpha_t = 1 - \beta_t$, $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$, và $\epsilon_t$ là nhiễu Gaussian độc lập. Công thức này cho phép thám tử tạo ra bất kỳ bước nhiễu nào trực tiếp từ ảnh gốc mà không cần mô phỏng toàn bộ chuỗi – rất hữu ích khi xây dựng loss hay sinh dữ liệu huấn luyện.
+
+### 2.1. Cấu trúc Markov của chuỗi nhiễu
+
+Forward diffusion là một **chuỗi Markov hữu hạn**: mỗi bước chỉ phụ thuộc vào bước trước đó. Thám tử ghi chú trong sổ:
+
+$$
+q(x_{0:T}) = q(x_0) \prod_{t=1}^T q(x_t \mid x_{t-1}).
+$$
+
+- $x_0$ là trạng thái sạch.
+- $\{x_t\}$ là chuỗi ảnh bị nhiễu dần.
+- Khi chỉ quan sát $x_t$, ta đang đối mặt với một **Hidden Markov Model (HMM)**: trạng thái ẩn $x_{t-1}$ sinh ra quan sát $x_t$ theo Gaussian. Việc huấn luyện DDPM chính là học một mô hình đi ngược chuỗi Markov này.
+
+Reverse process mong muốn là:
+
+$$
+q(x_{t-1} \mid x_t) = \int q(x_{t-1} \mid x_t, x_0)\, q(x_0 \mid x_t) \, dx_0,
+$$
+
+nhưng vì $q(x_0 \mid x_t)$ không tính được, ta thay bằng $p_\theta(x_{t-1} \mid x_t)$ và tối ưu sao cho hai phân phối gần nhau (phần 4).
+
+**Liên hệ câu chuyện:**  
+Hãy coi mỗi bức ảnh bị nhiễu là một “lời khai” méo mó về hiện trường. Chuỗi Markov chính là chuỗi lời khai mà thủ phạm để lại: mỗi câu nói mới chỉ dựa trên câu ngay trước đó. HMM diễn giải rằng đằng sau mỗi lời khai (quan sát $x_t$) luôn có một trạng thái thật ($x_{t-1}$) mà ta không thấy, và nhiệm vụ của thám tử là lần ngược lại các trạng thái ấy.
+
+**Ví dụ Markov đơn giản:**  
+Giả sử nghi phạm thêm nhiễu vào ảnh theo ba mức: “nhẹ”, “vừa”, “nặng”. Chuỗi trạng thái $S_t \in \{\text{nhẹ}, \text{vừa}, \text{nặng}\}$ tiến hoá theo ma trận chuyển
+
+$$
+P = \begin{bmatrix}
+0.8 & 0.2 & 0 \\
+0 & 0.7 & 0.3 \\
+0 & 0 & 1
+\end{bmatrix},
+$$
+
+tức là khi đã sang mức “nặng” (tương đương $x_T$) thì không quay lại. Quan sát $X_t$ chính là ảnh nhiễu mà camera ghi được. Đây chính là một HMM cổ điển: trạng thái ẩn (mức nhiễu) sinh ra quan sát (ảnh). Khi huấn luyện DDPM, ta không cố gắng đoán trạng thái bằng thuật toán Viterbi; thay vào đó, ta học trực tiếp hàm $p_\theta(x_{t-1} \mid x_t)$ để đi ngược chuỗi.
+
+**Ví dụ Markov ẩn với câu chuyện:**  
+Áp dụng vào vụ án, thám tử giả lập ba sự kiện:
+
+1. **Sáng sớm ($t=0$):** camera chụp bức ảnh thật.  
+2. **Trưa ($t=1$):** nghi phạm phủ một lớp nhiễu “nhẹ” để che mặt.  
+3. **Chiều tối ($t=2$):** nghi phạm phủ thêm nhiễu “nặng” khiến toàn ảnh trắng xóa.
+
+Thám tử chỉ nhìn thấy ảnh chiều tối ($x_2$). HMM nói rằng ảnh trưa ($x_1$) là trạng thái ẩn sinh ra ảnh tối, và ảnh sáng sớm ($x_0$) lại sinh ra ảnh trưa. Để truy ra $x_0$, anh phải học được quy tắc sinh nhiễu ở từng bước – chính là nhiệm vụ của reverse diffusion.
+
+### 2.2. Ví dụ điều tra 2x2 pixel
+
+Để trực quan, thám tử thử nghiệm trên ảnh xám $2 \times 2$:
+
+$$
+x_0 = \begin{bmatrix}0.8 & 0.6 \\ 0.4 & 0.2\end{bmatrix}, \qquad \beta_1 = 0.1.
+$$
+
+Forward bước 1:
+
+$$
+x_1 = \sqrt{1 - \beta_1}\, x_0 + \sqrt{\beta_1}\, \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I).
+$$
+
+Giả sử $\epsilon = \begin{bmatrix}0.5 & -0.3 \\ 0.1 & -0.2\end{bmatrix}$, ta có
+
+$$
+x_1 \approx \begin{bmatrix}0.76 & 0.51 \\ 0.39 & 0.17\end{bmatrix}.
+$$
+
+Lặp lại vài lần, ma trận tiến dần về nhiễu trắng. Nhiệm vụ của reverse diffusion là dự đoán đúng $\epsilon$ ở mỗi bước để quay lại $x_0$ – giống như tái hiện nét bút gốc trong ảnh.
 
 ### Lập lịch $\beta_t$
 
@@ -109,6 +179,16 @@ chính là lượng nhiễu mà forward process đã thêm vào ở bước $t$.
 
 Như vậy, chỉ cần mô hình hóa chính xác nhiễu $\epsilon_t$ ta sẽ hồi phục được mean của reverse process.
 
+### Ví dụ: phục hồi bước đầu
+
+Tiếp tục ví dụ $2 \times 2$ ở trên. Biết $x_1$ và $\epsilon$ thật, ta có thể tính mean “chuẩn”:
+
+$$
+\tilde{\mu}(x_1, x_0, 1) = \frac{1}{\sqrt{\alpha_1}}\left(x_1 - \frac{1 - \alpha_1}{\sqrt{1 - \bar{\alpha}_1}} \epsilon\right).
+$$
+
+Với $\alpha_1 = 0.9$, $\bar{\alpha}_1 = 0.9$, kết quả $\tilde{\mu} \approx \begin{bmatrix}0.80 & 0.60 \\ 0.40 & 0.20\end{bmatrix}$ – đúng bằng $x_0$. Khi huấn luyện, mạng $\epsilon_\theta$ học cách dự đoán $\epsilon$ sao cho mean tính ra gần $x_0$ nhất có thể.
+
 ### Thuật toán
 
 1. Chọn $t$ từ 1 đến $T$.
@@ -127,7 +207,7 @@ $$
 $$
 
 - **Term đầu:** đảm bảo bước cuối cùng tái tạo ảnh sạch hợp lý.
-- **Term giữa:** đưa reverse model $p_\theta$ tiến gần phân phối thật $q$ ở mọi bước.
+- **Term giữa:** đưa reverse model $p_\theta$ tiến gần phân phối thật $q$ ở mọi bước – giống như việc kiểm tra từng lời khai với sự thật.
 - **Term cuối:** buộc phân phối ở thời điểm $T$ trùng Gaussian chuẩn (ta chọn $p(x_T) = \mathcal{N}(0, I)$).
 
 Với lịch nhiễu chuẩn, term đầu và cuối có thể tính chính xác và xem như hằng số. Ta rút gọn được **loss dự đoán nhiễu**:
@@ -200,6 +280,7 @@ return x_0
 ```
 
 Trong thực tế, $T$ thường nằm trong khoảng 1000–4000. Các cải tiến (DDIM, PLMS) sẽ được bàn trong Phần II.
+Thám tử thường bắt đầu từ $x_T$ là ảnh trắng, chạy vòng lặp trên để dựng lại bằng chứng; mỗi iteration tương đương một lần anh loại bỏ một lớp bụi giả mạo.
 
 ### 6.1. Chi phí và lựa chọn bước
 
@@ -217,7 +298,9 @@ Trong thực tế, $T$ thường nằm trong khoảng 1000–4000. Các cải ti
 
 ## 7. Implementation PyTorch: bộ khung đầy đủ
 
-Chúng ta triển khai một UNet đơn giản cho $32 \times 32$ (ví dụ CIFAR-10). Code tập trung vào pipeline training & sampling.
+Trong phần này, ta xây dựng "phòng thí nghiệm số" của thám tử: một UNet đơn giản mô phỏng cách anh dự đoán nhiễu và tái dựng ảnh.
+
+Chúng ta triển khai một UNet đơn giản cho $32 \times 32$ (ví dụ CIFAR-10). Bạn có thể coi đây là phòng thí nghiệm mô phỏng nơi thám tử thử nghiệm các thuật toán trước khi áp dụng cho ảnh thật. Code tập trung vào pipeline training & sampling.
 
 ```python
 import math
@@ -398,6 +481,8 @@ Code trên cung cấp khung huấn luyện cơ bản: UNet đơn giản, schedul
 
 ## 8. Quan sát thực nghiệm và mẹo tối ưu
 
+Trong nhật ký điều tra, thám tử ghi lại các lưu ý sau để mọi lần phục dựng đều ổn định:
+
 1. **Batch size nhỏ vẫn hoạt động:** Diffusion không nhạy batch size như GAN; batch 32–64 là ổn.
 2. **EMA model:** duy trì bản sao EMA của $\theta$, dùng để sampling (giảm nhiễu).
 3. **FP16 training:** sử dụng `torch.cuda.amp.autocast` và `GradScaler` để giảm VRAM.
@@ -418,7 +503,7 @@ Câu chuyện của thám tử cho thấy: muốn khôi phục sự thật từ 
 - Dẫn xuất loss DDPM và ý nghĩa việc dự đoán nhiễu.
 - Cung cấp thuật toán sampling và code PyTorch cơ bản.
 
-Phần II sẽ tiếp tục cuộc điều tra với **score-based SDE**, **DDIM/PLMS**, **classifier-free guidance**, cũng như cách thám tử phối hợp các nguồn manh mối khác nhau để điều khiển kết quả. Mời bạn tiếp tục đọc [Phần II](/posts/2025/diffusion-models-part2).
+Phần II sẽ tiếp tục cuộc điều tra với **score-based SDE**, **DDIM/PLMS**, **classifier-free guidance**, và cách thám tử phối hợp các nguồn manh mối (văn bản, layout, reference image) để điều khiển kết quả. Mời bạn tiếp tục đọc [Phần II](/posts/2025/diffusion-models-part2).
 
 ---
 

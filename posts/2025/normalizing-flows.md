@@ -214,7 +214,7 @@ Không gian X (sau biến đổi):
        │          ╱‾‾‾╲
        │         ╱  x  ╲  ← Hình bình hành
        │        ╱       ╲    (bị kéo dãn, xoay)
-       │       ╲_______╱
+       │        ╲_______╱
        │
        └────────────────→ x₁
 ```
@@ -262,36 +262,36 @@ $$
 Hình bình hành được tạo bởi 2 vector $\vec{v}_1$ và $\vec{v}_2$. Công thức tính diện tích hình bình hành trong không gian 2D là:
 
 $$
-\text{Diện tích} = \left| \det \begin{bmatrix} v_1 & v_2 \end{bmatrix} \right|
+\text{Diện tích} = \left\lvert \det \begin{bmatrix} v_1 & v_2 \end{bmatrix} \right\rvert
 $$
 
 Thay các thành phần của $\vec{v}_1$ và $\vec{v}_2$ vào:
 
 $$
-\Delta S_x = \left| \det \begin{bmatrix} 
+\Delta S_x = \left\lvert \det \begin{bmatrix} 
 \dfrac{\partial g_1}{\partial z_1} \Delta z_1 & \dfrac{\partial g_1}{\partial z_2} \Delta z_2 \\[0.5em]
 \dfrac{\partial g_2}{\partial z_1} \Delta z_1 & \dfrac{\partial g_2}{\partial z_2} \Delta z_2
-\end{bmatrix} \right|
+\end{bmatrix} \right\rvert
 $$
 
 Đưa $\Delta z_1$ và $\Delta z_2$ ra ngoài định thức (tính chất của định thức):
 
 $$
-\Delta S_x = \left| \det \begin{bmatrix} 
+\Delta S_x = \left\lvert \det \begin{bmatrix} 
 \dfrac{\partial g_1}{\partial z_1} & \dfrac{\partial g_1}{\partial z_2} \\[0.5em]
 \dfrac{\partial g_2}{\partial z_1} & \dfrac{\partial g_2}{\partial z_2}
-\end{bmatrix} \right| \times \Delta z_1 \times \Delta z_2
+\end{bmatrix} \right\rvert \times \Delta z_1 \times \Delta z_2
 $$
 
 Ma trận này chính là **ma trận Jacobian** $J = \frac{\partial g}{\partial z}$. Vậy:
 
 $$
-\boxed{\Delta S_x = \left| \det(J) \right| \times \Delta S_z}
+\boxed{\Delta S_x = \left\lvert \det(J) \right\rvert \times \Delta S_z}
 $$
 
 **Ý nghĩa:** Định thức Jacobian cho biết **hệ số co dãn diện tích** khi biến đổi từ không gian $Z$ sang không gian $X$. 
-- Nếu $|\det(J)| = 2$, diện tích tăng gấp đôi (giãn ra)
-- Nếu $|\det(J)| = 0.5$, diện tích giảm một nửa (co lại)
+- Nếu $\lvert\det(J)\rvert = 2$, diện tích tăng gấp đôi (giãn ra)
+- Nếu $\lvert\det(J)\rvert = 0.5$, diện tích giảm một nửa (co lại)
 
 #### Bước 5: Bảo toàn khối lượng xác suất
 
@@ -312,19 +312,19 @@ $$
 p_Z(z) \times \Delta S_z = p_X(x) \times \Delta S_x
 $$
 
-Thay $\Delta S_x = |\det(J)| \times \Delta S_z$ vào:
+Thay $\Delta S_x = \lvert\det(J)\rvert \times \Delta S_z$ vào:
 $$
-p_Z(z) \times \Delta S_z = p_X(x) \times |\det(J)| \times \Delta S_z
+p_Z(z) \times \Delta S_z = p_X(x) \times \lvert\det(J)\rvert \times \Delta S_z
 $$
 
 Chia cả hai vế cho $\Delta S_z$:
 $$
-p_Z(z) = p_X(x) \times |\det(J)|
+p_Z(z) = p_X(x) \times \lvert\det(J)\rvert
 $$
 
 Sắp xếp lại:
 $$
-\boxed{p_X(x) = \frac{p_Z(z)}{|\det(J)|}}
+\boxed{p_X(x) = \frac{p_Z(z)}{\lvert\det(J)\rvert}}
 $$
 
 Với $J = \frac{\partial g}{\partial z}$ là Jacobian của hàm biến đổi $g: z \to x$.
@@ -345,12 +345,12 @@ $$
 
 Suy ra:
 $$
-\left|\det\left(\frac{\partial g}{\partial z}\right)\right| = \frac{1}{\left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+\left\lvert\det\left(\frac{\partial g}{\partial z}\right)\right\rvert = \frac{1}{\left\lvert\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right\rvert}
 $$
 
 Thay vào công thức trên:
 $$
-\boxed{p_X(x) = p_Z(g^{-1}(x)) \times \left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+\boxed{p_X(x) = p_Z(g^{-1}(x)) \times \left\lvert\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right\rvert}
 $$
 
 #### Bước 7: Logarit hóa để tính toán ổn định
@@ -358,7 +358,7 @@ $$
 Trong thực tế, khi stack nhiều lớp biến đổi, các định thức nhân với nhau có thể rất lớn hoặc rất nhỏ, gây tràn số (overflow/underflow). Giải pháp: **lấy logarit**!
 
 $$
-\boxed{\log p_X(x) = \log p_Z(g^{-1}(x)) + \log \left|\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right|}
+\boxed{\log p_X(x) = \log p_Z(g^{-1}(x)) + \log \left\lvert\det\left(\frac{\partial g^{-1}}{\partial x}\right)\right\rvert}
 $$
 
 **Ưu điểm:**
@@ -454,29 +454,29 @@ print(f"Diện tích hình bình hành sau biến đổi: {np.linalg.det(A)}")
 ┌─────────────────────────────────────────────────────────────┐
 │  CHANGE OF VARIABLES - TRỰC QUAN HÌNH HỌC                   │
 ├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Không gian Z          Biến đổi g          Không gian X      │
-│                                                               │
+│                                                             │
+│  Không gian Z          Biến đổi g          Không gian X     │
+│                                                             │
 │    ┌─────┐                              ╱────╲              │
 │    │  z  │            ───────>         ╱  x   ╲             │
-│    └─────┘                            ╱________╲             │
-│                                                               │
-│  Diện tích: ΔSz                     Diện tích: ΔSx           │
-│                                                               │
-│  Mật độ: p_Z(z)                     Mật độ: p_X(x)           │
-│                                                               │
-│  Khối lượng = p_Z(z) × ΔSz    =    p_X(x) × ΔSx              │
-│                                                               │
-│              ΔSx = |det(J)| × ΔSz                             │
-│                                                               │
-│              p_X(x) = p_Z(z) / |det(J)|                       │
-│                                                               │
+│    └─────┘                            ╱________╲            │
+│                                                             │
+│  Diện tích: ΔSz                     Diện tích: ΔSx          │
+│                                                             │
+│  Mật độ: p_Z(z)                     Mật độ: p_X(x)          │
+│                                                             │
+│  Khối lượng = p_Z(z) × ΔSz    =    p_X(x) × ΔSx             │
+│                                                             │
+│              ΔSx = |det(J)| × ΔSz                           │
+│                                                             │
+│              p_X(x) = p_Z(z) / |det(J)|                     │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Điểm mấu chốt cần nhớ:**
 
-1. **Diện tích thay đổi** theo hệ số $|\det(J)|$
+1. **Diện tích thay đổi** theo hệ số $\lvert\det(J)\rvert$
 2. **Mật độ thay đổi ngược chiều** để bảo toàn khối lượng xác suất
 3. **Định thức Jacobian** là "phí co giãn" của không gian
 4. Công thức tổng quát hóa cho không gian bất kỳ chiều nào

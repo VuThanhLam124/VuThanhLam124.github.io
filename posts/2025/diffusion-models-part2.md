@@ -33,12 +33,14 @@ Sau khi tái dựng được ảnh gốc trong Phần I, thám tử vô danh nh�
 
 ## 1. Ôn lại cơ sở từ Phần I
 
-- Forward diffusion thêm nhiễu Gaussian có lịch $\{\beta_t\}_{t=1}^T$.
-- Reverse diffusion dự đoán nhiễu $\epsilon_\theta(x_t, t)$ để tính mean $\mu_\theta$.
-- Loss đơn giản: $\mathcal{L} = \mathbb{E}\left[\left\|\epsilon - \epsilon_\theta(x_t, t)\right\|^2\right]$.
-- Sampling chuẩn cần tối đa 1000 bước → tốc độ còn chậm.
+Trong biên bản điều tra, thám tử tóm lược những gì anh đã học được:
 
-Phần II làm rõ lý thuyết score matching và các mẹo giảm thời gian sampling, đồng thời mở đường cho việc điều khiển đầu ra.
+- Forward diffusion thêm nhiễu Gaussian với lịch $\{\beta_t\}_{t=1}^T$, biến ảnh sạch thành nhiễu trắng.
+- Reverse diffusion dự đoán nhiễu $\epsilon_\theta(x_t, t)$ để tính mean $\mu_\theta$ và khôi phục từng bước.
+- Loss huấn luyện cơ bản là $\mathcal{L} = \mathbb{E}\left[\left\|\epsilon - \epsilon_\theta(x_t, t)\right\|^2\right]$.
+- Sampling chuẩn cần tới 1000 bước → chưa đủ nhanh cho truy xét nhiều giả thuyết.
+
+Phần II tiếp tục mở rộng: tận dụng score matching, mô hình hoá bằng SDE, và trình bày những chiến thuật giảm bước sampling cũng như điều khiển kết quả – những “nghiệp vụ” cấp cao mà thám tử cần để xử lý mọi biến thể giả mạo.
 
 ---
 
@@ -65,6 +67,8 @@ $$
 $$
 
 Điểm nối với DDPM: nếu đặt $\sigma_t^2 = 1 - \bar{\alpha}_t$ và $s_\theta(x_t, t) = -\frac{1}{\sqrt{1 - \bar{\alpha}_t}} \epsilon_\theta(x_t, t)$, loss DSM trùng với loss DDPM. Vì vậy, diffusion có thể xem là một dạng score matching rời rạc theo thời gian.
+
+Trong thực địa, thám tử thường lấy những ảnh nghi vấn, thêm nhiễu ở nhiều mức $\sigma \in \{0.01, 0.1, 0.5\}$ rồi huấn luyện mạng $s_\theta$ dự đoán hướng “làm sạch”. Mỗi mức nhiễu tương đương một lời khai bị bóp méo ở mức độ khác nhau; biết score ở mọi mức giúp anh truy lại sự thật từ bất kỳ điểm nào trên “dốc xác suất”.
 
 ---
 
@@ -118,6 +122,7 @@ x_{t-1} = \sqrt{\bar{\alpha}_{t-1}} \left( \frac{x_t - \sqrt{1 - \bar{\alpha}_t}
 $$
 
 - Cho phép dùng **subsequence** các bước (ví dụ 50 steps) mà không cần sampling Gaussian ngẫu nhiên.
+- Thực nghiệm của thám tử: anh sử dụng DDIM 50 bước để tái dựng gương mặt nghi phạm từ ảnh camera nhiễu, giữ được đặc điểm như vết xăm mà vẫn giảm thời gian inference.
 
 ### 4.2. PLMS (Pseudo Linear Multistep)
 
@@ -128,6 +133,7 @@ x_{t-1} = x_t + \frac{\Delta t}{2} \left(3 f(x_t, t) - f(x_{t+1}, t+1)\right),
 $$
 
 trong đó $f$ đại diện drift của reverse SDE. Ứng dụng trong Stable Diffusion để giảm thời gian inference.
+- Trong bối cảnh vụ án, PLMS giống như thám tử so sánh hai lời khai liên tiếp: anh dựa vào bước hiện tại và dự đoán cần thiết của bước tiếp theo để rút ngắn đường điều tra.
 
 ### 4.3. Heun / Predictor-Corrector
 
@@ -150,6 +156,7 @@ $$
 $$
 
 với $w$ là hệ số hướng dẫn. Cải thiện chất lượng nhưng cần train classifier riêng.
+- Ví dụ thực địa: thám tử áp dụng classifier nhận diện logo băng nhóm trên áo nghi phạm; gradient của classifier giúp anh điều chỉnh sample về đúng phong cách logo để đối chiếu với dữ liệu lưu trữ.
 
 ### 5.2. Classifier-free guidance (CFG)
 
@@ -161,6 +168,7 @@ $$
 $$
 
 trong đó $\varnothing$ đại diện prompt rỗng. CFG trở thành tiêu chuẩn trong Stable Diffusion.
+- Trong chuyên án, anh thám tử dùng CFG để yêu cầu mô hình “vẽ lại” cảnh tượng với mô tả cụ thể (ví dụ *"mái tóc đỏ, áo khoác đen"*) mà vẫn giữ cấu trúc ảnh gốc – giống như yêu cầu nhân chứng mô tả lại nhưng vẫn dựa trên ảnh camera.
 
 ### 5.3. Guidance tuyến tính khác
 
@@ -174,18 +182,19 @@ trong đó $\varnothing$ đại diện prompt rỗng. CFG trở thành tiêu chu
 ### 6.1. Text-to-image (Stable Diffusion)
 
 - Latent diffusion: encode ảnh vào latent $z = E(x)$ (Autoencoder VAE).
-- Diffusion diễn ra trên latent $z$ thay vì pixel.
-- CLIP text encoder tạo embedding phục vụ cross-attention.
+- Diffusion diễn ra trên latent $z$ thay vì pixel, giúp giảm chi phí giống như phân tích vụ án trên bản đồ thu nhỏ trước khi phóng lớn.
+- CLIP text encoder tạo embedding phục vụ cross-attention, cung cấp manh mối ngôn ngữ mà thám tử nhập vào.
+- Quy trình này cho phép thám tử chuyển từ lời mô tả (“nghi phạm đứng trước biển quảng cáo”) thành ảnh cụ thể để đối chiếu với hiện trường.
 
 ### 6.2. ControlNet
 
 - Sao chép weight UNet, thêm input branch điều kiện (canny, pose, depth).
-- Freeze backbone, train branch mới để kiểm soát cấu trúc.
+- Freeze backbone, train branch mới để kiểm soát cấu trúc; trong vụ án, ControlNet giống như bản phác thảo hình người do nhân chứng cung cấp để khóa bố cục.
 
 ### 6.3. IP-Adapter / T2I Adapter
 
 - Thêm image embedding (ví dụ từ CLIP) vào cross-attention.
-- Cho phép remix phong cách hoặc reference hình ảnh.
+- Cho phép remix phong cách hoặc reference hình ảnh; thám tử có thể đưa ảnh suspect dự phòng để giữ màu áo hay kiểu tóc nhất quán.
 
 ---
 
@@ -203,8 +212,9 @@ trong đó $\varnothing$ đại diện prompt rỗng. CFG trở thành tiêu chu
 
 1. **Sampling grainy:** giảm step size, thêm corrector.
 2. **Oversmoothing:** tăng guidance, đổi lịch $\beta$.
-3. **Prompt drift:** log intermediate $x_t$ để kiểm tra alignment.
+3. **Prompt drift:** log intermediate $x_t$ để kiểm tra alignment; tương đương xem lại các bản lời khai trung gian xem có sai lệch bất thường không.
 4. **NaN:** kiểm tra gradient explosion, clip norm, sử dụng $\epsilon$-prediction.
+5. **Sai màu đặc trưng:** so sánh histogram với ảnh gốc, tương tự việc so dấu vết trên áo đối tượng.
 
 ---
 
@@ -215,7 +225,7 @@ trong đó $\varnothing$ đại diện prompt rỗng. CFG trở thành tiêu chu
 3. **Quản lý VRAM:** dùng xformers attention, 16-bit, hoặc offload VAE encoder.
 4. **Caching text embedding:** cho prompt lặp lại nhiều lần.
 5. **Safety filter:** dùng CLIP hoặc model riêng để chặn nội dung nhạy cảm.
-6. **Monitoring:** log thời gian per step, FID sample, memory.
+6. **Monitoring:** log thời gian per step, FID sample, memory; thám tử ghi chú thời điểm nào mô hình trả kết quả chậm để tối ưu quy trình.
 7. **Hạ tầng:** pipeline microservice tách encode text, diffusion core, decode ảnh.
 8. **Phiên bản:** gắn version cho weight UNet, VAE, text encoder, scheduler.
 
