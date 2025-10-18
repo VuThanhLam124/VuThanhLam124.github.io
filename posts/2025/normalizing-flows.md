@@ -1228,51 +1228,52 @@ def kinetic_energy_loss(model, z0, lambda_reg=0.01):
 
 ## 9. Kết luận
 
-### Key Takeaways
+### Những điểm chính cần nhớ
 
 1. **Normalizing Flow = Chuỗi biến đổi khả nghịch**
-   - Base distribution (simple) → Data distribution (complex)
-   - Exact likelihood computation
+   - Phân phối cơ sở đơn giản → Phân phối dữ liệu phức tạp
+   - Tính được xác suất chính xác (exact likelihood)
 
-2. **Change of variables formula**
-   - Theo dõi sự thay đổi mật độ qua định thức Jacobian. Công thức log-likelihood:
+2. **Công thức Change of Variables**
+   - Theo dõi sự thay đổi mật độ qua định thức Jacobian
+   - Công thức tính log-likelihood:
      
      $$\log p_x(x) = \log p_z(z) - \log\lvert\det(J)\rvert$$
 
 3. **Coupling Layers = Kiến trúc thông minh**
-   - Jacobian có cấu trúc đặc biệt (triangular)
-   - $O(d)$ thay vì $O(d^3)$ complexity
+   - Ma trận Jacobian có cấu trúc tam giác (triangular)
+   - Độ phức tạp giảm từ $O(d^3)$ xuống $O(d)$
 
-4. **CNF = Continuous-time dynamics**
-   - ODE formulation: $dz/dt = f(z, t)$
-   - Trace thay vì determinant
+4. **CNF = Động lực học liên tục**
+   - Công thức vi phân: $dz/dt = f(z, t)$
+   - Dùng vết (trace) thay vì định thức (determinant)
 
-5. **FFJORD = State-of-the-art**
-   - Free-form architectures
-   - Hutchinson trace estimator
-   - Exact likelihood với efficient computation
+5. **FFJORD = Phương pháp tiên tiến nhất**
+   - Kiến trúc tự do, không bị ràng buộc
+   - Ước lượng trace hiệu quả bằng Hutchinson
+   - Tính likelihood chính xác với chi phí tính toán hợp lý
 
-### So sánh Discrete NF vs CNF
+### So sánh Flow rời rạc và Flow liên tục
 
-| Aspect | Discrete NF | CNF |
+| Khía cạnh | Normalizing Flow rời rạc | Continuous Normalizing Flow |
 |--------------|---------------------------------------|--------------------------|
-| **Kiến trúc** | Bị ràng buộc (coupling/autoregressive) | Dạng tự do (Free-form)   |
+| **Kiến trúc** | Bị ràng buộc (coupling/autoregressive) | Dạng tự do, linh hoạt   |
 | **Bộ nhớ**    | $O(K \cdot d)$ (với K lớp)            | $O(d)$ (hằng số)         |
-| **Tính toán**  | Nhanh (một lượt)                       | Chậm (phụ thuộc ODE solver) |
-| **Linh hoạt**  | Giới hạn bởi kiến trúc                | Về lý thuyết là không giới hạn |
+| **Tốc độ tính**  | Nhanh (một lượt forward)                       | Chậm hơn (phụ thuộc bộ giải ODE) |
+| **Tính linh hoạt**  | Bị giới hạn bởi cấu trúc                | Không giới hạn về lý thuyết |
 
-### Applications
+### Ứng dụng thực tế
 
-- **Density estimation**: Modeling complex distributions
-- **Variational inference**: Flexible posteriors trong Bayesian models
-- **Generative modeling**: Image/audio/molecular generation
-- **Anomaly detection**: Out-of-distribution detection via likelihood
+- **Ước lượng mật độ**: Mô hình hóa các phân phối phức tạp
+- **Suy luận biến phân**: Posterior linh hoạt trong các mô hình Bayesian
+- **Sinh dữ liệu**: Tạo ảnh, âm thanh, phân tử hóa học
+- **Phát hiện bất thường**: Nhận diện điểm ngoại lai thông qua likelihood
 
-### Future Directions
+### Hướng phát triển tương lai
 
-- **Flow Matching**: Regression-based training (không cần ODE solver)
-- **Rectified Flows**: Straighten trajectories cho faster sampling
-- **Diffusion + Flows**: Kết hợp ưu điểm của cả hai
+- **Flow Matching**: Huấn luyện bằng hồi quy (không cần bộ giải ODE)
+- **Rectified Flows**: Làm thẳng quỹ đạo để sampling nhanh hơn
+- **Kết hợp Diffusion và Flows**: Tận dụng ưu điểm của cả hai phương pháp
 
 ---
 
