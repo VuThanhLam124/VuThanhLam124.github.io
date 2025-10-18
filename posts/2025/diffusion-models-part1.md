@@ -2,7 +2,19 @@
 title: "Diffusion Models & Score-based Generation (Phần I): Từ nhiễu tới tái tạo"
 date: "2025-04-10"
 category: "diffusion-models"
-tags: ["diffusion-models", "ddpm", "generative-models", "score-based", "pytorch"]
+tags: ["diffusion-models", "ddpm", "generative-moTiếp tục ví dụ $2 \times 2$ ở trên. Biết $x_1$ và $\epsilon$ thật, ta có thể tính mean "chuẩn":
+
+$$
+\tilde{\mu}(x_1, x_0, 1) = \frac{1}{\sqrt{\alpha_1}}\left(x_1 - \frac{1 - \alpha_1}{\sqrt{1 - \bar{\alpha}_1}} \epsilon\right).
+$$
+
+Với $\alpha_1 = 0.9$, $\bar{\alpha}_1 = 0.9$, kết quả 
+
+$$
+\tilde{\mu} \approx \begin{bmatrix}0.80 & 0.60 \\ 0.40 & 0.20\end{bmatrix}
+$$ 
+
+đúng bằng $x_0$. Khi huấn luyện, mạng $\epsilon_\theta$ học cách dự đoán $\epsilon$ sao cho mean tính ra gần $x_0$ nhất có thể."score-based", "pytorch"]
 excerpt: "Phần I mở đầu series Diffusion Models & Score-based Generation. Bài viết theo chân một thám tử điều tra vụ ảnh giả mạo, giải thích forward diffusion, reverse denoising, huấn luyện DDPM, kèm công thức chi tiết và code PyTorch đầy đủ."
 author: "ThanhLamDev"
 readingTime: 28
