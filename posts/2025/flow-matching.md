@@ -1004,7 +1004,7 @@ $$
 \end{aligned}
 $$
 
-**Kết luận:** $\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$
+**Kết luận:** $$\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$$
 
 → **Gradient của CFM = Gradient của FM!** Minimizing CFM cũng chính là minimizing FM.
 
