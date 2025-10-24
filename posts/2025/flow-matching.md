@@ -88,11 +88,41 @@ def evaluate_dragon_quality(finished_dragon):
     return dragon_likelihood
 ```
 
-### Ba vấn đề chết người
+### Ba vấn đề làm người thợ gốm kiệt sức
 
-**Vấn đề 1: Tính trace cực đắt**
+Người thợ gốm ngồi xuống, lấy sổ tay ghi chép lại ba vấn đề chính mà phương pháp CNF gây ra:
 
-Tại **mỗi thời điểm** $t$, người thợ phải đo "độ giãn nở" của đất sét:
+**Vấn đề 1: "Đo độ giãn nở" - Công việc tốn kém vô cùng**
+
+"Mỗi lần kiểm tra một con rồng," anh ghi, "tôi phải đo độ giãn nở của đất sét tại MỌI điểm và MỌI thời điểm."
+
+Về mặt toán học, đó là việc tính "trace" (dấu vết):
+
+$$
+\nabla \cdot v_\theta = \text{Tr}\left(\frac{\partial v_\theta}{\partial x}\right) = \sum_{i=1}^d \frac{\partial v_{\theta,i}}{\partial x_i}
+$$
+
+"Nghe có vẻ đơn giản," anh thở dài, "nhưng với một tác phẩm có 196,608 điểm đất (giống ảnh 256×256 màu), tôi phải đo **196,608 lần**!"
+
+**Mẹo của anh:** Thay vì đo tất cả, anh dùng "Hutchinson's estimator" - một chiêu thống kê:
+
+$$
+\text{Tr}(J) = \mathbb{E}_{\varepsilon \sim \mathcal{N}(0,I)}[\varepsilon^\top J \varepsilon]
+$$
+
+"Tôi chỉ cần lấy mẫu ngẫu nhiên 10 điểm, đo chúng, rồi ước lượng trung bình," anh giải thích trong sổ tay. "Nhưng vẫn chậm hơn 10 lần so với không cần đo!"
+
+Anh vẽ minh họa:
+
+```python
+# Mỗi lần kiểm tra một con rồng tại t=0.5
+for i in range(10):  # 10 lần đo thay vì 196,608
+    chọn_điểm_ngẫu_nhiên()
+    đo_độ_giãn_tại_điểm_đó()
+    ghi_lại_kết_quả()
+
+# Vẫn mất 3 phút cho mỗi thời điểm!
+```
 
 ```python
 # Ví dụ cụ thể: Đo độ giãn tại t=0.5
@@ -113,98 +143,344 @@ for _ in range(10):  # Hutchinson estimator - 10 samples
     trace_estimate += dot(eps, vjp)
 ```
 
+**Tại sao đắt?** Mỗi VJP cần backward pass qua toàn bộ neural network $v_\theta$. Với network sâu (nhiều layers), chi phí tính toán tăng tuyến tính theo độ sâu.
+
 **Thống kê từ sổ tay:**
 
-- Mỗi lần tính trace: ~3 phút
+- Mỗi lần tính trace: ~3 phút (10 VJPs)
 - Cần đo tại 100 thời điểm: 100 × 3 phút = **5 giờ/con rồng**
 - Tổng 100 con: **500 giờ = 20 ngày!**
 
-**Vấn đề 2: Tích phân ngược không ổn định**
+**Vấn đề 2: "Xem phim tua ngược" - Sai số tích lũy đáng sợ**
 
-Để tính likelihood, phải "tua ngược" từ con rồng về khối cầu:
+"Để đánh giá chất lượng một con rồng đã hoàn thành," anh viết tiếp, "tôi phải TUA NGƯỢC toàn bộ quá trình nặn để tìm lại khối cầu ban đầu."
+
+Công thức toán học:
+
+$$
+\log p_\theta(x_1) = \log p_0(x_0) - \int_0^1 \nabla \cdot v_\theta(x(t), t) \, dt
+$$
+
+"Nhưng để tìm $x_0$, tôi phải tua ngược video làm việc của mình!"
+
+$$
+x_0 = x_1 - \int_0^1 v_\theta(x(t), t) \, dt
+$$
+
+Anh nhớ lại một lần thất bại:
+
+> "Hôm qua, tôi thử tua ngược con rồng số 7. Mỗi bước tua ngược có sai số 1%. 
+> 
+> - Sau 10 bước: còn 90% chính xác
+> - Sau 100 bước: chỉ còn **36%** - khối cầu tìm được không giống gì khối cầu thật!
+> 
+> Giống như xem phim hành động tua ngược - cảnh nổ thì tua ngược còn khó hơn cảnh chạy!"
+
+Anh vẽ sơ đồ:
+
+```
+Tua xuôi (ổn định):
+t=0: Khối cầu → t=0.5: Nửa con rồng → t=1: Con rồng hoàn chỉnh
+      Sai số nhỏ         Sai số vừa            Kết quả OK
+
+Tua ngược (không ổn định):  
+t=1: Con rồng → t=0.5: ??? → t=0: Khối cầu (SAI!)
+      Sai số nhỏ      Sai số LỚN      Hoàn toàn sai!
+```
 
 ```
 Video THUẬN:     t=0 → Khối cầu → Kéo dài → Uốn cong → t=1 Con rồng
 Video NGƯỢC:     t=1 Con rồng → Gỡ uốn ← Thu ngắn ← t=0 Khối cầu?
+                                                     ↑ Sai số tích lũy!
 ```
 
-**Sai số tích lũy:**
-- Bước ngược 1: 99% chính xác
-- Bước ngược 10: 0.99^10 ≈ 90%
-- Bước ngược 100: 0.99^100 ≈ **36% - Sai lệch lớn!**
+**Sai số tích lũy theo lý thuyết numerical analysis:**
+- Bước ngược 1: Error = $\epsilon_1$
+- Bước ngược 10: Error ≈ $10\epsilon_1$ (linear accumulation)
+- Bước ngược 100: Error ≈ $100\epsilon_1$ → **Có thể lớn hơn tín hiệu!**
 
-**Vấn đề 3: Adaptive ODE solver đắt đỏ**
+Với $\epsilon_1 = 0.01$ (1%):
+- Bước 10: 0.99^10 ≈ 90% chính xác
+- Bước 100: 0.99^100 ≈ **36% - Mất hơn nửa thông tin!**
 
-Mỗi bước logic cần 4-8 micro-steps (RK45):
-- 100 bước logic × 6 micro-steps = **600 lần gọi velocity_field**
-- Với 100 con rồng: **180,000 phút = 125 ngày!**
+**Vấn đề 3: "Hỏi ý kiến quá nhiều lần" - Kiệt sức**
 
-### Đêm suy nghĩ - Insight then chốt
+"Vấn đề tệ nhất," anh gạch chân mạnh, "là tôi phải HỎI Ý KIẾN từ 'trí tuệ nặn gốm' của mình **hàng chục nghìn lần** cho mỗi con rồng!"
 
-Tối hôm đó, người thợ gốm ngồi bên cửa sổ, nhìn những con rồng đã hoàn thành. Anh tự hỏi:
+Anh tính toán:
 
-> "Ta BIẾT cách nặn con rồng này.  
-> Ta BIẾT tay cần di chuyển theo hướng nào.  
-> Vậy tại sao phải quan tâm đến **XÁC SUẤT** từng hạt đất?  
-> Tại sao phải TUA NGƯỢC và tính likelihood phức tạp?"
+**Cho 1 con rồng:**
+- Phải kiểm tra 600 thời điểm từ t=0 đến t=1
+- Mỗi thời điểm cần 6 lần "hỏi ý kiến" (RK45 solver)
+- Mỗi lần hỏi lại cần đo 10 điểm (trace)
+- **Tổng:** $600 \times 6 \times 10 = 36{,}000$ lượt!
 
-**Insight thiên tài:**
+"Trong khi đó," anh so sánh, "các thợ làm GAN hay VAE chỉ cần hỏi **1 lần** là xong!"
 
-Mục tiêu là **TẠO RA** con rồng, không phải **TÍNH XÁC SUẤT**!
+Anh vẽ bảng so sánh với nét bút nặng nề:
 
-Nếu biết **HƯỚNG NẶN** (velocity) tại mỗi điểm:
-
-```python
-# Đơn giản!
-position_new = position_old + velocity * dt
+```
+Thợ GAN:   "Con rồng này đẹp không?" → 1 lần → Xong!
+Thợ VAE:   "Con rồng này như thế nào?" → 1 lần → Xong!
+Tôi (CNF): "Tại t=0.001, điểm (0.5, 0.3, 0.1) 
+            độ giãn bao nhiêu?"
+            → Hỏi lại 36,000 lần → Mệt!
 ```
 
-**Không cần:**
-- Tính trace Jacobian
-- Tích phân ngược ODE
-- Đánh giá likelihood
+"Với 100 con rồng," anh tính, "tôi cần **3.6 triệu lượt hỏi**. Nếu mỗi lượt mất 1 giây, tổng cộng là... **41 ngày không ngủ!**"
 
-**Chỉ cần:**
-- Biết "hướng nặn đúng" tại từng vị trí, thời điểm
-- Một phép cộng đơn giản!
+```
+1 bước logic:
+  k1 = f(t_n, x_n)
+  k2 = f(t_n + c_2*h, x_n + a_21*k1*h)
+  k3 = f(t_n + c_3*h, x_n + a_31*k1*h + a_32*k2*h)
+  ...
+  k6 = f(t_n + c_6*h, ...)
+  
+  Error estimate = |k6 - k5|
+  If error > tol: h = h/2 (chia nhỏ hơn!)
+```
 
-**Câu hỏi then chốt:**
+**Thống kê:**
+- 100 bước logic × 6-7 NFE = **600-700 lần gọi $v_\theta$**
+- Mỗi lần cần tính trace (10 VJPs) → **6000-7000 backward passes**
+- Với 100 con rồng: **600,000-700,000 backprops = 125 ngày!**
 
-> Làm sao biết "hướng đúng" $u_t(x)$ mà KHÔNG cần tính likelihood?
+### Đêm suy nghĩ - Khoảnh khắc Eureka!
 
-Đây chính là lúc **Flow Matching** xuất hiện!
+Đêm đó, người thợ gốm không ngủ được. Anh ngồi trước lò nung, nhìn ba trang sổ tay chi chít các con số đáng sợ.
+
+"41 ngày," anh lẩm bẩm. "Tôi chỉ có 7 ngày."
+
+Anh lật lại công thức CNF, nhìn chằm chằm vào dòng chữ:
+
+$$
+\max_\theta \mathbb{E}_{x_1 \sim p_{\text{data}}} [\log p_\theta(x_1)]
+$$
+
+"Tối đa hóa xác suất con rồng xuất hiện..." Anh gật gù. "Nghe hợp lý. Mô hình tốt phải cho xác suất cao với con rồng thật."
+
+Nhưng rồi anh nhìn xuống công thức tính xác suất:
+
+$$
+\log p_\theta(x_1) = \log p_0(x_0) - \int_0^1 \text{Tr}\left(\frac{\partial v_\theta}{\partial x}\right) dt
+$$
+
+"Để tính cái này, tôi phải:
+1. Tua ngược tìm $x_0$ → Sai số tích lũy
+2. Tính trace → 10 lần đo mỗi bước  
+3. Tích phân 600 bước → Hỏi 36,000 lần"
+
+**Lúc 2 giờ sáng, tia sáng chợt lóe:**
+
+Anh chợt nhớ lại cảnh mình làm việc buổi chiều hôm qua. Khách hàng ghé xưởng, muốn mua một con rồng. Anh làm ngay một con từ khối đất sét - **chỉ cần nặn xuôi từ đầu đến cuối**, không hề tua ngược, không hề tính xác suất!
+
+"Khoan đã..." Anh đứng bật dậy. "Khi tôi **LÀM con rồng**, tôi chỉ việc:
+- Lấy khối cầu đất  
+- Nặn xuôi từ t=0 đến t=1
+- Ra con rồng!
+
+**Tôi KHÔNG BAO GIỜ hỏi** 'Xác suất con rồng này là bao nhiêu?'"
+
+Anh ghi vội vào sổ tay:
+
+> **INSIGHT QUAN TRỌNG:**  
+> Tôi không cần biết "xác suất con rồng" ($p_\theta(x)$).  
+> Tôi chỉ cần biết "CÁCH NẶN" ($v_\theta(x,t)$)!
+
+**Câu hỏi mới của anh:**
+
+Anh viết lại bài toán:
+
+> **CŨ (CNF):** "Xác suất con rồng này xuất hiện là bao nhiêu?"  
+> → Phải tua ngược, tính trace, tích phân phức tạp
+> 
+> **MỚI (Flow Matching):** "Tại điểm $x$ và thời điểm $t$, tay tôi nên di chuyển theo hướng nào?"  
+> → Chỉ cần biết HƯỚNG!
+
+Anh nhớ lại kinh nghiệm 20 năm nặn gốm:
+
+"Khi tôi ở vị trí (2.5, 1.0, 0.5) vào thời điểm t=0.3, có 3 con rồng mẫu:
+- Con rồng 1 → Tay tôi đang di chuyển về phía (0.8, 0.4, 0.2)
+- Con rồng 2 → Tay tôi đang di chuyển về phía (0.7, 0.3, 0.3)
+- Con rồng 3 → Tay tôi đang di chuyển về phía (0.75, 0.35, 0.25)
+
+**Hướng trung bình:** (0.75, 0.35, 0.25)"
+
+Anh viết công thức toán học cho ý tưởng này:
+
+$$
+u_t(x) = \mathbb{E}_{X(t) \mid X(t)=x}\left[\frac{dX(t)}{dt}\right]
+$$
+
+"Đây là **vận tốc tay trung bình** khi tôi ở điểm $x$ vào thời điểm $t$!"
+
+**Bài toán học mới:**
+
+Thay vì tính xác suất (khó), giờ chỉ cần học để dự đoán đúng hướng:
+
+$$
+\mathcal{L}_{\text{FM}}(\theta) = \mathbb{E}_{t, x_t} \left[\| v_\theta(x_t, t) - u_t(x_t) \|^2\right]
+$$
+
+"Đây là **bài toán REGRESSION**!" Anh hét lên trong đêm khuya. "Giống như dạy học trò:
+- Cho biết vị trí $(x, t)$
+- Học trò đoán hướng di chuyển
+- Sửa lỗi cho học trò nếu đoán sai
+- Không cần tua ngược! Không cần tính trace! Chỉ cần SO SÁNH VÀ HỌC!"
+
+Anh vẽ sơ đồ trong hứng khởi:
+
+```
+CNF - Cách CŨ:
+❓ "Xác suất con rồng = ?"
+→ Tua ngược 600 bước
+→ Đo trace 10 lần/bước  
+→ Hỏi 36,000 lần
+→ 41 ngày!
+
+FM - Cách MỚI:  
+❓ "Tay nên đi hướng nào?"
+→ Xem mẫu → Tính trung bình
+→ So sánh → Học
+→ Hỏi 1 lần!
+→ 7 ngày là xong!
+```
 
 ---
 
 ## 2. Flow Matching: Từ Likelihood sang Regression
 
-### Insight: Học trực tiếp "hướng nặn"
+### Tại sao cần Flow Matching?
 
-**Ngày 2 - Cách tiếp cận mới**
+**Câu chuyện của các mô hình trước đó:**
 
-Sáng hôm sau, người thợ gốm thử một cách tiếp cận hoàn toàn khác.
+Năm 2018, CNF/FFJORD ra đời - rất mạnh nhưng train cực chậm vì phải tính trace mỗi step. Năm 2020, Diffusion Models thành công vang dội với cách train đơn giản hơn (score matching - không cần tính likelihood!), nhưng lại cần tới 1000 bước để sinh ảnh.
 
-**Thay đổi câu hỏi:**
+**Câu hỏi tự nhiên năm 2022:** Có cách nào vừa train nhanh như Diffusion, vừa sinh nhanh như CNF không?
 
-**CŨ (CNF):** "Xác suất con rồng này xuất hiện là bao nhiêu?" → Phải tua ngược, tính trace...
+→ Đó chính là **Flow Matching**!
 
-**MỚI (Flow Matching):** "Hạt đất ở vị trí $x$ tại thời điểm $t$, nên di chuyển theo hướng nào?" → Chỉ cần biết HƯỚNG!
+### Ý tưởng cốt lõi: Đổi cách đặt vấn đề
+
+**Cách cũ (CNF):** Học phân phối xác suất $p_\theta(x)$ - phức tạp, cần tính trace, cần chạy ODE ngược...
+
+**Cách mới (FM):** Học hướng di chuyển $v_\theta(x,t)$ - đơn giản hơn nhiều!
+
+Giống như thay vì hỏi "Con rồng này có xác suất bao nhiêu?", ta hỏi "Hạt đất ở đây nên đi về hướng nào?"
+
+### Từ ý tưởng sang công thức
+
+**Bước 1: Mô hình hóa chuyển động**
+
+Ta muốn học một vector field $v_\theta(x,t)$ sao cho nếu hạt đất di chuyển theo nó:
+
+$$
+\frac{dx}{dt} = v_\theta(x,t), \quad x(0) \sim p_0 \Rightarrow x(1) \sim p_1
+$$
+
+thì từ nhiễu ngẫu nhiên $p_0$ (ví dụ: khối cầu đất), ta sẽ được phân phối dữ liệu $p_1$ (ví dụ: con rồng).
+
+**Bước 2: Tìm "hướng đi đúng"**
+
+Có một định lý toán học (Continuity Equation) nói rằng nếu hạt đất di chuyển theo vector field $u_t(x)$, thì:
+
+$$
+\frac{\partial p_t}{\partial t} + \nabla \cdot (p_t u_t) = 0
+$$
+
+Nói dễ hiểu: "mật độ hạt" thay đổi thế nào khi hạt di chuyển.
+
+Từ đây, có thể chứng minh được "hướng đi đúng" tại mỗi điểm là:
+
+$$
+u_t(x) = \mathbb{E}_{X(t) | X(t)=x}\left[\frac{dX(t)}{dt}\right]
+$$
+
+**Giải thích bằng ví dụ:** Tại điểm $x$ và thời điểm $t$, có thể có nhiều hạt đất khác nhau đi qua (mỗi hạt đến từ một nguồn khác nhau). $u_t(x)$ là **vận tốc trung bình** của tất cả những hạt đó.
+
+**Bước 3: Học bằng regression**
+
+Nếu biết $u_t(x)$ (hướng đúng), chỉ cần train mô hình $v_\theta$ sao cho:
+
+$$
+\mathcal{L}_{\text{FM}}(\theta) = \mathbb{E}_{t, x_t} \left[\| v_\theta(x_t, t) - u_t(x_t) \|^2\right]
+$$
+
+Tức là: "dự đoán của mô hình" phải gần với "hướng đúng".
+
+**So sánh với CNF:**
+
+| Cái cần tính | CNF (Likelihood) | FM (Regression) |
+|--------------|------------------|-----------------|
+| Mục tiêu học | Tối đa hóa $\log p_\theta(x)$ | Minimize khoảng cách $\|v_\theta - u_t\|^2$ |
+| Có cần tính trace? | Có (tốn 10 VJPs mỗi step) | **Không** |
+| Có cần chạy ODE ngược? | Có (dễ sai số) | **Không** |
+| Gọi model mỗi sample | 600-700 lần | **1 lần** (training), vài chục lần (sampling) |
+
+Nhìn bảng này là thấy FM **đơn giản hơn rất nhiều**!
+
+**Nhưng có vấn đề:** Làm sao biết $u_t(x)$ khi chưa train xong?
+
+### Buổi sáng thử nghiệm - Phương pháp mới
+
+Sáng hôm sau, người thợ gốm dậy sớm, hào hứng với ý tưởng đêm qua. Anh quyết định thử nghiệm ngay.
 
 **Thí nghiệm:**
 
-Anh đặt con rồng số 3 bên cạnh khối cầu số 6, quan sát hạt đất A ở (1.0, 0.5, 0.2) tại t=0.3:
+Anh lấy ra 3 con rồng mẫu đã hoàn thành tuần trước, đặt cạnh nhau trên bàn. Bên cạnh là 3 khối cầu đất sét tương ứng.
+
+"Giờ tôi muốn biết," anh tự hỏi, "tại thời điểm t=0.3, khi hạt đất ở vị trí (1.0, 0.5, 0.2), tay tôi nên di chuyển thế nào?"
+
+**Cách CŨ (CNF) - Phức tạp:**
+
+Anh mô phỏng:
+
+1. Lấy cả 3 con rồng hoàn chỉnh
+2. Tua ngược video làm việc về t=0.3
+3. Tìm TẤT CẢ các thời điểm hạt đất đi qua điểm (1.0, 0.5, 0.2)
+4. Tính xác suất mỗi hướng di chuyển
+5. "Mất cả buổi sáng mới xong!"
+
+**Cách MỚI (Flow Matching) - Đơn giản:**
+
+Anh làm khác:
+
+1. Quan sát video con rồng 1 ở t=0.3:
+   - Hạt ở (1.0, 0.5, 0.2)
+   - Đang đi về → (0.8, 0.4, 0.2)
+
+2. Quan sát video con rồng 2 ở t=0.3:
+   - Hạt ở (1.0, 0.5, 0.2)  
+   - Đang đi về → (0.7, 0.3, 0.3)
+
+3. Quan sát video con rồng 3 ở t=0.3:
+   - Hạt ở (1.0, 0.5, 0.2)
+   - Đang đi về → (0.75, 0.35, 0.25)
+
+4. **Tính trung bình:**
+   ```
+   Hướng = (0.8 + 0.7 + 0.75) / 3 = 0.75
+          (0.4 + 0.3 + 0.35) / 3 = 0.35
+          (0.2 + 0.3 + 0.25) / 3 = 0.25
+   
+   → Hướng đúng: (0.75, 0.35, 0.25)
+   ```
+
+"Chỉ mất 5 phút!" Anh reo lên. "Và đây là **REGRESSION** - kiến thức toán lớp 7: cộng rồi chia!"
+
+Anh so sánh:
 
 ```
-Phương pháp CŨ (CNF):
-→ Tìm TẤT CẢ con rồng, tua ngược về t=0.3
-→ Tính XÁC SUẤT mỗi hướng
-→ Mất hàng giờ!
+CNF:
+  "Xác suất hướng này = ?" 
+  → Tua ngược → Tính tích phân → Trace
+  → Buổi sáng mất!
 
-Phương pháp MỚI (Flow Matching):
-→ Quan sát con rồng 1: Hướng = (0.8, 0.4, 0.2)
-→ Quan sát con rồng 2: Hướng = (0.7, 0.3, 0.3)
-→ Trung bình = (0.75, 0.35, 0.25)
-→ Đây là REGRESSION - chỉ cần CỘNG và CHIA!
+Flow Matching:
+  "Hướng trung bình = ?"
+  → Xem 3 mẫu → Cộng → Chia cho 3
+  → 5 phút xong!
 ```
 
 ### Toán học: Target Vector Field
@@ -393,39 +669,73 @@ Công thức $u_t(x) = \mathbb{E}[\cdot]$ yêu cầu biết **toàn bộ phân p
 
 ## 3. Conditional Flow Matching (CFM)
 
-### Ý tưởng: Chia để trị
+### Buổi trưa - Phát hiện quan trọng về "Chia để trị"
 
-Người thợ gốm nhận ra một điều thú vị khi quan sát xưởng:
+Buổi trưa, trong khi nghỉ ăn cơm, người thợ gốm ngồi nhìn đống 100 khối cầu đất sét và 100 bản vẽ con rồng khác nhau trên tường.
 
-**Câu hỏi KHÓ (Global):**
-> "Làm sao biến 1000 khối cầu ngẫu nhiên thành 1000 con rồng đa dạng?"
+"Vấn đề của tôi là gì?" Anh tự hỏi, miếng cơm dở trên đũa.
 
-Quá phức tạp! Nhưng nếu chia nhỏ:
+**Câu hỏi KHỔNG LỒ (Global) - Choáng ngợp:**
 
-**Câu hỏi DỄ (Conditional):**
-> "Nếu tôi muốn làm **chính xác con rồng này** (đã cho trước), thì khối cầu nào nên biến thành nó? Và đường đi như thế nào?"
+> "Làm sao biến 100 khối cầu ngẫu nhiên thành 100 con rồng đa dạng (to nhỏ, màu sắc, tư thế khác nhau)?"
 
-**Ví dụ cụ thể:**
+Anh nhìn con số 100 x 100 = 10,000 khả năng ghép cặp, chóng mặt.
+
+"Đợi đã..." Anh đặt bát xuống. "Tôi đang nghĩ sai hướng!"
+
+**Câu hỏi NHỎ (Conditional) - Dễ thở:**
+
+Anh chỉ vào con rồng số 7 trên tường - con rồng xanh lá, to, đuôi dài.
+
+> "Nếu tôi muốn làm **CHÍNH XÁC con rồng SỐ 7 này**, thì:
+> - Khối cầu nào phù hợp nhất? 
+> - Đường đi từ khối cầu đến con rồng ra sao?"
+
+"Ồ!" Anh chợt nhận ra. "Câu hỏi này **CỰC DỄ**!"
+
+Anh đứng dậy, lấy khối cầu số 42 - khối gần nhất với kích thước con rồng số 7.
+
+**Minh họa trực quan:**
+
+Anh vẽ sơ đồ trên sàn nhà bằng phấn:
 
 ```
-GLOBAL (Khó):
-- Input: 1000 khối cầu (random)
-- Output: 1000 con rồng (đa dạng: to nhỏ, màu sắc khác nhau)
-- Hỏi: Làm sao matching tối ưu?
-→ Quá nhiều khả năng!
+BÀI TOÁN LỚN (Global) - Choáng ngợp:
+  
+  Khối cầu #1  ----???---> Con rồng nào?
+  Khối cầu #2  ----???---> Con rồng nào?
+  ...
+  Khối cầu #100 ---???---> Con rồng nào?
+  
+  → 100 × 100 = 10,000 cách ghép!
+  → Không biết bắt đầu từ đâu!
 
-CONDITIONAL (Dễ):
-- Cho trước: Con rồng #42 (màu xanh, to, đuôi dài)
-- Chọn: Khối cầu #73 (gần nhất)
-- Hỏi: Đường đi từ #73 → #42?
-→ Đơn giản: Đường thẳng!
+BÀI TOÁN NHỎ (Conditional) - Rõ ràng:
 
-     Khối cầu #73          Con rồng #42
-          (0,0,0) --------→ (5,3,2)
-                   t=0 → t=1
+  Cho trước: Con rồng #7 (xanh lá, to, đuôi dài)
+  Vị trí cuối: (5.0, 3.0, 2.0)
+  
+  Chọn: Khối cầu #42 (phù hợp kích thước)
+  Vị trí đầu: (0, 0, 0)
+  
+  Đường đi: --------→ (ĐƯỜNG THẲNG!)
+           t=0    t=1
+  
+  Công thức: x(t) = (1-t)×(0,0,0) + t×(5,3,2)
+           = t × (5, 3, 2)
+  
+  → CỰC ĐƠN GIẢN!
 ```
 
-**Ý tưởng CFM:** Nếu biết cách làm với **TỪNG con rồng cụ thể**, tự động biết cách làm với **TẤT CẢ!**
+**Khoảnh khắc sáng suốt:**
+
+"Nếu tôi biết cách làm với **TỪNG con rồng cụ thể**," anh viết to trên sổ tay, "thì tự động tôi biết cách làm với **TẤT CẢ 100 con**!"
+
+Anh giải thích cho chính mình:
+
+> "Thay vì suy nghĩ '100 khối cầu đến 100 con rồng' (rối não),  
+> tôi chỉ cần nghĩ '1 khối cầu đến 1 con rồng cụ thể' (dễ).  
+> Làm thế 100 lần, và trung bình hóa - XONG!"
 
 ### Toán học: Conditional Probability Path
 
@@ -515,32 +825,59 @@ xt = t * x1 + (1 - t) * x0
 # = [2.35, 1.85, 0.75]
 ```
 
-### Conditional Vector Field - Kết quả đẹp!
+### Buổi chiều thử nghiệm - Công thức kỳ diệu
 
-Với $x_t = tx_1 + (1-t)x_0$, lấy **đạo hàm theo thời gian** $t$:
+Buổi chiều, người thợ gốm bắt tay vào thử nghiệm với con rồng #7.
+
+"Khối cầu #42 ở (0, 0, 0)," anh ghi. "Con rồng #7 ở (5, 3, 2)."
+
+Anh bắt đầu nặn, ghi chép vị trí tay mình ở mỗi thời điểm:
+
+```
+t=0.0: Tay ở (0.0, 0.0, 0.0) - Khối cầu
+t=0.2: Tay ở (1.0, 0.6, 0.4)
+t=0.4: Tay ở (2.0, 1.2, 0.8)
+t=0.6: Tay ở (3.0, 1.8, 1.2)
+t=0.8: Tay ở (4.0, 2.4, 1.6)
+t=1.0: Tay ở (5.0, 3.0, 2.0) - Con rồng hoàn chỉnh
+```
+
+"Khoan đã..." Anh nhìn kỹ các con số. "Đây là... ĐƯỜNG THẲNG!"
+
+Anh viết công thức:
 
 $$
-\frac{dx_t}{dt} = \frac{d}{dt}[tx_1 + (1-t)x_0] = x_1 - x_0
+x_t = (1-t) \times (0,0,0) + t \times (5,3,2) = t \times (5,3,2)
 $$
 
-**Giải thích từng bước:**
+"Và nếu tính vận tốc..." Anh lấy đạo hàm:
 
-1. **Đạo hàm của** $tx_1$:
-   $$\frac{d}{dt}(tx_1) = x_1 \quad \text{(vì } x_1 \text{ là hằng số theo } t \text{)}$$
+$$
+\frac{dx_t}{dt} = \frac{d}{dt}[t \times (5,3,2)] = (5,3,2)
+$$
 
-2. **Đạo hàm của** $(1-t)x_0$:
-   $$\frac{d}{dt}[(1-t)x_0] = -x_0$$
+**"KHÔNG ĐỔI!"** Anh hét lên.
 
-3. **Tổng hợp:**
-   $$\frac{dx_t}{dt} = x_1 - x_0$$
+Anh kiểm tra lại:
 
-Vậy **conditional velocity** là:
+- Tại t=0: Vận tốc = (5, 3, 2)
+- Tại t=0.5: Vận tốc = (5, 3, 2)  
+- Tại t=1: Vận tốc = (5, 3, 2)
+
+"Vận tốc KHÔNG ĐỔI theo thời gian! Giống như tàu hỏa chạy đều - tốc độ cố định từ đầu đến cuối!"
+
+Công thức tổng quát:
 
 $$
 u_t(x_t \mid x_1) = x_1 - x_0
 $$
 
-**Kết quả tuyệt vời:** Velocity **không phụ thuộc vào** $t$! Nó là hằng số = hiệu giữa đích và xuất phát.
+Anh viết giải thích:
+
+> **Kết quả TUY��̣T VỜI:**  
+> Nếu đường đi là thẳng, vận tốc = hiệu 2 đầu = HẰNG SỐ!  
+> Không cần tính phức tạp!  
+> Chỉ cần: Đích trừ Xuất phát!
 
 **Ví dụ cụ thể:**
 
@@ -768,19 +1105,39 @@ Khi học tốt TẤT CẢ các đường riêng
 
 ## 4. Optimal Transport Conditional Flow Matching
 
-### Vấn đề: Đường đi không tối ưu
+### Ngày thứ 3 - Phát hiện vấn đề về hiệu quả
 
-Người thợ gốm nhận ra CFM hoạt động tốt, nhưng có vấn đề: **Đường đi không ngắn nhất**.
+Ngày thứ 3, người thợ gốm đã làm được 20 con rồng bằng phương pháp Flow Matching mới. Nhưng anh nhận thấy có điều gì đó... lãng phí.
 
-**Ví dụ:** Hai hạt đất sét cần đến hai vị trí:
-- Hạt A tại $(0, 0)$ → Đích A tại $(1, 0)$
-- Hạt B tại $(0, 0)$ → Đích B tại $(0, 1)$
+Anh ngồi xuống, quan sát 2 khối đất sét cạnh nhau:
 
-Với conditional path độc lập, cả hai xuất phát từ gốc. Nhưng điều này không tối ưu! Nếu:
-- Hạt A tại $(0.1, 0)$ → Đích A
-- Hạt B tại $(0, 0.1)$ → Đích B
+**Tình huống:**
+- Khối cầu A ở (0, 0) → Cần thành Con rồng A ở (1, 0)
+- Khối cầu B ở (0, 0) → Cần thành Con rồng B ở (0, 1)
 
-Tổng quãng đường ngắn hơn.
+"Theo CFM hiện tại," anh nói, "cả hai cục đất đều **xuất phát từ gốc tọa độ** (0, 0)."
+
+Anh vẽ trên giấy:
+
+```
+Cách hiện tại (CFM):
+  Cục A: (0,0) ----1 đơn vị---→ (1,0)
+  Cục B: (0,0) ----1 đơn vị---→ (0,1)
+  Tổng quãng đường: 1 + 1 = 2
+```
+
+"Nhưng khoan..." Anh nhíu mày. "Nếu tôi thông minh hơn một chút?"
+
+```
+Cách thông minh (OT):
+  Cục A: (0.1, 0) --0.9 đơn vị-→ (1, 0)
+  Cục B: (0, 0.1) --0.9 đơn vị-→ (0, 1)
+  Tổng quãng đường: 0.9 + 0.9 = 1.8
+```
+
+"Tiết kiệm 10% năng lượng!" Anh nhận ra. "Và với 100 con rồng, 10% là cả tuần công sức!"
+
+Anh nhớ lại kiến thức từ sách cũ về **Optimal Transport** - bài toán tối ưu vận chuyển hàng hóa của nhà toán học Gaspard Monge năm 1781.
 
 ### Optimal Transport (OT)
 
