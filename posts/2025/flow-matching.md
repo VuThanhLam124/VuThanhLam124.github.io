@@ -37,7 +37,7 @@ Nhưng cách học của người thợ trong CNF/FFJORD gặp phải vấn đ�
 Trong bài trước, người thợ gốm học cách biến đổi bằng **Continuous Normalizing Flow**:
 
 - **Phương trình ODE**: $\frac{dz(t)}{dt} = v_\theta(z(t), t)$
-- **Mục tiêu**: Tối đa hóa likelihood $\max_\theta \mathbb{E}_{x \sim p_{\text{data}}} [\log p_\theta(x)]$
+- **Mục tiêu**: Tối đa hóa likelihood $$\max_\theta \mathbb{E}_{x \sim p_{\text{data}}} [\log p_\theta(x)]$$
 - **Công thức tính likelihood** (đã học trong bài CNF):
 
 $$
@@ -305,14 +305,14 @@ def create_dragon():
 ```
 
 **Không cần:**
-- ❌ Tính trace của ma trận Jacobian phức tạp
-- ❌ Tích phân ngược ODE với 600 micro-steps
-- ❌ Đánh giá likelihood với 5 giờ mỗi tác phẩm
-- ❌ Đo đạc độ giãn nở tại 100 thời điểm
+- Tính trace của ma trận Jacobian phức tạp
+- Tích phân ngược ODE với 600 micro-steps
+- Đánh giá likelihood với 5 giờ mỗi tác phẩm
+- Đo đạc độ giãn nở tại 100 thời điểm
 
 **Chỉ cần:**
-- ✅ Biết "hướng nặn đúng" tại từng vị trí, từng thời điểm
-- ✅ Một phép cộng đơn giản: `vị_trí_mới = vị_trí_cũ + hướng × bước`
+- Biết "hướng nặn đúng" tại từng vị trí, từng thời điểm
+- Một phép cộng đơn giản: `vị_trí_mới = vị_trí_cũ + hướng × bước`
 
 **Ẩn dụ sâu sắc:**
 
@@ -511,7 +511,7 @@ def cnf_loss(model, x_data):
     # Bước 1: Tích phân NGƯỢC từ x_data về Gaussian
     x0, log_det_accumulate = odeint_backward(
         model, x_data, 
-        t_span=[1.0, 0.0],  # ⚠️ Ngược!
+        t_span=[1.0, 0.0],  # Ngược!
         method='dopri5'
     )
     # Cần 100-200 function evaluations!
@@ -526,7 +526,7 @@ def cnf_loss(model, x_data):
             eps = torch.randn_like(x_t)
             vjp = autograd.grad(
                 model(x_t, t), x_t, eps,
-                create_graph=True  # ⚠️ Cần gradient của gradient!
+                create_graph=True  # Cần gradient của gradient!
             )[0]
             trace += (eps * vjp).sum()
         trace /= 10
@@ -569,12 +569,12 @@ def flow_matching_loss(model, x_data):
 
 | Aspect | CNF | Flow Matching |
 |--------|-----|---------------|
-| Số dòng code | ~50 dòng | **~10 dòng** |
-| Số lượt gọi model mỗi batch | 100-200 | **1** |
-| Cần ODE solver? | ✅ Có | ❌ Không |
-| Cần tính trace? | ✅ Có | ❌ Không |
-| Cần create_graph? | ✅ Có | ❌ Không |
-| Bộ nhớ GPU | ~8GB | **~2GB** |
+| Số dòng code | ~50 dòng | ~10 dòng |
+| Số lượt gọi model mỗi batch | 100-200 | 1 |
+| Cần ODE solver? | Có | Không |
+| Cần tính trace? | Có | Không |
+| Cần create_graph? | Có | Không |
+| Bộ nhớ GPU | ~8GB | ~2GB |
 
 ### Câu hỏi: Target vector field từ đâu?
 
@@ -662,17 +662,17 @@ CONDITIONAL (Dễ):
 
 ### Toán học: Conditional Probability Path
 
-**Conditional path:** Thay vì xét $p_t(x)$ (global), xét $p_t(x|x_1)$ - phân phối tại thời $t$ **biết điểm cuối** $x_1$.
+**Conditional path:** Thay vì xét $p_t(x)$ (global), xét $p_t(x \mid x_1)$ - phân phối tại thời $t$ **biết điểm cuối** $x_1$.
 
 Cho mỗi tác phẩm mục tiêu $x_1 \sim p_{\text{data}}$, định nghĩa:
 
 $$
-p_t(x | x_1) = \mathcal{N}(x \mid \mu_t(x_1), \sigma_t^2 I)
+p_t(x \mid x_1) = \mathcal{N}(x \mid \mu_t(x_1), \sigma_t^2 I)
 $$
 
 **Giải thích từng thành phần:**
 
-- $p_t(x|x_1)$: Phân phối xác suất của $x$ tại thời $t$, biết kết quả cuối cùng là $x_1$
+- $p_t(x \mid x_1)$: Phân phối xác suất của $x$ tại thời $t$, biết kết quả cuối cùng là $x_1$
 - $\mathcal{N}(\cdot)$: Phân phối Gaussian (chuẩn)
 - $\mu_t(x_1) = t x_1$: Trung bình - nội suy tuyến tính từ 0 đến $x_1$
 - $\sigma_t = 1 - t$: Độ lệch chuẩn - giảm dần về 0
@@ -712,7 +712,7 @@ Tại t=1:
 
 ### Sample từ Conditional Path
 
-Để lấy mẫu $x_t$ từ $p_t(x|x_1)$:
+Để lấy mẫu $x_t$ từ $p_t(x \mid x_1)$:
 
 $$
 x_t = t x_1 + (1-t) x_0, \quad x_0 \sim \mathcal{N}(0, I)
@@ -724,11 +724,11 @@ $$
 \begin{aligned}
 \mathbb{E}[x_t] &= \mathbb{E}[t x_1 + (1-t) x_0] \\
 &= t x_1 + (1-t) \mathbb{E}[x_0] \\
-&= t x_1 + (1-t) \times 0 = t x_1 \quad ✓ \\
+&= t x_1 + (1-t) \times 0 = t x_1 \\
 \\
 \text{Var}(x_t) &= \text{Var}((1-t) x_0) \\
 &= (1-t)^2 \text{Var}(x_0) \\
-&= (1-t)^2 \times 1 = (1-t)^2 \quad ✓
+&= (1-t)^2 \times 1 = (1-t)^2
 \end{aligned}
 $$
 
@@ -770,7 +770,7 @@ $$
 Vậy **conditional velocity** là:
 
 $$
-u_t(x_t | x_1) = x_1 - x_0
+u_t(x_t \mid x_1) = x_1 - x_0
 $$
 
 **Kết quả tuyệt vời:** Velocity **không phụ thuộc vào** $t$! Nó là hằng số = hiệu giữa đích và xuất phát.
@@ -861,7 +861,7 @@ $$
 p_0\left(\frac{x_t - tx_1}{1-t}\right) = \frac{1}{(2\pi)^{d/2}} \exp\left(-\frac{1}{2}\left\|\frac{x_t - tx_1}{1-t}\right\|^2\right)
 $$
 
-Nhận ra: $x_t | x_1 \sim \mathcal{N}(tx_1, (1-t)^2 I)$
+Nhận ra: $x_t \mid x_1 \sim \mathcal{N}(tx_1, (1-t)^2 I)$
 
 Do đó:
 
@@ -872,16 +872,16 @@ $$
 **Bước 4:** Tính marginal $p_t(x_t)$
 
 $$
-p_t(x_t) = \int p_t(x_t | x_1) p_{\text{data}}(x_1) dx_1
+p_t(x_t) = \int p_t(x_t \mid x_1) p_{\text{data}}(x_1) dx_1
 $$
 
 **Bước 5:** Marginal vector field
 
 $$
 \begin{aligned}
-u_t(x_t) &= \mathbb{E}_{x_1 | x_t}[x_1 - x_0] \\
-&= \int (x_1 - x_0) \frac{p_t(x_t | x_1) p_{\text{data}}(x_1)}{p_t(x_t)} dx_1 \\
-&= \int (x_1 - x_0) p(x_1 | x_t) dx_1
+u_t(x_t) &= \mathbb{E}_{x_1 \mid x_t}[x_1 - x_0] \\
+&= \int (x_1 - x_0) \frac{p_t(x_t \mid x_1) p_{\text{data}}(x_1)}{p_t(x_t)} dx_1 \\
+&= \int (x_1 - x_0) p(x_1 \mid x_t) dx_1
 \end{aligned}
 $$
 
@@ -893,7 +893,7 @@ Thay đổi biến tích phân từ $(x_0, x_1)$ sang $(x_t, x_1)$ rồi tích p
 
 $$
 \begin{aligned}
-\mathcal{L}_{\text{CFM}}(\theta) &= \int_0^1 dt \int p_t(x_t) dx_t \int p(x_1|x_t) dx_1 \\
+\mathcal{L}_{\text{CFM}}(\theta) &= \int_0^1 dt \int p_t(x_t) dx_t \int p(x_1 \mid x_t) dx_1 \\
 &\quad \times \left\| v_\theta(x_t, t) - (x_1 - x_0) \right\|^2 \\
 &= \int_0^1 dt \int p_t(x_t) dx_t \left\| v_\theta(x_t, t) - u_t(x_t) \right\|^2 \\
 &= \mathcal{L}_{\text{FM}}(\theta)
@@ -1112,7 +1112,7 @@ $$
 p_t(x) = \int p_{\text{data}}(x_1) p_t(x | x_1) dx_1
 $$
 
-Với $p_t(x | x_1) = \mathcal{N}(x \mid tx_1, (1-t)^2 I)$, ta có:
+Với $p_t(x \mid x_1) = \mathcal{N}(x \mid tx_1, (1-t)^2 I)$, ta có:
 
 $$
 p_t(x) = \int p_{\text{data}}(x_1) \frac{1}{(2\pi(1-t)^2)^{d/2}} \exp\left(-\frac{\|x - tx_1\|^2}{2(1-t)^2}\right) dx_1
@@ -1472,7 +1472,7 @@ class OptimalTransportCFM(ConditionalFlowMatcher):
    - Minimize $\|v_\theta - u_t\|^2$ (đơn giản)
 
 2. **Conditional Flow Matching**
-   - Học từ conditional paths: $u_t(x_t | x_1) = x_1 - x_0$
+   - Học từ conditional paths: $u_t(x_t \mid x_1) = x_1 - x_0$
    - Gradient equivalence với marginal FM
 
 3. **Optimal Transport**
