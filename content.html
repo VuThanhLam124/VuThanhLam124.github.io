@@ -369,47 +369,46 @@
                     <span class="topic-badge">Cutting-edge</span>
                 </h2>
                 <p class="topic-description">
-                    Flow-based Models đại diện cho một trong những breakthrough quan trọng nhất trong Generative AI hiện đại. Từ Normalizing Flows cổ điển 
-                    đến Flow Matching với optimal transport theory, từ Real NVP architecture đến cutting-edge Rectified Flows - mỗi approach đều mang lại 
-                    unique advantages trong modeling complex data distributions. Khác với Diffusion Models, Flow-based models học trực tiếp bijective 
-                    transformations hoặc vector fields, cho phép exact likelihood computation và efficient sampling. Series này khám phá comprehensive 
-                    landscape từ foundations đến state-of-the-art techniques.
+                    Flow-based Models đại diện cho một trong những breakthrough quan trọng nhất trong Generative AI hiện đại. Series bắt đầu từ nền tảng 
+                    Normalizing Flows và CNF, qua kiến trúc RealNVP/Glow, đến FFJORD với Neural ODEs. Sau đó chuyển sang Flow Matching - phương pháp 
+                    cách mạng thay Maximum Likelihood bằng Regression đơn giản. Cuối cùng là Rectified Flows và Flow Map Matching - những kỹ thuật 
+                    state-of-the-art cho phép sampling chỉ trong 1-2 bước. Mỗi bài đều kết hợp câu chuyện người thợ gốm, toán học chặt chẽ và code PyTorch đầy đủ.
                 </p>
                 <ol class="posts-list">
                     <li>
                         <a href="/posts/2025/normalizing-flows" class="post-link">
                             Normalizing Flow & Continuous Normalizing Flow
-                            <span class="post-meta">Foundations + Theory</span>
+                            <span class="post-meta">Nền tảng: Change of Variables, CNF, FFJORD</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/realnvp-glow" class="post-link">
                             Real NVP & Glow: Invertible Architectures
-                            <span class="post-meta">Architecture Deep Dive</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/posts/2025/rectified-flows" class="post-link">
-                            Rectified Flow: Straight Paths in Flow Matching
-                            <span class="post-meta">Advanced Theory</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/posts/2025/flow-map-matching" class="post-link">
-                            Flow Map Matching (FMM): Efficient One-Step Generation
-                            <span class="post-meta">State-of-the-Art</span>
+                            <span class="post-meta">Kiến trúc: Coupling Layers, 1×1 Convolutions</span>
                         </a>
                     </li>
                     <li>
                         <a href="/posts/2025/ffjord-continuous-flows" class="post-link">
-                            FFJORD Continuous Flows: Neural ODE Likelihood
-                            <span class="post-meta">Continuous Dynamics</span>
+                            FFJORD: Free-Form Continuous Dynamics
+                            <span class="post-meta">Neural ODE với Hutchinson Trace Estimator</span>
                         </a>
                     </li>
                     <li>
-                        <a href="/posts/2025/conditional-flow-matching" class="post-link">
-                            Conditional Flow Matching (CFM) và Optimal Transport
-                            <span class="post-meta">Advanced Applications</span>
+                        <a href="/posts/2025/flow-matching" class="post-link">
+                            Flow Matching: Từ Likelihood đến Regression
+                            <span class="post-meta">⭐ Breakthrough: CFM, Optimal Transport</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/rectified-flows" class="post-link">
+                            Rectified Flows: Straight Paths via Reflow
+                            <span class="post-meta">Làm thẳng quỹ đạo cho sampling nhanh</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/posts/2025/flow-map-matching" class="post-link">
+                            Flow Map Matching: One-Step Generation
+                            <span class="post-meta">State-of-the-art: Học bản đồ thay vì velocity</span>
                         </a>
                     </li>
                     <li>
