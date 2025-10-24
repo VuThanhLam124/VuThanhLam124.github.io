@@ -3,9 +3,9 @@ title: "Flow Matching: Từ Likelihood đến Regression"
 date: "2025-01-20"
 category: "flow-based-models"
 tags: ["flow-matching", "optimal-transport", "generative-models", "regression", "pytorch"]
-excerpt: "Từ đơn hàng 100 con rồng với deadline 7 ngày, người thợ gốm khám phá ra Flow Matching - phương pháp cách mạng biến bài toán likelihood phức tạp thành regression đơn giản. Hành trình từ CNF đắt đỏ đến CFM hiệu quả, với câu chuyện sinh động, toán học đầy đủ và code PyTorch thực chiến."
+excerpt: "Từ đơn hàng 100 con rồng với deadline 7 ngày, người thợ gốm khám phá Flow Matching - phương pháp cách mạng biến bài toán likelihood phức tạp thành regression đơn giản. Câu chuyện súc tích, toán học đầy đủ, code PyTorch hoàn chỉnh."
 author: "ThanhLamDev"
-readingTime: 45
+readingTime: 35
 featured: true
 ---
 
@@ -46,52 +46,23 @@ $$
 
 ### Câu chuyện: Buổi sáng bận rộn tại xưởng gốm
 
-Một buổi sáng thứ Hai tháng Ba, ánh nắng len lỏi qua các ô cửa sổ nhỏ của xưởng gốm già nua bên bờ sông. Người thợ gốm bậc thầy vừa mở cửa xưởng, chưa kịp thưởng thức tách trà xanh buổi sáng, thì chuông cửa đã reo vang. Một vị khách mặc vest lịch sự, đại diện cho hội nghị nghệ thuật thành phố, bước vào với ánh mắt khẩn trương.
+Một buổi sáng thứ Hai, người thợ gốm nhận đơn hàng khẩn: **100 tác phẩm con rồng** giống nhau cho hội nghị tuần sau. Với phương pháp CNF hiện tại, công việc sẽ cực kỳ vất vả.
 
-"Thưa ông," vị khách cúi chào, "chúng tôi cần **100 tác phẩm con rồng** giống hệt nhau làm quà tặng cho các khách mời trong hội nghị tuần sau. Tôi nghe nói ông là người duy nhất có thể tạo ra những con rồng đất nung hoàn hảo với kỹ thuật dòng chảy liên tục. Chúng tôi sẵn sàng trả mức giá tốt nhất."
+Người thợ gốm lấy ra 100 khối đất sét hình cầu. Với kỹ thuật **Maximum Likelihood** của CNF, anh phải:
 
-Người thợ gốm gật đầu, nhìn ra kho chứa nơi có hơn 150 khối đất sét hình cầu đều đặn đã chuẩn bị sẵn - di sản từ bài học về **Continuous Normalizing Flows** mà anh đã thực hành trong nhiều tháng qua. Anh biết mình có thể làm được, nhưng với phương pháp CNF hiện tại, công việc sẽ cực kỳ vất vả.
+**Bước 1 - Ghi nhớ vi mô:**
 
-"Tôi nhận," anh nói, nhưng trong lòng đã bắt đầu tính toán khối lượng công việc khổng lồ phía trước.
+1. Đánh dấu 1000 điểm trên mỗi khối cầu
+2. Ghi lại quỹ đạo từng hạt qua 10 thời điểm
+3. Tính độ giãn nở (trace Jacobian) tại mỗi thời điểm
 
-**Ngày 1 - Bắt đầu với phương pháp CNF truyền thống**
+**Ví dụ:** Hạt A1 di chuyển từ (0,0,0) → (5,2,1) qua 10 bước, đồng thời phải đo độ giãn nở tại mỗi bước.
 
-Người thợ gốm lấy ra 100 khối đất sét hình cầu giống nhau, mỗi khối nặng khoảng 2kg, đường kính 15cm. Anh biết với kỹ thuật **Maximum Likelihood** của CNF, anh phải thực hiện một quy trình phức tạp đến từng chi tiết:
+→ **Tổng cộng: 100 × 1000 × 10 = 1,000,000 phép đo!**
 
-**Bước 1 - Quan sát và ghi nhớ vi mô (Maximum Likelihood):**
+**Bước 2 - Tính likelihood:**
 
-Với mỗi khối đất sét, anh không chỉ đơn thuần nặn. Anh phải:
-
-1. **Đánh dấu từng hạt đất sét**: Dùng kim nhỏ, anh đánh dấu 1000 điểm khác nhau trên bề mặt khối cầu - từ tâm đến vỏ ngoài. Mỗi điểm như một "tọa độ" mà anh cần theo dõi.
-
-2. **Ghi lại quỹ đạo từng hạt**: Trong quá trình biến đổi từ khối cầu → con rồng, anh phải ghi chép vào sổ tay dày cộm: "Hạt A1 tại tâm khối cầu, sau 6 phút (t=0.1) di chuyển đến vị trí (0.5, 0.2, 0.1) - bắt đầu kéo dài để tạo thân rồng. Sau 12 phút (t=0.2) đến (1.2, 0.5, 0.3) - tiếp tục kéo..."
-
-3. **Tính toán độ giãn nở**: Điều khủng khiếp nhất - tại TỪNG thời điểm, anh phải đo "độ giãn nở" của đất sét (trace của Jacobian matrix). Làm sao? Bằng cách đo thể tích một vùng nhỏ quanh điểm, so sánh với thể tích ban đầu.
-
-**Ví dụ cụ thể với hạt đất A1 trên con rồng đầu tiên:**
-
-```
-Thời gian t=0.00 (0 phút):    Hạt A1 ở (0.0, 0.0, 0.0) - tâm khối cầu
-         t=0.10 (6 phút):    Hạt A1 ở (0.5, 0.2, 0.1) - bắt đầu kéo ra phía thân
-         t=0.20 (12 phút):   Hạt A1 ở (1.2, 0.5, 0.3) - thân rồng đang hình thành
-         t=0.30 (18 phút):   Hạt A1 ở (2.0, 0.9, 0.5) - thân rồng dài ra
-         ...
-         t=1.00 (60 phút):   Hạt A1 ở (5.0, 2.0, 1.0) - đuôi rồng hoàn chỉnh
-
-Đồng thời phải ghi độ giãn nở:
-- Tại t=0.10: Vùng quanh A1 giãn ra 1.5 lần (det J = 1.5)
-- Tại t=0.20: Giãn ra 2.3 lần (det J = 2.3)
-- Tại t=0.50: Giãn ra 4.1 lần (det J = 4.1)
-- ...
-```
-
-Cứ mỗi 6 phút (Δt = 0.1), anh phải dừng tay, lấy thước kẹp đo, ghi chép. Với 100 con rồng, mỗi con có 1000 điểm cần theo dõi, tại 10 thời điểm khác nhau trong quá trình 60 phút. **Tổng cộng: 100 × 1000 × 10 = 1,000,000 phép đo!**
-
-**Bước 2 - Tính toán likelihood (ác mộng thực sự):**
-
-Sau khi hoàn thành con rồng đầu tiên, người thợ gốm phải "đánh giá chất lượng" bằng cách tính **xác suất** (likelihood) của tác phẩm. Nhưng đây không phải việc nhìn và cảm nhận - đây là toán học phức tạp:
-
-Để biết con rồng này có "xác suất cao" xuất hiện từ khối cầu Gaussian hay không, anh phải:
+Để đánh giá chất lượng con rồng, anh phải:
 
 ```python
 # Pseudocode của CNF
@@ -142,303 +113,99 @@ for _ in range(10):  # Hutchinson estimator - 10 samples
     trace_estimate += dot(eps, vjp)
 ```
 
-**Thống kê thực tế từ sổ tay người thợ gốm:**
+**Thống kê từ sổ tay:**
 
-Anh mở sổ ghi chép, dưới ánh đèn dầu yếu ớt, và ghi lại những con số đáng sợ:
+- Mỗi lần tính trace: ~3 phút
+- Cần đo tại 100 thời điểm: 100 × 3 phút = **5 giờ/con rồng**
+- Tổng 100 con: **500 giờ = 20 ngày!**
 
-- Mỗi lần đo và tính trace (độ giãn nở): **~3 phút thủ công** (tương đương ~50ms trong code)
-- Cần đo tại 100 thời điểm khác nhau trong quá trình 60 phút: 100 điểm × 3 phút = **300 phút = 5 giờ** cho MỖI con rồng!
-- Để hoàn thành đánh giá quality của 100 con rồng: 100 × 5h = **500 giờ = 20 ngày làm việc liên tục!**
+**Vấn đề 2: Tích phân ngược không ổn định**
 
-"Thế này không ổn," anh lẩm bẩm, nhìn đống đất sét chưa động đến và deadline chỉ còn 7 ngày.
-
-**Vấn đề 2: "Tua ngược" không ổn định - Bi kịch của con rồng thứ 5**
-
-Vấn đề thứ hai xuất hiện khi người thợ cố gắng đánh giá con rồng thứ 5. Để tính likelihood, anh phải "tua ngược" quá trình nặn - như xem một video ngược từ con rồng hoàn chỉnh về lại khối cầu Gaussian ban đầu.
-
-Tưởng tượng bạn có một đoạn video:
-```
-Video THUẬN (dễ hiểu, tự nhiên):
-t=0.0 → Khối cầu tròn trịa
-t=0.3 → Kéo dài thành hình ống
-t=0.6 → Uốn cong tạo thân và cổ
-t=1.0 → Con rồng hoàn chỉnh với đầu, thân, đuôi
-
-Video NGƯỢC (khó, chống lại tự nhiên):
-t=1.0 → Con rồng hoàn chỉnh
-t=0.6 ← Thu cong, gỡ chi tiết
-t=0.3 ← Thu ngắn thành ống
-t=0.0 ← Khối cầu (hy vọng!)
-        ↑ Nhưng có đúng khối cầu ban đầu không?
-```
-
-Người thợ gốm thử nghiệm với con rồng số 5. Anh đặt nó trên bàn xoay, bắt đầu "tưởng tượng ngược" từng bước. Nhưng vấn đề nảy sinh:
-
-**Sai số tích lũy theo cấp số nhân:**
+Để tính likelihood, phải "tua ngược" từ con rồng về khối cầu:
 
 ```
-Bước ngược 1 (từ t=1.0 về t=0.9):
-  Anh ước tính vị trí con rồng ở t=0.9
-  Độ chính xác: 99% (1% sai số do ước lượng)
-
-Bước ngược 2 (từ t=0.9 về t=0.8):
-  Dựa trên vị trí ước lượng ở bước 1 (đã có 1% sai)
-  Thêm 1% sai mới
-  Độ chính xác: 99% × 99% = 98.01%
-
-Bước ngược 3 (từ t=0.8 về t=0.7):
-  Độ chính xác: 98.01% × 99% = 97.03%
-
-Bước ngược 10:
-  Độ chính xác: 0.99^10 ≈ 90.4%
-
-Bước ngược 50:
-  Độ chính xác: 0.99^50 ≈ 60.5%
-
-Bước ngược 100 (về t=0.0 - khối cầu):
-  Độ chính xác: 0.99^100 ≈ 36.6%
-  → Khối cầu cuối cùng SAI LỆCH hơn 60% so với ban đầu!
+Video THUẬN:     t=0 → Khối cầu → Kéo dài → Uốn cong → t=1 Con rồng
+Video NGƯỢC:     t=1 Con rồng → Gỡ uốn ← Thu ngắn ← t=0 Khối cầu?
 ```
 
-"Con rồng số 5 của tôi cuối cùng 'ngược' về một cái gì đó... không phải khối cầu," người thợ gốm thở dài, nhìn sketch trong sổ tay - khối cầu ước tính bị méo mó, lệch tâm, không đều.
+**Sai số tích lũy:**
+- Bước ngược 1: 99% chính xác
+- Bước ngược 10: 0.99^10 ≈ 90%
+- Bước ngược 100: 0.99^100 ≈ **36% - Sai lệch lớn!**
 
-**Hậu quả thực tế:**
+**Vấn đề 3: Adaptive ODE solver đắt đỏ**
 
-Anh thử kiểm chứng: Lấy khối cầu ban đầu đã đánh dấu, so sánh với khối cầu "ngược được" từ con rồng.
-- Điểm A ban đầu ở (0, 0, 0), sau khi ngược về ở (0.3, -0.2, 0.1) ← Sai!
-- Thể tích khối cầu ngược: 520 cm³, khối cầu gốc: 450 cm³ ← Chênh 15%!
+Mỗi bước logic cần 4-8 micro-steps (RK45):
+- 100 bước logic × 6 micro-steps = **600 lần gọi velocity_field**
+- Với 100 con rồng: **180,000 phút = 125 ngày!**
 
-"Nếu không tính được đúng likelihood, làm sao tôi biết mình đang học đúng kỹ thuật?" Đây là câu hỏi ám ảnh người thợ gốm suốt đêm hôm đó.
+### Đêm suy nghĩ - Insight then chốt
 
-**Vấn đề 3: "Bước nhỏ vô tận" - Ác mộng của phép tính chính xác**
+Tối hôm đó, người thợ gốm ngồi bên cửa sổ, nhìn những con rồng đã hoàn thành. Anh tự hỏi:
 
-Vấn đề thứ ba khiến người thợ gốm gần như bỏ cuộc. Anh muốn tính toán chính xác quỹ đạo của từng hạt đất, nên quyết định dùng phương pháp **adaptive ODE solver** (giống thuật toán Runge-Kutta bậc 4-5, hay còn gọi là dopri5).
-
-Ý tưởng ban đầu rất đẹp: "Tôi sẽ chia nhỏ mỗi bước thời gian. Khi nào quỹ đạo cong nhiều (biến đổi phức tạp), chia nhỏ hơn nữa để chính xác. Khi thẳng, bước to cũng được."
-
-Nhưng thực tế? Con quỷ nằm trong chi tiết!
-
-**Điều gì xảy ra với mỗi bước "logic":**
-
-Khi người thợ muốn đi từ t=0.50 đến t=0.51 (một bước nhỏ dt=0.01):
-
-```
-Bước LOGIC (dt=0.01):
-  Người thợ nghĩ: "Chỉ 1 phép tính velocity"
-
-Thực tế (với RK45 adaptive):
-  Micro-bước 1: Tính velocity tại t=0.500 (k1)
-  Micro-bước 2: Tính velocity tại t=0.502 (k2) - dùng k1 ước lượng
-  Micro-bước 3: Tính velocity tại t=0.505 (k3) - dùng k1,k2 ước lượng
-  Micro-bước 4: Tính velocity tại t=0.507 (k4) - dùng k1,k2,k3
-  Micro-bước 5: Tính velocity tại t=0.510 (k5) - dùng tất cả trước đó
-  Micro-bước 6: Kiểm tra sai số - Nếu > threshold, CHIA NHỎ THÊM!
-  
-  → Trung bình: 4-8 micro-bước cho MỖI bước logic!
-```
-
-**Thống kê khủng khiếp:**
-
-```
-Mục tiêu: Từ t=0 → t=1 (quá trình 60 phút)
-Số bước logic cần thiết (để đủ chính xác): 100 bước
-Mỗi bước logic = 6 micro-steps trung bình
-
-Tổng số lần gọi velocity_field():
-  100 bước × 6 micro-steps = 600 lần!
-
-Với 100 con rồng:
-  100 rồng × 600 lần × 3 phút mỗi lần = 180,000 phút
-  = 3,000 giờ = 125 ngày làm liên tục không ngừng!
-```
-
-Người thợ gốm ngồi thừ người ra nhìn con số "125 ngày". Deadline chỉ còn 6 ngày nữa.
-
-### Đêm tư duy - Khi con số nói lên tất cả
-
-Tối hôm đó, người thợ gốm ngồi bên cửa sổ, ánh trăng chiếu vào xưởng lạnh lẽo. Anh mở sổ tay, ghi lại bảng so sánh thực tế với những gì lý tưởng:
-
-| Công việc | CNF/FFJORD (Thực tế) | Lý tưởng (Ước mơ) | Chênh lệch |
-|-----------|----------------------|-------------------|------------|
-| **Training:** Học kỹ thuật từ 1000 ví dụ | **30 giờ** | 30 phút | **60x chậm hơn** |
-| **Generation:** Tạo 1 con rồng mới | **10 phút** | 1 phút | **10x chậm hơn** |
-| **Evaluation:** Đánh giá quality 1 tác phẩm | **5 giờ** | Không cần | **Vô nghĩa** |
-| **Tổng 100 con rồng** | **~125 ngày** | **7 ngày** | **Không kịp!** |
-
-Anh gạch chân dòng cuối cùng ba lần, mực đỏ thẫm trên giấy vàng.
-
-### Người thợ gốm suy nghĩ - Đêm trằn trọc mang đến insight
-
-Đêm đó, người thợ gốm không ngủ được. Anh đốt ngọn đèn dầu nhỏ, ngồi giữa xưởng, xung quanh là 100 khối đất sét im lìm và những con rồng đã hoàn thành nằm rải rác. Ánh đèn vàng lập lòe tạo bóng đổ kỳ quái lên những tác phẩm gốm.
-
-Anh nhặt lên một con rồng nhỏ vừa hoàn thành - **con rồng số 3**, với chiếc đuôi dài uốn lượn mềm mại, đôi cánh gấp gọn, đầu ngước lên như đang ngước nhìn trời. Anh vuốt nhẹ lên lớp men xanh bóng loáng.
-
-**Câu hỏi lớn:**
-
-> "Ta đã làm con rồng này. Ta BIẾT cách nặn nó.  
-> Ta BIẾT tay cần đặt ở đâu, kéo theo hướng nào, bao lâu.  
-> Vậy tại sao... ta phải quan tâm đến **XÁC SUẤT** từng hạt đất ở vị trí nào?  
-> Tại sao phải TUA NGƯỢC lại từ con rồng về khối cầu để tính likelihood?  
-> Tại sao phải ĐO ĐẠC độ giãn nở phức tạp đến vậy?"
-
-Anh đặt con rồng xuống, cầm lên một khối đất sét mới. Lật đi lật lại trong tay, suy nghĩ. Một ý tưởng bắt đầu hình thành - đơn giản đến mức anh tự hỏi tại sao chưa nghĩ ra trước đó.
+> "Ta BIẾT cách nặn con rồng này.  
+> Ta BIẾT tay cần di chuyển theo hướng nào.  
+> Vậy tại sao phải quan tâm đến **XÁC SUẤT** từng hạt đất?  
+> Tại sao phải TUA NGƯỢC và tính likelihood phức tạp?"
 
 **Insight thiên tài:**
 
-Mục tiêu cuối cùng của anh là gì? **TẠO RA con rồng**, không phải **TÍNH XÁC SUẤT** của con rồng!
+Mục tiêu là **TẠO RA** con rồng, không phải **TÍNH XÁC SUẤT**!
 
-Nếu anh biết được **HƯỚNG NẶN** (velocity) tại mỗi điểm và mỗi thời điểm, thì:
+Nếu biết **HƯỚNG NẶN** (velocity) tại mỗi điểm:
 
 ```python
-# Quy trình đơn giản!
-def create_dragon():
-    position = sphere_center  # Khối cầu
-    
-    for time_step in range(100):
-        # Chỉ cần biết: "Tay nên di chuyển theo hướng nào?"
-        direction = get_molding_direction(position, time_step)
-        
-        # Và đơn giản...
-        position = position + direction * dt
-    
-    return position  # Con rồng hoàn thành!
+# Đơn giản!
+position_new = position_old + velocity * dt
 ```
 
 **Không cần:**
-- Tính trace của ma trận Jacobian phức tạp
-- Tích phân ngược ODE với 600 micro-steps
-- Đánh giá likelihood với 5 giờ mỗi tác phẩm
-- Đo đạc độ giãn nở tại 100 thời điểm
+- Tính trace Jacobian
+- Tích phân ngược ODE
+- Đánh giá likelihood
 
 **Chỉ cần:**
-- Biết "hướng nặn đúng" tại từng vị trí, từng thời điểm
-- Một phép cộng đơn giản: `vị_trí_mới = vị_trí_cũ + hướng × bước`
+- Biết "hướng nặn đúng" tại từng vị trí, thời điểm
+- Một phép cộng đơn giản!
 
-**Ẩn dụ sâu sắc:**
+**Câu hỏi then chốt:**
 
-Người thợ gốm nhớ lại cách mình học nghề thủ công thuở nhỏ:
+> Làm sao biết "hướng đúng" $u_t(x)$ mà KHÔNG cần tính likelihood?
 
-- Không ai bảo anh: "Tính xác suất tay em ở đây là 73.5%"
-- Thay vào đó, thầy nói: "Lúc này, đất sét đang ở giữa chừng, tay em cần đẩy về phía này, mạnh vừa phải"
-
-**Học nghề = Học HƯỚNG DI CHUYỂN, không phải học XÁC SUẤT!**
-
-Ánh sáng bừng lên trong đầu anh. Anh lật giở cuốn sổ cũ, tìm lại những ghi chép về **regression** - phương pháp toán học đơn giản nhất mà anh từng học.
-
-"Nếu ta có thể dạy mô hình học HƯỚNG NẶN qua regression... Thì mọi chuyện sẽ đơn giản hơn CNF rất nhiều!"
-
-**Câu hỏi then chốt mới:**
-
-> **Làm sao biết "hướng nặn đúng" tại mỗi điểm $x$, mỗi thời điểm $t$, mà KHÔNG cần tính likelihood?**
-
-Đây chính là lúc **Flow Matching** - phương pháp cách mạng - xuất hiện trong tâm trí người thợ gốm. Anh không biết thuật ngữ này. Nhưng anh biết đây là con đường đúng.
-
-Anh đứng dậy, với quyết tâm mới. Mai sẽ là một ngày mới. Một cách tiếp cận mới.
+Đây chính là lúc **Flow Matching** xuất hiện!
 
 ---
 
 ## 2. Flow Matching: Từ Likelihood sang Regression
 
-### Insight thiên tài: Học trực tiếp "cách nặn"
+### Insight: Học trực tiếp "hướng nặn"
 
-**Ngày 2 - Buổi sáng thay đổi**
+**Ngày 2 - Cách tiếp cận mới**
 
-Sáng hôm sau, người thợ gốm thức dậy với tâm trạng khác hẳn. Anh không còn căng thẳng như ngày hôm qua. Ánh nắng sớm len qua cửa sổ, chiếu sáng những con rồng đã hoàn thành - 5 con nằm gọn trên kệ gỗ, mỗi con đều hoàn hảo về hình dáng nhưng mất quá nhiều công sức để tạo ra.
+Sáng hôm sau, người thợ gốm thử một cách tiếp cận hoàn toàn khác.
 
-Anh bước đến bàn làm việc, cầm lên khối đất sét số 6, và thay vì bắt đầu quy trình phức tạp CNF như mọi khi, anh dừng lại. Thay vì chuẩn bị sổ ghi chép dày cộm để đo đạc trace và tính likelihood, anh chỉ cầm một tờ giấy trắng nhỏ.
+**Thay đổi câu hỏi:**
 
-**Thay đổi cách đặt câu hỏi - Bước ngoặt then chốt:**
+**CŨ (CNF):** "Xác suất con rồng này xuất hiện là bao nhiêu?" → Phải tua ngược, tính trace...
 
-**Câu hỏi CŨ (theo CNF - Maximum Likelihood):**
-> "Nếu tôi có con rồng này (đã hoàn thành), **XÁC SUẤT** để nó xuất hiện từ khối cầu Gaussian ban đầu là bao nhiêu?"
-> 
-> → Phải tua ngược, tính trace, đo độ giãn nở...
-> → Mất 5 giờ mỗi con!
+**MỚI (Flow Matching):** "Hạt đất ở vị trí $x$ tại thời điểm $t$, nên di chuyển theo hướng nào?" → Chỉ cần biết HƯỚNG!
 
-**Câu hỏi MỚI (theo Flow Matching - Direct Learning):**
-> "Nếu tôi có một hạt đất đang ở vị trí $x$ tại thời điểm $t$, **NÓ NÊN DI CHUYỂN THEO HƯỚNG NÀO** để trở thành phần của con rồng?"
-> 
-> → Chỉ cần biết HƯỚNG (velocity vector)!
-> → Không cần tính xác suất, không cần tua ngược!
+**Thí nghiệm:**
 
-**Thí nghiệm đầu tiên với tư duy mới:**
-
-Người thợ gốm quyết định làm một thử nghiệm đơn giản. Anh đặt con rồng số 3 (đã hoàn thành) bên cạnh khối cầu ban đầu số 6 (chưa nặn). Anh chọn một điểm cụ thể trên khối cầu:
-
-**Setup cho thí nghiệm:**
-```
-Khối cầu số 6: Tâm tại (0, 0, 0), bán kính 7.5cm
-Điểm quan sát: Hạt đất A ở vị trí (1.0, 0.5, 0.2)
-Thời điểm hiện tại: t=0.3 (18 phút trong quá trình 60 phút)
-Câu hỏi: Hạt A nên di chuyển theo hướng nào?
-```
-
-**Phương pháp CŨ (CNF - Khó và phức tạp):**
+Anh đặt con rồng số 3 bên cạnh khối cầu số 6, quan sát hạt đất A ở (1.0, 0.5, 0.2) tại t=0.3:
 
 ```
-Bước 1: Tìm TẤT CẢ các con rồng đã hoàn thành
-Bước 2: Với MỖI con rồng:
-  - Tua ngược về thời điểm t=0.3
-  - Tìm xem ở t=0.3, có hạt nào ở gần (1.0, 0.5, 0.2) không?
-  - Nếu có, nó đang đi về đâu?
-Bước 3: Tính XÁC SUẤT mỗi hướng di chuyển
-Bước 4: Trung bình có trọng số dựa trên xác suất
-
-→ Phải làm việc với 100+ con rồng
-→ Phải tính likelihood mỗi trajectoryMôi trajectory  
+Phương pháp CŨ (CNF):
+→ Tìm TẤT CẢ con rồng, tua ngược về t=0.3
+→ Tính XÁC SUẤT mỗi hướng
 → Mất hàng giờ!
+
+Phương pháp MỚI (Flow Matching):
+→ Quan sát con rồng 1: Hướng = (0.8, 0.4, 0.2)
+→ Quan sát con rồng 2: Hướng = (0.7, 0.3, 0.3)
+→ Trung bình = (0.75, 0.35, 0.25)
+→ Đây là REGRESSION - chỉ cần CỘNG và CHIA!
 ```
-
-**Phương pháp MỚI (Flow Matching - Đơn giản và trực quan):**
-
-```
-Bước 1: Quan sát con rồng số 1:
-  Khi làm con rồng số 1, tại t=0.3:
-  - Hạt ở (1.0, 0.5, 0.2) di chuyển về phía (1.8, 0.9, 0.4)
-  - Hướng: (1.8-1.0, 0.9-0.5, 0.4-0.2) = (0.8, 0.4, 0.2)
-
-Bước 2: Quan sát con rồng số 2:
-  Tại t=0.3, hạt ở (1.0, 0.5, 0.2) đi về (1.7, 0.8, 0.5)
-  - Hướng: (0.7, 0.3, 0.3)
-
-Bước 3: Quan sát con rồng số 3:
-  - Hướng: (0.9, 0.5, 0.1)
-
-Bước 4: Học hướng TRUNG BÌNH (regression!):
-  Hướng học được = (0.8 + 0.7 + 0.9)/3, (0.4 + 0.3 + 0.5)/3, (0.2 + 0.3 + 0.1)/3
-                 = (0.8, 0.4, 0.2) ← Đơn giản là TRUNG BÌNH!
-
-→ Không cần xác suất!
-→ Không cần tua ngược phức tạp!
-→ Chỉ cần ... CỘNG và CHIA!
-```
-
-**Khoảnh khắc Eureka:**
-
-Người thợ gốm đứng bật dậy, tờ giấy nhỏ rơi xuống đất. Trên đó chỉ ghi mấy dòng đơn giản:
-
-```
-Con rồng 1: (0.8, 0.4, 0.2)
-Con rồng 2: (0.7, 0.3, 0.3)  
-Con rồng 3: (0.9, 0.5, 0.1)
-Trung bình: (0.8, 0.4, 0.2)
-
-→ Đây là REGRESSION!
-→ Đây là BÀI TOÁN LỚP 8!
-```
-
-"Regression!" Anh thốt lên trong xưởng vắng. "Tôi chỉ cần dạy mô hình học **dự đoán hướng di chuyển** từ dữ liệu quan sát. Như dạy một đứa trẻ: 'Khi đất sét ở đây, lúc này, hãy đẩy về hướng kia.'"
-
-**Khác biệt về bản chất:**
-
-| Aspect | CNF (Likelihood) | Flow Matching (Regression) |
-|--------|------------------|----------------------------|
-| **Câu hỏi** | "Xác suất bao nhiêu?" | "Hướng nào?" |
-| **Loại bài toán** | Probabilistic inference | Supervised learning |
-| **Input → Output** | Data → Probability | (Position, Time) → Direction |
-| **Phương pháp học** | Maximum likelihood | Mean Squared Error |
-| **Độ phức tạp** | Tích phân phức tạp | Phép trừ và bình phương |
-| **Liên hệ thực tế** | Tính xác suất sự kiện | Học từ thầy giáo |
 
 ### Toán học: Target Vector Field
 
