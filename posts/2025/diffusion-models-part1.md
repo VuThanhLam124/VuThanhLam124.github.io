@@ -83,7 +83,12 @@ $$
 q(x_t \mid x_0) = \mathcal{N}\left(x_t; \sqrt{\bar{\alpha}_t} \, x_0, (1 - \bar{\alpha}_t) I \right),
 $$
 
-trong đó $\alpha_t = 1 - \beta_t$, $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$, và $\epsilon$ là nhiễu Gaussian độc lập. Công thức này cho phép thám tử tạo ra bất kỳ bước nhiễu nào trực tiếp từ ảnh gốc mà không cần mô phỏng toàn bộ chuỗi – rất hữu ích khi xây dựng loss hay sinh dữ liệu huấn luyện.
+trong đó:
+- $\alpha_t = 1 - \beta_t$
+- $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$
+- $\epsilon$ là nhiễu Gaussian độc lập
+
+Công thức này cho phép thám tử tạo ra bất kỳ bước nhiễu nào trực tiếp từ ảnh gốc mà không cần mô phỏng toàn bộ chuỗi – rất hữu ích khi xây dựng loss hay sinh dữ liệu huấn luyện.
 
 ### 2.1. Cấu trúc Markov của chuỗi nhiễu
 
