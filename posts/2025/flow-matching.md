@@ -143,7 +143,7 @@ for _ in range(10):  # Hutchinson estimator - 10 samples
     trace_estimate += dot(eps, vjp)
 ```
 
-**Tại sao đắt?** Mỗi VJP cần backward pass qua toàn bộ neural network $v_\theta$. Với network sâu (nhiều layers), chi phí tính toán tăng tuyến tính theo độ sâu.
+**Tại sao đắt?** Mỗi VJP (vector-Jacobian product) cần backward pass qua toàn bộ neural network $v_\theta$. Với network sâu (nhiều layers), chi phí tính toán tăng tuyến tính theo độ sâu.
 
 **Thống kê từ sổ tay:**
 
@@ -172,7 +172,7 @@ Anh nhớ lại một lần thất bại:
 > "Hôm qua, tôi thử tua ngược con rồng số 7. Mỗi bước tua ngược có sai số 1%. 
 > 
 > - Sau 10 bước: còn 90% chính xác
-> - Sau 100 bước: chỉ còn **36%** - khối cầu tìm được không giống gì khối cầu thật!
+> - Sau 100 bước: chỉ còn **36%** - khối cầu tìm được không giống gì khối cầu thật! Mà quan trọng là 36 :))) 
 > 
 > Giống như xem phim hành động tua ngược - cảnh nổ thì tua ngược còn khó hơn cảnh chạy!"
 
