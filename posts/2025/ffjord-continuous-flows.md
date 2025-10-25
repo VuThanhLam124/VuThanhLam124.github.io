@@ -159,7 +159,7 @@ def f_theta(z, t):
 **RealNVP (discrete):**
 
 $$
-\log p_{k+1}(z_{k+1}) = \log p_k(z_k) - \log|\det J_k|
+\log p_{k+1}(z_{k+1}) = \log p_k(z_k) - \log\lvert\det J_k\rvert
 $$
 
 **CNF (continuous):**
@@ -170,18 +170,18 @@ $$
 
 **Chứng minh (sketch):**
 
-Từ change of variables: $p(z(t)) |\det J(t)| = p(z(0))$
+Từ change of variables: $p(z(t)) \lvert\det J(t)\rvert = p(z(0))$
 
 Lấy logarithm và đạo hàm theo $t$:
 
 $$
-\frac{d}{dt}\log p(z(t)) + \frac{d}{dt}\log|\det J(t)| = 0
+\frac{d}{dt}\log p(z(t)) + \frac{d}{dt}\log\lvert\det J(t)\rvert = 0
 $$
 
 Sử dụng Jacobi's formula:
 
 $$
-\frac{d}{dt}\log|\det J| = \text{Tr}\left(J^{-1} \frac{dJ}{dt}\right) = \text{Tr}\left(\frac{\partial f}{\partial z}\right)
+\frac{d}{dt}\log\lvert\det J\rvert = \text{Tr}\left(J^{-1} \frac{dJ}{dt}\right) = \text{Tr}\left(\frac{\partial f}{\partial z}\right)
 $$
 
 → Kết quả.
