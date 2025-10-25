@@ -285,7 +285,7 @@ Epoch 30: Loss = 0.142
 Epoch 40: Loss = 0.078
 Epoch 50: Loss = 0.032
 
-✓ Converged!
+Yes Converged!
 ```
 
 ### 4.4. Testing
@@ -608,20 +608,20 @@ visualize_trajectory(model, z, num_steps=10)
 ### Chi tiết so sánh
 
 **Flow Matching:**
-- ✅ Linh hoạt nhất - có thể dừng ở bất kỳ $t$ nào
-- ✅ Dễ train
-- ❌ Chậm - cần giải ODE nhiều bước
+- Linh hoạt nhất - có thể dừng ở bất kỳ $t$ nào
+- Dễ train
+- Chậm - cần giải ODE nhiều bước
 
 **Rectified Flow:**
-- ✅ Nhanh hơn Flow Matching (đường thẳng)
-- ✅ 1-step generation sau reflow
-- ❌ Vẫn cần ODE solver
+- Nhanh hơn Flow Matching (đường thẳng)
+- 1-step generation sau reflow
+- Vẫn cần ODE solver
 
 **Flow Map Matching:**
-- ✅✅ Nhanh nhất - không cần ODE solver
-- ✅ Direct lookup
-- ❌ Ít linh hoạt (phải query đúng $t$)
-- ❌ Khó enforce composition nếu không có loss
+- YesYes Nhanh nhất - không cần ODE solver
+- Direct lookup
+- Ít linh hoạt (phải query đúng $t$)
+- Khó enforce composition nếu không có loss
 
 ### Timing comparison
 
@@ -664,7 +664,7 @@ print(f"Flow Map:        {t_map:.3f}s ({t_fm/t_map:.2f}x)")
 
 Người thợ gốm ghi chép:
 
-**✅ Dùng Flow Map khi:**
+**Yes Dùng Flow Map khi:**
 
 1. **Cần tốc độ tuyệt đối**
    - Real-time generation
@@ -680,7 +680,7 @@ Người thợ gốm ghi chép:
    - Chỉ quan tâm $t=1$ (kết quả cuối)
    - Không cần visualize trajectory
 
-**❌ Không dùng khi:**
+**No Không dùng khi:**
 
 - Cần flexibility (dừng ở $t$ bất kỳ)
 - Cần stochastic sampling (diversity)

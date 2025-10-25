@@ -435,9 +435,9 @@ Backward: Học score_b^2 với score_f^2
 ```
 Forward & Backward:
   - Gần như HỘI TỤ!
-  - x(0) ~ p₀ ✓
-  - x(1) ~ p₁ ✓
-  - Đường đi có tính ngẫu nhiên tự nhiên ✓
+  - x(0) ~ p₀ Yes
+  - x(1) ~ p₁ Yes
+  - Đường đi có tính ngẫu nhiên tự nhiên Yes
   - Loss: 0.12
 ```
 
@@ -954,7 +954,7 @@ Done!
 
 Người thợ gốm ghi chép vào sổ tay:
 
-**✅ Dùng Schrödinger Bridge khi:**
+**Yes Dùng Schrödinger Bridge khi:**
 
 1. **Có ràng buộc vật lý về nhiễu**
    - VD: Chuyển động phân tử (phải tuân theo Brownian)
@@ -975,7 +975,7 @@ Người thợ gốm ghi chép vào sổ tay:
    - Transfer giữa các domains có noise characteristics khác nhau
    - Image-to-image translation với noise constraints
 
-**❌ Không dùng khi:**
+**No Không dùng khi:**
 
 - **Cần tốc độ cực nhanh (1-step)** → Dùng Rectified Flow
 - **Chất lượng tuyệt đối là ưu tiên** → Dùng Diffusion Models

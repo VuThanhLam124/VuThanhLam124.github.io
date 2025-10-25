@@ -3,7 +3,7 @@ title: "Conditional Flow Matching & Optimal Transport: Tùy biến dòng chảy 
 date: "2025-03-08"
 category: "flow-based-models"
 tags: ["conditional-flow-matching", "flow-matching", "optimal-transport", "generative-models", "pytorch"]
-excerpt: "Người thợ pha lê nay phải cá nhân hóa sản phẩm theo khách hàng. Conditional Flow Matching kết hợp Optimal Transport giúp mô hình hóa đường đi phụ thuộc điều kiện, với giải thích toán học chi tiết và code PyTorch."
+excerpt: "Người thợ gốm nay phải cá nhân hóa sản phẩm theo khách hàng. Conditional Flow Matching kết hợp Optimal Transport giúp mô hình hóa đường đi phụ thuộc điều kiện, với giải thích toán học chi tiết và code PyTorch."
 author: "ThanhLamDev"
 readingTime: 18
 featured: false
@@ -11,7 +11,7 @@ featured: false
 
 # Conditional Flow Matching & Optimal Transport
 
-**Câu chuyện tiếp theo: khách VIP bước vào xưởng pha lê với bảng yêu cầu chi tiết. Người thợ cần điều khiển dòng chảy dựa trên “điều kiện” mà mỗi khách đưa ra. Conditional Flow Matching (CFM) chính là cuốn sổ tay giúp anh ghép từng điều kiện với một quỹ đạo ánh sáng riêng, vẫn bám sát tối ưu vận chuyển.**
+**Câu chuyện tiếp theo: khách VIP bước vào xưởng gốm với bảng yêu cầu chi tiết. Người thợ cần điều khiển dòng chảy dựa trên “điều kiện” mà mỗi khách đưa ra. Conditional Flow Matching (CFM) chính là cuốn sổ tay giúp anh ghép từng điều kiện với một quỹ đạo ánh sáng riêng, vẫn bám sát tối ưu vận chuyển.**
 
 ## Mục lục
 
@@ -28,7 +28,7 @@ featured: false
 
 ## 1. Câu chuyện: Đơn hàng theo điều kiện
 
-Sau khi lưu được bản đồ Flow Map, xưởng pha lê nhận thêm dịch vụ mới: “Thiết kế theo thị hiếu từng vùng”. Khách từ Kyoto muốn hoa văn hoa anh đào; khách từ Dubai thích ánh vàng; mỗi điều kiện ($y$) kéo theo đường đi khác nhau từ khối pha lê chuẩn $z$ đến sản phẩm $x$.
+Sau khi lưu được bản đồ Flow Map, xưởng gốm nhận thêm dịch vụ mới: “Thiết kế theo thị hiếu từng vùng”. Khách từ Kyoto muốn hoa văn hoa anh đào; khách từ Dubai thích ánh vàng; mỗi điều kiện ($y$) kéo theo đường đi khác nhau từ khối đất sét chuẩn $z$ đến sản phẩm $x$.
 
 Thay vì viết lại toàn bộ flow cho mỗi khách, người thợ cần một mô hình biết **chèn điều kiện** vào dòng chảy – vừa nhanh, vừa linh hoạt. Conditional Flow Matching cho phép anh học trực tiếp vận tốc phụ thuộc điều kiện, đồng thời tối ưu sao cho đường đi tiết kiệm năng lượng giống bài toán Optimal Transport.
 
@@ -230,7 +230,7 @@ def sample_cfm(model, cond, steps=8, device="cuda"):
 
 ## 8. Kết nối series & tài liệu
 
-Conditional Flow Matching giúp người thợ pha lê biến mỗi điều kiện thành một tuyến đường riêng, nhưng vẫn giữ tinh thần “đường ngắn nhất” của Optimal Transport. Bài tiếp theo về **Schrödinger Bridge** sẽ kể câu chuyện khi dòng chảy phải tuân theo ràng buộc động lực (có nhiễu, có nguyên tắc vật lý).
+Conditional Flow Matching giúp người thợ gốm biến mỗi điều kiện thành một tuyến đường riêng, nhưng vẫn giữ tinh thần “đường ngắn nhất” của Optimal Transport. Bài tiếp theo về **Schrödinger Bridge** sẽ kể câu chuyện khi dòng chảy phải tuân theo ràng buộc động lực (có nhiễu, có nguyên tắc vật lý).
 
 ### Tài liệu nên đọc
 

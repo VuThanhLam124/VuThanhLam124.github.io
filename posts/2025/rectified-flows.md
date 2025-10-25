@@ -1,7 +1,15 @@
 ---
 title: "Rectified Flows: Khi Đường Đi Trở Nên Thẳng"
 date: "2025-01-21"
-category: "flow-based-models"
+categor## 1. Câu chuyện: Đường vận chuyển ánh sáng
+
+Sau buổi workshop về Glow, người thợ gốm nhận về một yêu cầu khó: **khách hàng muốn thử nhiều biến thể khi đứng trước quầy**, không phải chờ 30–60 giây để mô hình sinh hình ảnh. Các đường "dòng chảy" mà anh đã dùng vẫn quá cong; phải giải tích ODE nhiều bước mới ra sản phẩm.
+
+Anh quan sát những đường nứt tự nhiên trên đất sét và nhận ra: **đường nào ngắn nhất thì hiệu quả nhất**. Nếu các flow của anh cũng thẳng như vậy, anh có thể từ latent Gaussian đến tác phẩm chỉ trong một bước. Từ trực giác đó, anh phát minh ra **Rectified Flows** – nghệ thuật "chỉnh thẳng" dòng chảy.
+
+## 2. Cú hích từ quầy thử ánh sáng
+
+Phòng trưng bày của xưởng ngày càng đông. Khách không chỉ muốn xem thành phẩm; họ muốn đứng ngay quầy thử, chọn một mẫu trên tablet và thấy kết quả tức thì. Những đường flow cong queo khiến người thợ phải điều chỉnh nhiều lần, khiến khách mất kiên nhẫn.based-models"
 tags: ["rectified-flows", "reflow", "optimal-transport", "generative-models", "pytorch"]
 excerpt: "Sau khi khám phá Flow Matching, người thợ gốm nhận ra đường đi của mình vẫn còn uốn cong. Liệu có cách nào làm thẳng chúng để nặn con rồng chỉ trong 1-2 bước thay vì 10-20 bước?"
 author: "ThanhLamDev"
@@ -83,15 +91,15 @@ Nếu là đường thẳng hoàn hảo, tại t=0.5 phải ở (2.5, 1.5, 1.0),
 
 ## 1. Câu chuyện: Đường vận chuyển ánh sáng
 
-Sau buổi workshop về Glow, người thợ pha lê nhận về một yêu cầu khó: **khách hàng muốn thử nhiều biến thể ánh sáng khi đứng trước quầy**, không phải chờ 30–60 giây để mô hình sinh hình ảnh. Các đường “dòng chảy” mà anh đã dùng vẫn quá cong; phải giải tích ODE nhiều bước mới ra sản phẩm.
+Sau buổi workshop về Glow, người thợ gốm nhận về một yêu cầu khó: **khách hàng muốn thử nhiều biến thể khi đứng trước quầy**, không phải chờ 30–60 giây để mô hình sinh hình ảnh. Các đường “dòng chảy” mà anh đã dùng vẫn quá cong; phải giải tích ODE nhiều bước mới ra sản phẩm.
 
-Anh quan sát những tia sáng phản xạ qua pha lê và nhận ra: **tia nào đi gần đường thẳng nhất thì sáng rõ nhất**. Nếu các flow của anh cũng thẳng như vậy, anh có thể từ latent Gaussian đến tác phẩm chỉ trong một bước. Từ trực giác đó, anh phát minh ra **Rectified Flows** – nghệ thuật “chỉnh thẳng” dòng chảy.
+Anh quan sát những đường nứt tự nhiên trên đất sét và nhận ra: **tia nào đi gần đường thẳng nhất thì sáng rõ nhất**. Nếu các flow của anh cũng thẳng như vậy, anh có thể từ latent Gaussian đến tác phẩm chỉ trong một bước. Từ trực giác đó, anh phát minh ra **Rectified Flows** – nghệ thuật “chỉnh thẳng” dòng chảy.
 
 ## 2. Cú hích từ quầy thử ánh sáng
 
-Phòng trưng bày của xưởng ngày càng đông. Khách không chỉ muốn xem thành phẩm; họ muốn đứng ngay quầy thử, chọn một tông màu trên tablet và thấy tia sáng chạy qua khối pha lê tức thì. Những đường flow cong queo khiến người thợ phải vặn núm điều khiển nhiều lần, khiến khách mất kiên nhẫn.
+Phòng trưng bày của xưởng ngày càng đông. Khách không chỉ muốn xem thành phẩm; họ muốn đứng ngay quầy thử, chọn một tông màu trên tablet và thấy kết quả biến đổi đất sét tức thì. Những đường flow cong queo khiến người thợ phải vặn núm điều khiển nhiều lần, khiến khách mất kiên nhẫn.
 
-Anh ghi chép vào sổ tay: “Muốn phục vụ tại quầy, mình cần **đường dẫn ánh sáng thật thẳng**. Càng ít vòng vo, càng ít thời gian lấy mẫu.” Đây chính là động lực để anh nghiên cứu Rectified Flows: vẫn là câu chuyện từ Gaussian tới tác phẩm, nhưng mục tiêu mới là khiến hành trình giữa hai điểm trở thành một đoạn thẳng gọn gàng.
+Anh ghi chép vào sổ tay: “Muốn phục vụ tại quầy, mình cần **đường biến đổi thật thẳng**. Càng ít vòng vo, càng ít thời gian lấy mẫu.” Đây chính là động lực để anh nghiên cứu Rectified Flows: vẫn là câu chuyện từ Gaussian tới tác phẩm, nhưng mục tiêu mới là khiến hành trình giữa hai điểm trở thành một đoạn thẳng gọn gàng.
 
 ## 3. Từ đường cong đến đường thẳng: trực giác Rectified Flow
 

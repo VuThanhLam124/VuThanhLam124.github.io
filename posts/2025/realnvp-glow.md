@@ -94,16 +94,12 @@ RealNVP được thiết kế để đáp ứng cả 3:
 
 ### So sánh với các approach khác
 
-```
-┌─────────────────────────────────────────────┐
-│ Approach       │ Invertible? │ Fast?  │ Exact likelihood? │
-├─────────────────────────────────────────────┤
-│ GAN            │ ✗           │ ✓✓     │ ✗                │
-│ VAE            │ ✗           │ ✓      │ ✗ (lower bound)  │
-│ Diffusion      │ ✓           │ ✗      │ ✗                │
-│ RealNVP/Glow   │ ✓✓          │ ✓      │ ✓✓               │
-└─────────────────────────────────────────────┘
-```
+| Approach | Invertible? | Fast? | Exact likelihood? |
+|----------|-------------|-------|-------------------|
+| GAN | No | Yes (strong) | No |
+| VAE | No | Yes | No (lower bound) |
+| Diffusion | Yes | No | No |
+| RealNVP/Glow | Yes (strong) | Yes | Yes (strong) |
 
 ## 3. Từ trực giác đến RealNVP
 

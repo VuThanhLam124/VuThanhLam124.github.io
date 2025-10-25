@@ -99,13 +99,13 @@ $$
 | **FFJORD/CNF** | Continuous ODE | **Exact** | **High** | Medium |
 
 **Điểm mạnh FFJORD:**
-- ✅ Exact likelihood (như RealNVP)
-- ✅ Flexible architecture (như Diffusion)
-- ✅ Continuous dynamics (mượt mà)
+- Exact likelihood (như RealNVP)
+- Flexible architecture (như Diffusion)
+- Continuous dynamics (mượt mà)
 
 **Điểm yếu:**
-- ❌ Slower than RealNVP (cần giải ODE)
-- ❌ Harder to train (Hutchinson estimator có variance)
+- Slower than RealNVP (cần giải ODE)
+- Harder to train (Hutchinson estimator có variance)
 
 ### Vị trí trong timeline
 
@@ -644,14 +644,14 @@ plt.show()
 
 ### Khi nào dùng FFJORD?
 
-**✅ Dùng khi:**
+**Yes Dùng khi:**
 
 1. **Cần exact likelihood:** Bayesian inference, anomaly detection
 2. **Flexible architecture:** Không bị ràng buộc coupling
 3. **Continuous dynamics:** Mô phỏng quá trình vật lý
 4. **Research:** Khám phá CNF theory
 
-**❌ Không dùng khi:**
+**No Không dùng khi:**
 
 - Cần sampling cực nhanh → Dùng Rectified Flow
 - Production với latency constraints → Dùng RealNVP/Glow
