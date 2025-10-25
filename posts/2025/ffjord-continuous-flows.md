@@ -1,311 +1,794 @@
 ---
-title: "FFJORD Continuous Flows: Bẻ cong dòng chảy bằng Neural ODE"
-date: "2025-04-10"
+title: "FFJORD & CNF: Dòng Chảy Liên Tục với Neural ODE"
+date: "2025-01-16"
 category: "flow-based-models"
-tags: ["ffjord", "continuous-normalizing-flows", "neural-ode", "ode-solver", "hutchinson"]
-excerpt: "Chương mới của xưởng pha lê: người thợ học cách điều khiển dòng chảy liên tục bằng FFJORD – kết hợp Neural ODE, ước lượng trace Hutchinson và tối ưu likelihood để tạo ra mô hình generative khả nghịch."
+tags: ["ffjord", "continuous-normalizing-flows", "neural-ode", "cnf", "pytorch"]
+excerpt: "Sau RealNVP, người thợ gốm khám phá FFJORD - kỹ thuật điều khiển dòng chảy đất sét một cách liên tục bằng Neural ODE, tính log-likelihood chính xác qua Hutchinson trace estimator."
 author: "ThanhLamDev"
-readingTime: 29
+readingTime: 25
 featured: false
 ---
 
-# FFJORD Continuous Flows: Bẻ cong dòng chảy bằng Neural ODE
+# FFJORD & CNF: Dòng Chảy Liên Tục với Neural ODE
 
-**Trong xưởng pha lê, sau khi khám phá Rectified Flow và Flow Map Matching, người thợ nhận ra vẫn còn một giới hạn: mọi kỹ thuật trước đó đều dựa trên những “nhịp bước” rời rạc – dù đã làm đường thẳng, anh vẫn phải tích phân từng đoạn. Tình cờ, một nhà vật lý mang tới cuộn giấy ghi chú về *Neural ODE* và mô hình FFJORD của Grathwohl et al. (NeurIPS 2019). Người thợ hiểu rằng đây chính là chìa khóa để điều khiển dòng thuỷ tinh một cách liên tục từ khối nguyên bản tới tác phẩm hoàn thiện.**
+**Người Thợ Gốm Và Dòng Chảy Không Ngắt Quãng**
 
----
+Sau khi học [RealNVP & Glow](/posts/2025/realnvp-glow), người thợ gốm nhận ra một giới hạn: **Mọi biến đổi đều rời rạc** - từng layer coupling một. Liệu có cách nào điều khiển dòng chảy đất sét một cách **liên tục**, như dòng sông chảy từ nguồn đến cửa biển?
+
+FFJORD (Free-Form Continuous Dynamics) và CNF (Continuous Normalizing Flows) ra đời để giải quyết vấn đề này.
 
 ## Mục lục
 
-1. [Câu chuyện: Dòng sông thuỷ tinh không bị đập vỡ](#1-câu-chuyện-dòng-sông-thuỷ-tinh-không-bị-đập-vỡ)  
-2. [FFJORD trong hệ sinh thái flow-based models](#2-ffjord-trong-hệ-sinh-thái-flow-based-models)  
-3. [Toán học cốt lõi của Continuous Normalizing Flow](#3-toán-học-cốt-lõi-của-continuous-normalizing-flow)  
-   3.1. [Động lực học Neural ODE](#31-động-lực-học-neural-ode)  
-   3.2. [Instantaneous change of variables](#32-instantaneous-change-of-variables)  
-   3.3. [Tích phân log-likelihood và ước lượng trace](#33-tích-phân-log-likelihood-và-ước-lượng-trace)  
-   3.4. [Điều kiện khả nghịch và tồn tại nghiệm](#34-điều-kiện-khả-nghịch-và-tồn-tại-nghiệm)  
-4. [FFJORD: kỹ thuật tính toán để mở rộng Continuous Flow](#4-ffjord-kỹ-thuật-tính-toán-để-mở-rộng-continuous-flow)  
-   4.1. [Neural ODE với đảo ngược thời gian tự động](#41-neural-ode-với-đảo-ngược-thời-gian-tự-động)  
-   4.2. [Trace estimator bằng Hutchinson](#42-trace-estimator-bằng-hutchinson)  
-   4.3. [Adjoint sensitivity cho gradient hiệu quả](#43-adjoint-sensitivity-cho-gradient-hiệu-quả)  
-   4.4. [Adaptive ODE solver và kiểm soát sai số](#44-adaptive-ode-solver-và-kiểm-soát-sai-số)  
-5. [Hàm mục tiêu likelihood và regularizer](#5-hàm-mục-tiêu-likelihood-và-regularizer)  
-6. [Ví dụ PyTorch với `torchdiffeq`](#6-ví-dụ-pytorch-với-torchdiffeq)  
-7. [So sánh FFJORD với Glow, RealNVP, Rectified Flow](#7-so-sánh-ffjord-với-glow-realnvp-rectified-flow)  
-8. [Kinh nghiệm thực nghiệm và tối ưu hoá](#8-kinh-nghiệm-thực-nghiệm-và-tối-ưu-hoá)  
-9. [Kết nối với series Xưởng pha lê](#9-kết-nối-với-series-xưởng-pha-lê)  
-10. [Tài liệu tham khảo](#10-tài-liệu-tham-khảo)
+1. [Câu chuyện: Dòng sông đất sét](#1-câu-chuyện-dòng-sông-đất-sét)
+2. [FFJORD trong hệ sinh thái](#2-ffjord-trong-hệ-sinh-thái)
+3. [Toán học CNF](#3-toán-học-cnf)
+4. [FFJORD: Kỹ thuật tính toán](#4-ffjord-kỹ-thuật-tính-toán)
+5. [Hàm mục tiêu](#5-hàm-mục-tiêu)
+6. [Implementation PyTorch](#6-implementation-pytorch)
+7. [So sánh các phương pháp](#7-so-sánh-các-phương-pháp)
+8. [Kinh nghiệm thực nghiệm](#8-kinh-nghiệm-thực-nghiệm)
+9. [Kết luận](#9-kết-luận)
 
 ---
 
-## 1. Câu chuyện: Dòng sông thuỷ tinh không bị đập vỡ
+## 1. Câu chuyện: Dòng sông đất sét
 
-Những ngày gần đây, khách ghé xưởng yêu cầu xem bản dựng “chuyển động mượt mà” của một bức tượng pha lê được tạo hình từ khối kính nguyên thuỷ. Người thợ pha lê muốn mô phỏng dòng chảy này như một dòng sông – không ngắt quãng, không khúc cua đột ngột. Nếu Flow Matching là các “bước nhảy” được sắp xếp cẩn thận, thì FFJORD mang tới ý tưởng rằng **dòng chảy có thể được điều khiển liên tục** bằng ODE:
+### Ngày thứ 6: Khách hàng yêu cầu đặc biệt
 
-> “Ta không dẫn đường từng bước nữa. Ta viết ra phương trình vận tốc liên tục, rồi để dòng chảy tự giải bằng toán học.”
+Sáng ngày thứ 6, khách hàng mang theo một video:
 
-Anh ghi chú vào sổ tay thợ: “Mỗi hạt thuỷ tinh khi tích phân từ $t = 0$ đến $t = 1$ sẽ chuyển từ phân phối chuẩn (khối pha lê nguyên bản) tới hình dáng cuối cùng.”  
+**"Anh xem này - tôi muốn quá trình tạo hình diễn ra MƯỢT MÀ như vậy, không giật cục!"**
 
-Đó chính là tinh thần của **Continuous Normalizing Flow (CNF)** và FFJORD – Free-form Continuous Dynamics for Scalable Reversible Generative Models.
+Video cho thấy một khối đất sét chảy liên tục, từ từ biến đổi thành tác phẩm cuối cùng - như dòng sông.
 
----
+Người thợ gốm nhìn lại quy trình RealNVP:
 
-## 2. FFJORD trong hệ sinh thái flow-based models
+```
+Step 1: Coupling layer 1 → Nhảy cục!
+Step 2: Coupling layer 2 → Nhảy cục!
+Step 3: Coupling layer 3 → Nhảy cục!
+...
+Step 8: Coupling layer 8 → Done
+```
 
-| Phương pháp | Đặc trưng | Ưu điểm | Hạn chế |
-|-------------|-----------|---------|--------|
-| RealNVP / Glow | Biến đổi affine, Jacobian tam giác | Tính chính xác log-likelihood | Thiết kế kiến trúc phức tạp, số lượng bước lớn |
-| Rectified Flow | Tạo đường thẳng giữa phân phối gốc và đích | Sampling nhanh | Không có log-likelihood chính xác |
-| Flow Matching | Học trường vận tốc, cần tích phân | Chất lượng cao, dễ huấn luyện | Cần solver; log-likelihood khó |
-| **FFJORD (CNF)** | Động lực học liên tục, giải ODE | Likelihood chính xác; kiến trúc linh hoạt | Chi phí ODE cao; trace estimator nhiễu |
+"Mỗi bước là một 'nhảy' rời rạc," anh nhận ra. "Nếu muốn mượt mà, cần **dòng chảy liên tục**!"
 
-FFJORD giải bài toán: *Làm sao có CNF vừa tính được log-likelihood chính xác, vừa học được hàm động lực phức tạp, và vẫn khả thi với dữ liệu nhiều chiều*. Ba “vũ khí” chính:
+### Ý tưởng Neural ODE
 
-1. Neural ODE mô tả động lực học.  
-2. Trace estimator Hutchinson để tính tốc độ thay đổi log-density mà không cần ma trận Jacobian đầy đủ.  
-3. Adjoint sensitivity để backprop qua ODE mà không tốn memory.
+Sư phụ giới thiệu anh với **Neural ODE** (Chen et al., 2018):
 
----
+> "Thay vì biến đổi theo từng bước rời rạc, hãy định nghĩa một **phương trình vi phân** mô tả vận tốc biến đổi!"
 
-## 3. Toán học cốt lõi của Continuous Normalizing Flow
+$$
+\frac{dz(t)}{dt} = f_\theta(z(t), t)
+$$
+
+**Giải thích:**
+- $z(t)$: Trạng thái đất sét tại thời điểm $t$
+- $f_\theta$: Mạng neural học vận tốc biến đổi
+- Giải ODE từ $t=0$ đến $t=1$ → Quá trình liên tục!
+
+"Giống như dòng sông!" Anh hào hứng. "Mỗi hạt nước (mỗi pixel đất sét) di chuyển theo phương trình, tạo thành dòng chảy mượt mà!"
+
+### Vấn đề: Log-likelihood
+
+"Nhưng làm sao tính log-likelihood?" Anh hỏi.
+
+Sư phụ giải thích: **Instantaneous change of variables**:
+
+$$
+\frac{d}{dt} \log p(z(t)) = -\text{Tr}\left(\frac{\partial f_\theta}{\partial z}\right)
+$$
+
+"Tốc độ thay đổi log-density = Âm trace của Jacobian!"
+
+**Vấn đề lớn:** Tính trace Jacobian cho ảnh $256 \times 256$ (65536 chiều) rất đắt: $O(D^2)$!
+
+→ **Hutchinson trace estimator** xuất hiện.
+
+## 2. FFJORD trong hệ sinh thái
+
+### So sánh nhanh
+
+| Method | Type | Likelihood | Flexibility | Speed |
+|--------|------|------------|-------------|-------|
+| **RealNVP** | Discrete | Exact | Low (coupling) | Fast |
+| **Glow** | Discrete | Exact | Medium | Fast |
+| **Diffusion** | Continuous SDE | Approximate | High | Slow |
+| **Flow Matching** | Continuous ODE | No | High | Fast |
+| **FFJORD/CNF** | Continuous ODE | **Exact** | **High** | Medium |
+
+**Điểm mạnh FFJORD:**
+- ✅ Exact likelihood (như RealNVP)
+- ✅ Flexible architecture (như Diffusion)
+- ✅ Continuous dynamics (mượt mà)
+
+**Điểm yếu:**
+- ❌ Slower than RealNVP (cần giải ODE)
+- ❌ Harder to train (Hutchinson estimator có variance)
+
+### Vị trí trong timeline
+
+Người thợ gốm nhìn lại lịch sử:
+
+```
+Day 1-5: RealNVP & Glow
+  → Discrete flows, exact likelihood
+  → Vấn đề: Rời rạc, architecture constrained
+
+Day 6-7: FFJORD & CNF
+  → Continuous flows, exact likelihood
+  → Giải quyết: Mượt mà, flexible
+  → Nhưng: Chậm hơn, khó train hơn
+
+Day 8+: Flow Matching, Rectified Flow
+  → Continuous flows, NO exact likelihood
+  → Trade-off: Nhanh nhưng mất likelihood
+```
+
+## 3. Toán học CNF
 
 ### 3.1. Động lực học Neural ODE
 
-Cho $z(t) \in \mathbb{R}^d$ là trạng thái tại thời gian $t$, ta định nghĩa:
+**Định nghĩa:** Cho $z(t) \in \mathbb{R}^D$ là trạng thái tại thời điểm $t$:
 
 $$
-\frac{d z(t)}{dt} = f_\theta\big(z(t), t\big), \quad z(0) \sim p_0.
+\frac{dz(t)}{dt} = f_\theta(z(t), t), \quad z(0) \sim p_0
 $$
 
-**Chú thích:** $f_\theta$ là mạng nơ-ron tham số hoá trường vận tốc; $p_0$ là phân phối cơ sở (thường là chuẩn $\mathcal{N}(0, I)$). Nghiệm của ODE cho ta $z(t)$ ở mọi thời điểm.
+**Giải thích:**
+- $f_\theta$: Neural network parametrize vận tốc
+- $p_0$: Base distribution (thường $\mathcal{N}(0, I)$)
+- Giải ODE → $z(t)$ tại mọi thời điểm
 
-### 3.2. Instantaneous change of variables
+**Ví dụ 2D:**
 
-Với biến đổi rời rạc, log-density thay đổi theo:
+```python
+def f_theta(z, t):
+    # z: (batch, 2)
+    # t: scalar
+    return nn.Sequential(
+        nn.Linear(3, 64),  # [z1, z2, t] → 64
+        nn.Tanh(),
+        nn.Linear(64, 2)   # → [dz1/dt, dz2/dt]
+    )(torch.cat([z, t * torch.ones(len(z), 1)], dim=1))
+```
 
-$$
-\log p_{k+1}(z_{k+1}) = \log p_k(z_k) - \log \left|\det \frac{\partial f_k}{\partial z_k}\right|.
-$$
+### 3.2. Instantaneous Change of Variables
 
-Trong CNF, khi $t$ thay đổi vi phân $dt$, log-density thoả:
-
-$$
-\frac{d}{dt} \log p\big(z(t)\big) = -\operatorname{Tr}\left(\frac{\partial f_\theta}{\partial z}(z(t), t)\right).
-$$
-
-**Chú thích:** $\operatorname{Tr}$ là trace ma trận Jacobian của $f_\theta$ theo $z$. Công thức này được Grathwohl et al. gọi là *instantaneous change of variables*.
-
-### 3.3. Tích phân log-likelihood và ước lượng trace
-
-Từ công thức trên, log-density tại $t=1$ (phân phối đích) là:
-
-$$
-\log p_1(z(1)) = \log p_0(z(0)) - \int_{0}^{1} \operatorname{Tr}\left(\frac{\partial f_\theta}{\partial z}\big(z(t), t\big)\right) dt.
-$$
-
-**Giải thích:** ta tích phân tốc độ thay đổi log-density dọc theo quỹ đạo. Khi training, $z(1)$ là dữ liệu quan sát $x$; ta giải ODE ngược thời gian để về $z(0)$.
-
-### 3.4. Điều kiện khả nghịch và tồn tại nghiệm
-
-Để ODE khả nghịch và có nghiệm duy nhất, cần $f_\theta$ liên tục Lipschitz theo $z$. Trong thực tế, FFJORD dùng mạng ResNet nhỏ với *softplus* hoặc *tanh* để đảm bảo Lipschitz tương đối thấp. Adaptive ODE solver sẽ thích nghi bước $dt$ để giữ sai số dưới ngưỡng.
-
----
-
-## 4. FFJORD: kỹ thuật tính toán để mở rộng Continuous Flow
-
-### 4.1. Neural ODE với đảo ngược thời gian tự động
-
-Thay vì mô phỏng forward từ $p_0$ đến $p_1$, ta giải ODE **ngược thời gian** từ $t=1$ về $t=0$ cho mỗi dữ liệu $x$:
+**RealNVP (discrete):**
 
 $$
-z(0) = z(1) + \int_{1}^{0} f_\theta\big(z(t), t\big) dt.
+\log p_{k+1}(z_{k+1}) = \log p_k(z_k) - \log|\det J_k|
 $$
 
-ODE solver trả về $z(0)$ và giá trị tích phân trace để tính log-likelihood. Điều này cho phép training đúng theo maximum likelihood.
-
-### 4.2. Trace estimator bằng Hutchinson
-
-Trực tiếp tính trace Jacobian $\operatorname{Tr}(\partial f / \partial z)$ tốn $\mathcal{O}(d^2)$. Hutchinson estimator giảm xuống $\mathcal{O}(d)$:
-
-1. Lấy vector ngẫu nhiên $v$ với $\mathbb{E}[v v^\top] = I$ (ví dụ Rademacher $\pm 1$).  
-2. Tính:
+**CNF (continuous):**
 
 $$
-\operatorname{Tr}\left(\frac{\partial f}{\partial z}\right) = \mathbb{E}_v\left[v^\top \frac{\partial f}{\partial z} v\right].
+\frac{d}{dt} \log p(z(t)) = -\text{Tr}\left(\frac{\partial f_\theta}{\partial z}(z(t), t)\right)
 $$
 
-3. Dùng *vector-Jacobian product* (`torch.autograd.functional.vjp`) để tính $v^\top J$ mà không cần Jacobian đầy đủ.
+**Chứng minh (sketch):**
 
-FFJORD cho thấy chỉ cần 1–2 mẫu $v$ là đủ chính xác cho training.
+Từ change of variables: $p(z(t)) |\det J(t)| = p(z(0))$
 
-### 4.3. Adjoint sensitivity cho gradient hiệu quả
-
-Truyền ngược qua ODE cần gradient $\partial \mathcal{L} / \partial \theta$. FFJORD dùng phương pháp **adjoint** (Chen et al., 2018) giải ODE phụ để tính gradient mà không lưu toàn bộ quỹ đạo:
+Lấy logarithm và đạo hàm theo $t$:
 
 $$
-\frac{d a(t)}{dt} = - a(t)^\top \frac{\partial f_\theta}{\partial z}, \quad a(1) = \frac{\partial \mathcal{L}}{\partial z(1)}.
+\frac{d}{dt}\log p(z(t)) + \frac{d}{dt}\log|\det J(t)| = 0
 $$
 
-**Chú thích:** $a(t)$ là vector adjoint. Khi giải ODE backward, ta đồng thời cập nhật $a(t)$ và tích luỹ gradient theo $\theta$.
-
-### 4.4. Adaptive ODE solver và kiểm soát sai số
-
-FFJORD sử dụng solver Dormand–Prince (Runge-Kutta bậc 5) với adaptive step. Trong PyTorch, `torchdiffeq.odeint` cung cấp `rtol`, `atol` để điều chỉnh sai số tương đối và tuyệt đối.  
-
-- Sai số thấp ⇒ nhiều bước ⇒ chi phí cao nhưng likelihood chính xác.  
-- Sai số cao ⇒ nhanh nhưng dễ gây bias.  
-
-Grathwohl et al. cho thấy `rtol=1e-5`, `atol=1e-5` là điểm cân bằng trên MNIST.
-
----
-
-## 5. Hàm mục tiêu likelihood và regularizer
-
-Với dữ liệu $x$, ta giải ODE ngược để thu $z_0$ và log-density. Mục tiêu tối đa hoá log-likelihood:
+Sử dụng Jacobi's formula:
 
 $$
-\log p_\theta(x) = \log p_0\big(z(0)\big) - \int_{0}^{1} \operatorname{Tr}\left(\frac{\partial f_\theta}{\partial z}(z(t), t)\right) dt.
+\frac{d}{dt}\log|\det J| = \text{Tr}\left(J^{-1} \frac{dJ}{dt}\right) = \text{Tr}\left(\frac{\partial f}{\partial z}\right)
 $$
 
-Trong thực tế, ta **minimize negative log-likelihood**:
+→ Kết quả.
+
+### 3.3. Tích phân Log-Likelihood
+
+**Log-density tại $t=1$:**
 
 $$
-\mathcal{L}_{\text{NLL}} = -\log p_\theta(x).
+\log p_1(z(1)) = \log p_0(z(0)) - \int_0^1 \text{Tr}\left(\frac{\partial f_\theta}{\partial z}(z(t), t)\right) dt
 $$
 
-FFJORD còn thêm regularizer để giữ động lực học ổn định:
+**Cách sử dụng:**
 
-- **Weight decay** nhỏ trên $f_\theta$ để hạn chế độ cong quá mức.  
-- **Spectral norm / Lipschitz regularization** nhằm đảm bảo solver hội tụ.  
-- **FFJORD-style regularizer**: penalty trên $\|f_\theta(z, t)\|^2$ trung bình nhằm tránh tốc độ quá lớn dẫn đến adaptive step nhỏ.
+```python
+# Given data x (at t=1)
+# 1. Solve ODE backward: x → z0
+z0 = odeint(f_theta, x, t=[1, 0])[-1]
 
----
+# 2. Compute integral of trace
+integral_trace = odeint(
+    lambda z, t: -trace(jacobian(f_theta, z, t)),
+    x, t=[1, 0]
+)
 
-## 6. Ví dụ PyTorch với `torchdiffeq`
+# 3. Log-likelihood
+log_p1 = gaussian_log_prob(z0) - integral_trace
+```
+
+**Vấn đề:** Tính trace của Jacobian $D \times D$ rất đắt!
+
+## 4. FFJORD: Kỹ thuật tính toán
+
+### 4.1. Hutchinson Trace Estimator
+
+**Vấn đề:** $\text{Tr}(\frac{\partial f}{\partial z})$ cần ma trận Jacobian đầy đủ → $O(D^2)$
+
+**Giải pháp Hutchinson:**
+
+Với vector ngẫu nhiên $\epsilon \sim \mathcal{N}(0, I)$:
+
+$$
+\text{Tr}\left(\frac{\partial f}{\partial z}\right) = \mathbb{E}_\epsilon\left[\epsilon^T \frac{\partial f}{\partial z} \epsilon\right]
+$$
+
+**Ước lượng (Monte Carlo):**
+
+$$
+\text{Tr}(J) \approx \epsilon^T J \epsilon
+$$
+
+**Tính toán hiệu quả:**
+
+```python
+def trace_estimator(f, z, t, num_samples=1):
+    """
+    Estimate trace using Hutchinson with vjp
+    """
+    traces = []
+    
+    for _ in range(num_samples):
+        # Random Gaussian vector
+        eps = torch.randn_like(z)
+        
+        # Compute f(z, t)
+        f_z = f(z, t)
+        
+        # Vector-Jacobian product: eps^T @ J
+        vjp = torch.autograd.grad(
+            f_z, z,
+            grad_outputs=eps,
+            create_graph=True
+        )[0]
+        
+        # Inner product: eps^T @ J @ eps
+        trace = (vjp * eps).sum(dim=-1)
+        traces.append(trace)
+    
+    return torch.stack(traces).mean(dim=0)
+```
+
+**Độ phức tạp:** $O(D)$ thay vì $O(D^2)$!
+
+### 4.2. Adjoint Sensitivity Method
+
+**Vấn đề:** Backprop qua ODE solver tốn memory (lưu toàn bộ trajectory)
+
+**Giải pháp:** Adjoint method (Chen et al., 2018)
+
+**Ý tưởng:** Giải ODE phụ để tính gradient:
+
+$$
+\frac{da(t)}{dt} = -a(t)^T \frac{\partial f_\theta}{\partial z}, \quad a(1) = \frac{\partial \mathcal{L}}{\partial z(1)}
+$$
+
+**Lợi ích:** Memory $O(1)$ thay vì $O(T)$!
+
+**Trong `torchdiffeq`:**
+
+```python
+from torchdiffeq import odeint_adjoint
+
+# Automatic adjoint method
+z_final = odeint_adjoint(f_theta, z0, t=[0, 1])
+```
+
+### 4.3. Adaptive ODE Solver
+
+FFJORD dùng adaptive solver (Dormand-Prince):
+
+```python
+z_final = odeint(
+    f_theta, z0,
+    t=torch.tensor([0.0, 1.0]),
+    rtol=1e-5,  # Relative tolerance
+    atol=1e-5,  # Absolute tolerance
+    method='dopri5'
+)
+```
+
+**Điều chỉnh step size tự động** để đảm bảo sai số < tolerance.
+
+## 5. Hàm mục tiêu
+
+### 5.1. Negative Log-Likelihood
+
+```python
+def nll_loss(model, x_batch):
+    """
+    Compute negative log-likelihood for FFJORD
+    
+    Args:
+        model: FFJORD model
+        x_batch: Data batch (B, D)
+    
+    Returns:
+        loss: Scalar
+    """
+    # Solve ODE backward: x(1) → z(0)
+    # Also track integral of trace
+    
+    z0, neg_log_det = model.inverse(x_batch)
+    
+    # Gaussian log-prob
+    log_pz = -0.5 * (z0 ** 2).sum(dim=1) - \
+              0.5 * D * np.log(2 * np.pi)
+    
+    # Log p(x) = log p(z) - integral(trace)
+    log_px = log_pz - neg_log_det
+    
+    # Negative log-likelihood
+    loss = -log_px.mean()
+    return loss
+```
+
+### 5.2. Regularizers
+
+**Kinetic energy regularization:**
+
+$$
+\mathcal{L}_{\text{kinetic}} = \int_0^1 \|f_\theta(z(t), t)\|^2 dt
+$$
+
+Giúp ODE mượt hơn, ít NFE (number of function evaluations) hơn.
+
+**Directional penalty:**
+
+$$
+\mathcal{L}_{\text{dir}} = \int_0^1 \left\|\frac{\partial f_\theta}{\partial t}\right\|^2 dt
+$$
+
+**Total loss:**
+
+$$
+\mathcal{L} = \mathcal{L}_{\text{NLL}} + \lambda_1 \mathcal{L}_{\text{kinetic}} + \lambda_2 \mathcal{L}_{\text{dir}}
+$$
+
+## 6. Implementation PyTorch
+
+### 6.1. ODEFunc with Trace
 
 ```python
 import torch
 import torch.nn as nn
-from torchdiffeq import odeint_adjoint as odeint  # dùng adjoint để tiết kiệm memory
+from torchdiffeq import odeint_adjoint
 
 class ODEFunc(nn.Module):
-    def __init__(self, dim, hidden=128):
+    """
+    ODE function f_theta(z, t) with trace computation
+    """
+    
+    def __init__(self, dim, hidden_dim=64):
         super().__init__()
+        self.dim = dim
+        
         self.net = nn.Sequential(
-            nn.Linear(dim + 1, hidden),
-            nn.Softplus(),
-            nn.Linear(hidden, hidden),
-            nn.Softplus(),
-            nn.Linear(hidden, dim)
+            nn.Linear(dim + 1, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, dim)
         )
-
-    def forward(self, t, z):
-        # z có dạng [batch, dim + 1]; phần cuối chứa log-density
-        x, logp = torch.split(z, [z.size(1) - 1, 1], dim=1)
-
-        # ghép thời gian vào input
-        t_vec = torch.ones_like(x[:, :1]) * t
-        inputs = torch.cat([x, t_vec], dim=1)
-
+    
+    def forward(self, t, states):
+        """
+        Args:
+            t: Time (scalar)
+            states: (z, logp) concatenated
+        
+        Returns:
+            (dz/dt, dlogp/dt)
+        """
+        z = states[0]
+        
+        # Ensure t is tensor
+        t_vec = torch.ones(z.shape[0], 1, device=z.device) * t
+        
+        # Compute f(z, t)
+        zt = torch.cat([z, t_vec], dim=1)
+        dz_dt = self.net(zt)
+        
+        # Hutchinson trace estimator
         with torch.set_grad_enabled(True):
-            x.requires_grad_(True)
-            f = self.net(inputs)
-            # Hutchinson trace estimator
-            v = torch.randn_like(x)
-            jvp = torch.autograd.grad(
-                outputs=(f * v).sum(),
-                inputs=x,
+            z.requires_grad_(True)
+            dz_dt_for_trace = self.net(torch.cat([z, t_vec], dim=1))
+            
+            # Random vector
+            eps = torch.randn_like(z)
+            
+            # VJP: eps^T @ J
+            vjp = torch.autograd.grad(
+                dz_dt_for_trace, z,
+                grad_outputs=eps,
                 create_graph=True
             )[0]
-            trace = (jvp * v).sum(dim=1, keepdim=True)
-
-        dxdt = f
-        dlogpdt = -trace
-        return torch.cat([dxdt, dlogpdt], dim=1)
-
-
-def log_prob(model, x, prior_std=1.0, rtol=1e-5, atol=1e-5):
-    batch_size, dim = x.shape
-    logp_init = torch.zeros(batch_size, 1, device=x.device)
-    z = torch.cat([x, logp_init], dim=1)
-
-    t = torch.tensor([1.0, 0.0], device=x.device)
-    z_t = odeint(model, z, t, rtol=rtol, atol=atol, method="dopri5")
-
-    z0 = z_t[-1, :, :dim]
-    logp_correction = z_t[-1, :, dim:]
-
-    # log probability của prior Gaussian
-    logp_prior = -0.5 * ((z0 / prior_std) ** 2).sum(dim=1, keepdim=True)
-    logp_prior += -0.5 * dim * torch.log(torch.tensor(2 * torch.pi * prior_std**2))
-
-    logp = logp_prior - logp_correction
-    return logp.squeeze(1)
+            
+            # Trace estimate
+            trace = (vjp * eps).sum(dim=1, keepdim=True)
+        
+        # dlogp/dt = -trace
+        dlogp_dt = -trace
+        
+        return (dz_dt, dlogp_dt)
 ```
 
-**Giải thích từng bước:**
+### 6.2. CNF Model
 
-- `ODEFunc` trả về cả tốc độ thay đổi của vị trí `dx/dt` và log-density `dlogp/dt`.  
-- `v` là vector ngẫu nhiên trong Hutchinson estimator; `jvp` tính vector-Jacobian product.  
-- `odeint` giải ODE từ $t=1$ về $t=0$, trả về trạng thái cuối.  
-- `log_prob` tính log-likelihood chính xác, dùng cho training với loss = `-log_prob`.
+```python
+class CNF(nn.Module):
+    """
+    Continuous Normalizing Flow
+    """
+    
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+        self.odefunc = ODEFunc(dim)
+    
+    def forward(self, z0, integration_times=None):
+        """
+        Forward: z0 → z1
+        
+        Args:
+            z0: Initial state (B, D)
+            integration_times: [0, 1]
+        
+        Returns:
+            z1: Final state
+            delta_logp: Change in log-prob
+        """
+        if integration_times is None:
+            integration_times = torch.tensor([0.0, 1.0], device=z0.device)
+        
+        # Initial log-prob (zero change)
+        logp_z0 = torch.zeros(z0.shape[0], 1, device=z0.device)
+        
+        # Solve ODE
+        states_t = odeint_adjoint(
+            self.odefunc,
+            (z0, logp_z0),
+            integration_times,
+            rtol=1e-5,
+            atol=1e-5,
+            method='dopri5'
+        )
+        
+        z1 = states_t[0][-1]
+        delta_logp = states_t[1][-1]
+        
+        return z1, delta_logp
+    
+    def inverse(self, x):
+        """
+        Inverse: x (t=1) → z (t=0)
+        
+        Returns:
+            z0: Base distribution
+            delta_logp: Change in log-prob
+        """
+        integration_times = torch.tensor([1.0, 0.0], device=x.device)
+        
+        logp_x = torch.zeros(x.shape[0], 1, device=x.device)
+        
+        states_t = odeint_adjoint(
+            self.odefunc,
+            (x, logp_x),
+            integration_times,
+            rtol=1e-5,
+            atol=1e-5,
+            method='dopri5'
+        )
+        
+        z0 = states_t[0][-1]
+        delta_logp = states_t[1][-1]
+        
+        return z0, delta_logp
+    
+    def log_prob(self, x):
+        """
+        Compute log p(x)
+        """
+        z0, delta_logp = self.inverse(x)
+        
+        # Gaussian log-prob
+        log_pz = -0.5 * (z0 ** 2).sum(dim=1, keepdim=True) - \
+                  0.5 * self.dim * np.log(2 * np.pi)
+        
+        log_px = log_pz - delta_logp
+        return log_px.squeeze()
+```
 
-Trong ứng dụng thực tế, chúng ta thêm **mini-batch**, `optimizer = torch.optim.Adam` và training loop tiêu chuẩn.
+### 6.3. Training Loop
+
+```python
+def train_cnf(model, data_loader, epochs=100, lr=1e-3):
+    """
+    Train CNF with maximum likelihood
+    """
+    import numpy as np
+    
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    
+    model.train()
+    for epoch in range(epochs):
+        epoch_loss = 0
+        
+        for x_batch in data_loader:
+            # Negative log-likelihood
+            log_px = model.log_prob(x_batch)
+            loss = -log_px.mean()
+            
+            # Backprop
+            optimizer.zero_grad()
+            loss.backward()
+            
+            # Gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)
+            
+            optimizer.step()
+            
+            epoch_loss += loss.item()
+        
+        if (epoch + 1) % 10 == 0:
+            avg_loss = epoch_loss / len(data_loader)
+            print(f"Epoch {epoch+1}/{epochs} | NLL: {avg_loss:.4f}")
+    
+    return model
+
+# Usage
+model = CNF(dim=2)
+# model = train_cnf(model, data_loader, epochs=100)
+
+# Sampling
+z = torch.randn(100, 2)
+with torch.no_grad():
+    x_samples, _ = model(z)
+```
+
+### 6.4. Complete Example
+
+```python
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Generate toy data (2 moons)
+from sklearn.datasets import make_moons
+
+X, _ = make_moons(n_samples=5000, noise=0.05)
+X = torch.tensor(X, dtype=torch.float32)
+
+dataset = TensorDataset(X)
+loader = DataLoader(dataset, batch_size=256, shuffle=True)
+
+# Train CNF
+model = CNF(dim=2)
+print("Training CNF...")
+model = train_cnf(model, loader, epochs=50, lr=1e-3)
+
+# Sample
+print("\nSampling...")
+z = torch.randn(1000, 2)
+with torch.no_grad():
+    x_samples, _ = model(z)
+
+# Visualize
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+axes[0].scatter(X[:, 0], X[:, 1], alpha=0.3, s=10)
+axes[0].set_title("Data")
+axes[0].grid(True, alpha=0.3)
+
+axes[1].scatter(z[:, 0], z[:, 1], alpha=0.3, s=10)
+axes[1].set_title("Base (Gaussian)")
+axes[1].grid(True, alpha=0.3)
+
+axes[2].scatter(x_samples[:, 0], x_samples[:, 1], alpha=0.3, s=10)
+axes[2].set_title("CNF Samples")
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('cnf_result.png', dpi=150)
+plt.show()
+```
+
+## 7. So sánh các phương pháp
+
+### Bảng tổng hợp
+
+| Method | Likelihood | Architecture | NFE | Training | Sampling |
+|--------|------------|--------------|-----|----------|----------|
+| **RealNVP** | Exact | Coupling (constrained) | 1 | Easy | Fast |
+| **Glow** | Exact | Coupling + 1x1 | 1 | Medium | Fast |
+| **FFJORD/CNF** | Exact | **Free-form** | 50-200 | Hard | Slow |
+| **Flow Matching** | No | Free-form | 50-100 | Easy | Medium |
+| **Rectified Flow** | No | Free-form | 1-5 | Easy | **Fast** |
+
+**NFE** = Number of Function Evaluations (số lần gọi network)
+
+### Timeline phát triển
+
+```
+2015: NICE (coupling layers)
+  ↓
+2017: RealNVP (affine coupling)
+  ↓
+2018: Glow (1x1 conv + ActNorm)
+       + Neural ODE
+  ↓
+2019: FFJORD (CNF + Hutchinson)
+  ↓
+2021: Flow Matching (regression, no likelihood)
+  ↓
+2022: Rectified Flow (straight paths)
+  ↓
+2023: Stochastic Interpolants (unified framework)
+```
+
+### Khi nào dùng FFJORD?
+
+**✅ Dùng khi:**
+
+1. **Cần exact likelihood:** Bayesian inference, anomaly detection
+2. **Flexible architecture:** Không bị ràng buộc coupling
+3. **Continuous dynamics:** Mô phỏng quá trình vật lý
+4. **Research:** Khám phá CNF theory
+
+**❌ Không dùng khi:**
+
+- Cần sampling cực nhanh → Dùng Rectified Flow
+- Production với latency constraints → Dùng RealNVP/Glow
+- Image generation quality ưu tiên → Dùng Diffusion
+- Không quan tâm likelihood → Dùng Flow Matching
+
+## 8. Kinh nghiệm thực nghiệm
+
+### 8.1. Hyperparameters
+
+Người thợ gốm học được:
+
+**ODE Solver:**
+```python
+rtol = 1e-5  # Relative tolerance
+atol = 1e-5  # Absolute tolerance
+method = 'dopri5'  # Adaptive RK
+```
+
+**Architecture:**
+```python
+hidden_dim = 64-128  # Không quá sâu
+activation = nn.Tanh()  # Smooth (Lipschitz)
+num_layers = 3-4
+```
+
+**Training:**
+```python
+lr = 1e-3
+batch_size = 64-256
+grad_clip = 10.0
+epochs = 100-500
+```
+
+### 8.2. Common Issues
+
+**Issue 1: ODE không hội tụ**
+
+```python
+# Bad: Quá sâu, ReLU
+net = nn.Sequential(
+    nn.Linear(dim+1, 512),
+    nn.ReLU(),  # Not smooth!
+    *[nn.Linear(512, 512), nn.ReLU()] * 10,  # Too deep!
+    nn.Linear(512, dim)
+)
+
+# Good: Nông, Tanh
+net = nn.Sequential(
+    nn.Linear(dim+1, 64),
+    nn.Tanh(),
+    nn.Linear(64, 64),
+    nn.Tanh(),
+    nn.Linear(64, dim)
+)
+```
+
+**Issue 2: Trace estimator variance cao**
+
+```python
+# Bad: 1 sample
+trace = hutchinson_trace(f, z, num_samples=1)
+
+# Good: 2-3 samples
+trace = hutchinson_trace(f, z, num_samples=3)
+```
+
+**Issue 3: NFE quá cao (> 1000)**
+
+- Giảm số layers
+- Dùng activation mượt hơn (Tanh, Softplus)
+- Thêm kinetic energy regularization
+- Tăng tolerance (rtol=1e-3)
+
+### 8.3. Monitoring
+
+```python
+# Log NFE per sample
+print(f"Average NFE: {nfe.mean():.1f}")
+
+# Acceptable: 50-200
+# Too high: > 500 → Need architecture change
+```
+
+## 9. Kết luận
+
+### Ngày thứ 7: Người thợ gốm tổng kết
+
+Sau 2 ngày học CNF và FFJORD, người thợ gốm ghi vào sổ tay:
+
+> **FFJORD & CNF: Dòng Chảy Liên Tục**
+>
+> 1. **Continuous dynamics:** ODE thay vì discrete layers
+> 2. **Exact likelihood:** Instantaneous change of variables
+> 3. **Hutchinson estimator:** Tính trace hiệu quả $O(D)$
+> 4. **Adjoint method:** Backprop không tốn memory
+> 5. **Trade-off:** Flexible + exact nhưng chậm hơn
+
+### So với RealNVP
+
+| Aspect | RealNVP/Glow | FFJORD/CNF |
+|--------|--------------|------------|
+| **Dynamics** | Discrete (K layers) | Continuous (ODE) |
+| **Architecture** | Constrained (coupling) | Free-form |
+| **Likelihood** | Exact (log-det) | Exact (trace integral) |
+| **NFE** | K (fixed) | Adaptive (50-200) |
+| **Speed** | Fast | Slower |
+| **Use case** | Production | Research |
+
+### Câu chuyện tiếp theo
+
+"FFJORD cho tôi **flexibility** và **exact likelihood**," anh nghĩ. "Nhưng nó quá chậm cho production. Liệu có cách nào kết hợp được ưu điểm của CNF (continuous) nhưng nhanh hơn?"
+
+→ Dẫn đến **Flow Matching** (bài tiếp theo) - trade exact likelihood để đổi lấy tốc độ!
 
 ---
 
-## 7. So sánh FFJORD với Glow, RealNVP, Rectified Flow
+## Tài liệu tham khảo
 
-| Tiêu chí | Glow / RealNVP | Rectified Flow | **FFJORD** |
-|----------|----------------|----------------|-----------|
-| Khả nghịch | Được đảm bảo do thiết kế từng bước | Không cần nghịch đảo | Đảm bảo bởi ODE Lipschitz |
-| Log-likelihood | Tính chính xác (det Jacobian) | Không (chỉ implicit) | **Tính chính xác** qua tích phân trace |
-| Chi phí sampling | O(K) với số tầng K | Rất nhanh (đường thẳng) | Phụ thuộc ODE solver (đa bước) |
-| Linh hoạt kiến trúc | Phải giữ cấu trúc affine | Cao nhưng không likelihood | **Cao** (f bất kỳ, chỉ cần Lipschitz) |
-| Ứng dụng | Density estimation, Flow-based GAN | Diffusion/Flow hybrid | Density estimation, playback liên tục |
+1. **Grathwohl, W., Chen, R. T. Q., Bettencourt, J., Sutskever, I., & Duvenaud, D. (2019)** - "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models" _(NeurIPS 2019)_
 
-Như vậy, FFJORD phù hợp khi ta cần **density chính xác + động lực học liên tục** (ví dụ, mô phỏng thời gian biến đổi trong xưởng) và chấp nhận chi phí tính toán cao hơn.
+2. **Chen, R. T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018)** - "Neural Ordinary Differential Equations" _(NeurIPS 2018 Best Paper)_
 
----
+3. **Hutchinson, M. F. (1989)** - "A stochastic estimator of the trace of the influence matrix for laplacian smoothing splines" _(Communications in Statistics)_
 
-## 8. Kinh nghiệm thực nghiệm và tối ưu hoá
+4. **Pontryagin, L. S. (1962)** - "The Mathematical Theory of Optimal Processes" _(Adjoint method origins)_
 
-1. **Chuẩn hoá dữ liệu**: scale về $[-1, 1]$ để tránh giá trị lớn làm ODE khó hội tụ.  
-2. **Warmup solver**: bắt đầu với `rtol=1e-3`, `atol=1e-3`, sau vài epoch giảm xuống `1e-5`.  
-3. **Gradient clipping** (`max_norm=10`) tránh gradient exploding khi trace quá lớn.  
-4. **Mini-batch nhỏ** (ví dụ 64) để giảm variance của Hutchinson estimator. Có thể lấy 2 vector $v$ và trung bình để ổn định.  
-5. **Early stopping** dựa trên NLL trên validation; chú ý **thời gian training** dài hơn (MNIST ~ 12 giờ trên V100).  
-6. **Kiểm tra solver**: log số bước ODE (`nfe` – number of function evaluations). Nếu vượt 1000, cần điều chỉnh kiến trúc $f_\theta$ (giảm độ sâu, dùng activation smooth).  
+5. **Finlay, C., Jacobsen, J. H., Nurbekyan, L., & Oberman, A. M. (2020)** - "How to Train Your Neural ODE: the World of Jacobian and Kinetic Regularization" _(ICML 2020)_
 
-Trong xưởng, người thợ dùng FFJORD để **học mô hình phân phối nền** (ví dụ, hình dạng trung bình của các mẫu pha lê) – phần tạo mẫu realtime vẫn nhờ Rectified Flow để đáp ứng nhanh.
+6. **Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021)** - "Normalizing Flows for Probabilistic Modeling and Inference" _(JMLR)_
 
 ---
 
-## 9. Kết nối với series Xưởng pha lê
+**Series:** [Generative AI Overview](/posts/2025/generative-ai-overview)
 
-- **Bài Rectified Flow**: giúp người thợ tạo đường thẳng nhanh – *sampling* tốc độ cao.  
-- **Flow Map Matching**: lưu bản đồ quỹ đạo – *khôi phục trạng thái* tức thì.  
-- **FFJORD** (bài này): cho phép mô hình hoá dòng chảy liên tục với **likelihood chính xác**, nên rất phù hợp khi muốn phân tích thống kê hoặc huấn luyện hybrid với mô hình xác suất khác.
+**Bài trước:** [RealNVP & Glow: Nghệ Thuật Biến Đổi Có Thể Đảo Ngược](/posts/2025/realnvp-glow)
 
-Người thợ ghi chú vào cuốn nhật ký của xưởng:
-
-> “Khi cần kể câu chuyện liên tục về cách ánh sáng biến đổi – FFJORD là công cụ để ghi lại từng khoảnh khắc, đảm bảo mỗi bước đều có thể giải thích bằng toán học.”
-
----
-
-## 10. Tài liệu tham khảo
-
-1. Grathwohl, W. et al. (2019). *FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models.* NeurIPS.  
-2. Chen, R. T. Q. et al. (2018). *Neural Ordinary Differential Equations.* NeurIPS.  
-3. Song, Y. et al. (2021). *Score-Based Generative Modeling through Stochastic Differential Equations.* ICLR.  
-4. Lipman, Y. et al. (2022). *Flow Matching for Generative Modeling.* ICML.  
-5. Albergo, M. et al. (2023). *Stacked Neural Flows for Efficient Bayes.* ICML.  
-6. Papamakarios, G. et al. (2021). *Normalizing Flows for Probabilistic Modeling and Inference.* JMLR survey.  
-7. Davis, A. et al. (2024). *FFJORD++: Faster Continuous Flows via Trace Caching.* arXiv preprint.  
-8. Amos, B. & Kolter, J. Z. (2017). *OptNet: Differentiable Optimization as a Layer in Neural Networks.* ICML.  
-9. Finlay, C. et al. (2020). *How to Train Your Neural ODE: the World of Jacobian Norms.* ICML.  
-10. Dupont, E. et al. (2019). *Augmented Neural ODEs.* NeurIPS.
-
----
+**Bài tiếp theo:** [Flow Matching: Từ Likelihood Đến Regression](/posts/2025/conditional-flow-matching)
 
 <script src="/assets/js/katex-init.js"></script>

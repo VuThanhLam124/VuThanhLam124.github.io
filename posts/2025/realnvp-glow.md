@@ -1,77 +1,154 @@
 ---
-title: "RealNVP & Glow: Nghệ thuật biến đổi có thể đảo ngược"
-date: "2025-02-12"
+title: "RealNVP & Glow: Nghệ Thuật Biến Đổi Có Thể Đảo Ngược"
+date: "2025-01-15"
 category: "flow-based-models"
 tags: ["realnvp", "glow", "normalizing-flows", "invertible-networks", "pytorch"]
-excerpt: "Học RealNVP và Glow qua câu chuyện, ví dụ đời thực, phân tích toán học cụ thể và đoạn code PyTorch hữu ích."
+excerpt: "Trước khi học Flow Matching, người thợ gốm phải hiểu RealNVP và Glow - nghệ thuật tạo hình khả nghịch. Mỗi bước biến đổi đất sét đều có thể quay ngược lại, và tính toán log-likelihood chính xác."
 author: "ThanhLamDev"
-readingTime: 18
+readingTime: 20
 featured: false
 ---
 
-# RealNVP & Glow
+# RealNVP & Glow: Nghệ Thuật Biến Đổi Có Thể Đảo Ngược
 
-**Tiếp nối bài Normalizing Flow, người thợ gốm của chúng ta giờ đã chuyển sang xưởng pha lê – nơi RealNVP và Glow trở thành những kỹ thuật nòng cốt để vừa giữ tính khả nghịch, vừa vận hành đủ nhanh cho khán giả đang chờ.**
+**Người Thợ Gốm Bắt Đầu Hành Trình**
+
+Trong series về [Normalizing Flows](/posts/2025/normalizing-flows), chúng ta đã học lý thuyết tổng quát. Bây giờ, người thợ gốm của chúng ta bắt đầu học hai kỹ thuật cụ thể: **RealNVP** và **Glow** - những kiến trúc khả nghịch giúp anh biến khối đất sét thành tác phẩm nghệ thuật, đồng thời vẫn có thể quay ngược lại.
 
 ## Mục lục
 
-1. [Câu chuyện về xưởng pha lê thời gian thực](#1-câu-chuyện-về-xưởng-pha-lê-thời-gian-thực)
-2. [Áp lực từ phòng trưng bày pha lê](#2-áp-lực-từ-phòng-trưng-bày-pha-lê)
+1. [Câu chuyện: Xưởng gốm khả nghịch](#1-câu-chuyện-xưởng-gốm-khả-nghịch)
+2. [Áp lực từ triển lãm](#2-áp-lực-từ-triển-lãm)
 3. [Từ trực giác đến RealNVP](#3-từ-trực-giác-đến-realnvp)
 4. [Kiến trúc RealNVP từng lớp](#4-kiến-trúc-realnvp-từng-lớp)
-5. [Ví dụ toán học: Coupling 2D tối giản](#5-ví-dụ-toán-học-coupling-2d-tối-giản)
-6. [Glow: Khi RealNVP học được “điệu nhảy” 1x1](#6-glow-khi-realnvp-học-được-điệu-nhảy-1x1)
-7. [Code thú vị: Mini RealNVP + Glow block với PyTorch](#7-code-thú-vị-mini-realnvp--glow-block-với-pytorch)
-8. [Gợi ý thực nghiệm & các bẫy thường gặp](#8-gợi-ý-thực-nghiệm--các-bẫy-thường-gặp)
-9. [Kết luận & tài liệu](#9-kết-luận--tài-liệu)
+5. [Ví dụ toán học: Coupling 2D](#5-ví-dụ-toán-học-coupling-2d)
+6. [Glow: Kỹ thuật nâng cao](#6-glow-kỹ-thuật-nâng-cao)
+7. [Implementation PyTorch](#7-implementation-pytorch)
+8. [Kinh nghiệm thực nghiệm](#8-kinh-nghiệm-thực-nghiệm)
+9. [Kết luận](#9-kết-luận)
 
 ---
 
-## 1. Câu chuyện về xưởng pha lê thời gian thực
+## 1. Câu chuyện: Xưởng gốm khả nghịch
 
-Từ khối đất sét của bài trước, người thợ giờ làm việc với khối pha lê chuẩn – biểu tượng cho base Gaussian. Khách bước vào, chọn một mẫu bất kỳ và muốn thấy nó biến thành chiếc bình hay quả cầu theo ý thích. Mỗi thao tác phải đảo ngược được, vì chỉ cần khách đổi ý là anh phải trả khối pha lê về trạng thái ban đầu. Đó chính là trực giác đứng sau **Real-valued Non-Volume Preserving (RealNVP)**: biến đổi được thiết kế để dễ dàng tiến và lùi.
+### Ngày đầu tiên tại xưởng
 
-Glow là bước nâng cấp tự nhiên: trước khi nặn tiếp, người thợ xoay nhẹ khối pha lê để ánh sáng rọi đúng góc và chuẩn hóa nhiệt độ của lò nung. Hai động tác này tương ứng với invertible 1x1 convolution và ActNorm – giúp flow linh hoạt hơn mà vẫn kiểm soát được log-determinant một cách gọn gàng.
+Người thợ gốm mới vào nghề nhận được nhiệm vụ: **Biến khối đất sét nguyên bản thành tác phẩm nghệ thuật, nhưng mọi bước đều phải đảo ngược được**.
 
-## 2. Áp lực từ phòng trưng bày pha lê
+"Tại sao phải đảo ngược?" Anh hỏi sư phụ.
 
-Phòng trưng bày mới đông khách khiến người thợ phải làm nhanh hơn nhưng không được phép đánh mất sự chính xác. Anh cần một quy trình biến đổi có “vũ đạo” rõ ràng: nửa khối pha lê làm điểm tựa, nửa còn lại biến hóa theo nhịp điệu do các mạng $s(\cdot)$ và $t(\cdot)$ quyết định; mọi thứ có thể đảo ngược tức khắc nếu khách yêu cầu chỉnh sửa. RealNVP cung cấp cấu trúc đó, còn Glow thay việc đổi mặt nạ thủ công bằng một phép xoay học được để ánh sáng được trộn đều hơn.
+"Vì khách hàng thường đổi ý!" Sư phụ cười. "Họ nhìn tác phẩm gần hoàn thành rồi nói: 'À không, tôi muốn cao hơn một chút'. Nếu anh không thể quay lại bước trước, phải làm lại từ đầu - tốn thời gian và nguyên liệu!"
 
-Bối cảnh đã đủ: chúng ta lùi khỏi câu chuyện, bước vào phần kỹ thuật để xem hai kiến trúc này vận hành ra sao.
+Anh hiểu ra: **Tính khả nghịch (invertibility)** không chỉ là đặc tính toán học, mà còn là yêu cầu thực tế.
+
+### Khối đất sét = Gaussian noise
+
+Mỗi sáng, anh bắt đầu với **khối đất sét chuẩn** - tương đương với phân phối Gaussian $z \sim \mathcal{N}(0, I)$. Nhiệm vụ là biến đổi nó thành:
+- Bình hoa (data distribution 1)
+- Tượng rồng (data distribution 2)
+- Chén uống trà (data distribution 3)
+
+Nhưng **mọi thao tác phải có công thức đảo ngược**:
+
+```python
+# Forward: Đất sét → Tác phẩm
+x = f(z, theta)
+
+# Inverse: Tác phẩm → Đất sết
+z = f_inverse(x, theta)
+
+# Requirement: f_inverse(f(z)) == z
+```
+
+### Vấn đề: Tính log-likelihood
+
+Sư phụ hỏi: "Làm sao biết tác phẩm này 'giống' dữ liệu thật đến đâu?"
+
+Anh học được công thức **change of variables**:
+
+$$
+\log p_X(x) = \log p_Z(z) - \log\left|\det\frac{\partial f}{\partial z}\right|
+$$
+
+**Vấn đề:** Tính $\det(\text{Jacobian})$ cho ảnh $256 \times 256 \times 3$ (196,608 chiều) là **KHÔNG THỂ** với ma trận đầy đủ!
+
+→ Cần kiến trúc thông minh: **RealNVP**
+
+## 2. Áp lực từ triển lãm
+
+### Yêu cầu của triển lãm gốm
+
+Triển lãm gốm nghệ thuật đặt ra 3 yêu cầu:
+
+1. **Nhanh:** Tạo 100 tác phẩm trong 1 giờ
+2. **Đa dạng:** Mỗi tác phẩm khác nhau (từ cùng khối đất)
+3. **Đảo ngược:** Có thể điều chỉnh lại nếu khách không hài lòng
+
+RealNVP được thiết kế để đáp ứng cả 3:
+
+| Yêu cầu | RealNVP solution |
+|---------|------------------|
+| Nhanh | Jacobian tam giác → $O(D)$ thay vì $O(D^3)$ |
+| Đa dạng | Sampling từ Gaussian → diverse outputs |
+| Đảo ngược | Coupling layer có công thức inverse rõ ràng |
+
+### So sánh với các approach khác
+
+```
+┌─────────────────────────────────────────────┐
+│ Approach       │ Invertible? │ Fast?  │ Exact likelihood? │
+├─────────────────────────────────────────────┤
+│ GAN            │ ✗           │ ✓✓     │ ✗                │
+│ VAE            │ ✗           │ ✓      │ ✗ (lower bound)  │
+│ Diffusion      │ ✓           │ ✗      │ ✗                │
+│ RealNVP/Glow   │ ✓✓          │ ✓      │ ✓✓               │
+└─────────────────────────────────────────────┘
+```
 
 ## 3. Từ trực giác đến RealNVP
 
-Ở bài Normalizing Flow & CNF, chúng ta dừng lại ở ý tưởng “chuỗi biến đổi có thể đảo”. Giờ nối tiếp câu chuyện, từ kinh nghiệm của người nghệ nhân, ta rút ra ba yêu cầu cho flow:
+### Ý tưởng "Giữ nửa - Biến đổi nửa"
 
-1. **Chuỗi phép biến đổi khả nghịch** $f_1, f_2, \dots, f_K$ để đi từ base Gaussian $z_0$ thành ảnh dữ liệu $x$.
-2. **Tính toán log-likelihood chính xác**:
-   
-   $$
-\log p_X(x) = \log p_Z(z_0) - \sum_{k=1}^K \log\left\lvert\det\left(\frac{\partial f_k}{\partial z_{k-1}}\right)\right\rvert
-$$
+Người thợ gốm khám phá một kỹ thuật thông minh:
 
-**Chú thích:** $p_X$ là mật độ dữ liệu sau toàn bộ flow; $p_Z$ là mật độ base; $f_k$ là phép biến đổi tại lớp $k$; $\frac{\partial f_k}{\partial z_{k-1}}$ là Jacobian; tổng $\sum_{k=1}^K$ cộng đóng góp log-determinant của từng lớp.
+**"Mỗi lần, tôi GIỮ NGUYÊN một nửa khối đất, dùng nửa đó để quyết định cách nặn nửa còn lại!"**
 
-3. **Độ phức tạp tuyến tính** theo số chiều (ảnh $64 \times 64 \times 3$ có 12,288 chiều).
+Giả sử khối đất có 2 phần: $z = [z_A, z_B]$
 
-RealNVP giải bài toán bằng cách thiết kế mỗi $f_k$ sao cho ma trận Jacobian là **tam giác** ⇒ định thức chỉ là tích đường chéo ⇒ phép tính $O(D)$.
+**Forward transform:**
 
-## 4. Kiến trúc RealNVP từng lớp
+```
+1. Giữ nguyên z_A:
+   x_A = z_A
 
-### 4.1 Coupling layer kiểu "giữ - nặn"
+2. Biến đổi z_B dựa trên z_A:
+   x_B = z_B * exp(scale(z_A)) + shift(z_A)
+```
 
-Chia vector $z$ thành hai phần theo mask $m \in \{0,1\}^D$:
+**Inverse transform (CỰC KỲ ĐƠN GIẢN):**
+
+```
+1. Lấy lại z_A:
+   z_A = x_A
+
+2. Đảo ngược phép biến đổi z_B:
+   z_B = (x_B - shift(z_A)) * exp(-scale(z_A))
+```
+
+**Điểm mấu chốt:** Không cần giải phương trình phức tạp!
+
+### Công thức toán học
+
+Cho mask $m \in \{0,1\}^D$ (ví dụ `[1,1,0,0]` → giữ 2 chiều đầu):
 
 $$
 \begin{aligned}
 z_A &= m \odot z, \quad z_B = (1 - m) \odot z \\
-t &= T_\theta(z_A), \quad s = S_\theta(z_A)
+s &= S_\theta(z_A), \quad t = T_\theta(z_A)
 \end{aligned}
 $$
 
-Trong đó $T_\theta, S_\theta$ là các mạng nhỏ (MLP/CNN).
-
-Forward (đi từ base → data):
+**Forward:**
 
 $$
 \begin{aligned}
@@ -80,363 +157,598 @@ x_B &= z_B \odot \exp(s) + t
 \end{aligned}
 $$
 
-**Chú thích:** $x_A$ giữ nguyên bằng $z_A$; $x_B$ nhận scale $\exp(s)$ và dịch $t$ dựa trên phần $z_A$; $\odot$ là nhân từng phần tử; $s, t$ do các mạng $S_\theta, T_\theta$ sinh ra.
-
-Inverse (đi từ data → base) cực kỳ đơn giản:
+**Inverse:**
 
 $$
 \begin{aligned}
-z_A &= x_A, \\
+z_A &= x_A \\
 z_B &= (x_B - t) \odot \exp(-s)
 \end{aligned}
 $$
 
-**Chú thích:** $z_A, z_B$ là hai phần của latent; phép nhân $\odot$ là nhân theo phần tử; $\exp(-s)$ nghĩa là đảo scale đã áp dụng ở bước forward.
-
-**Log-det Jacobian**:
+**Log-det Jacobian (CỰC KỲ ĐƠN GIẢN):**
 
 $$
-\log\lvert\det J\rvert = \sum_{i: m_i = 0} s_i
+\log|\det J| = \sum_{i: m_i = 0} s_i
 $$
 
-**Chú thích:** Ta chỉ cộng các phần tử $s_i$ thuộc nửa được biến đổi (nơi $m_i = 0$). Đây là lý do coupling layer có log-determinant đơn giản.
-### 4.2 Hoán vị & multi-scale
+Chỉ cần cộng các phần tử $s$ ở nửa được biến đổi!
 
-Nếu ta giữ nguyên cùng một mặt nạ, chỉ đúng một nửa chiều được biến đổi. Vì vậy RealNVP:
+## 4. Kiến trúc RealNVP từng lớp
 
-- Xen kẽ các mask khác nhau (checkerboard ↔ channel-wise).
-- Chèn bước **permutation** đơn giản giữa các layer (ví dụ đảo chiều channel).
-- Ở cấp ảnh, sử dụng thủ thuật **squeeze** + **split**: sau vài bước, đưa một phần feature map ra latent và tiếp tục xử lý phần còn lại ⇒ multi-scale latent giống pyramids.
+### 4.1. Coupling Layer
 
-### 4.3 So sánh nhanh với MADE/IAF
+```python
+class CouplingLayer(nn.Module):
+    def __init__(self, dim, mask, hidden_dim=128):
+        super().__init__()
+        self.mask = mask
+        
+        # Networks to compute scale and shift
+        dim_A = mask.sum()
+        dim_B = dim - dim_A
+        
+        self.scale_net = nn.Sequential(
+            nn.Linear(dim_A, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, dim_B)
+        )
+        
+        self.shift_net = nn.Sequential(
+            nn.Linear(dim_A, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, dim_B)
+        )
+    
+    def forward(self, z):
+        z_A = z[:, self.mask == 1]
+        z_B = z[:, self.mask == 0]
+        
+        s = self.scale_net(z_A)
+        t = self.shift_net(z_A)
+        
+        x_B = z_B * torch.exp(s) + t
+        
+        x = z.clone()
+        x[:, self.mask == 0] = x_B
+        
+        log_det = s.sum(dim=1)
+        return x, log_det
+    
+    def inverse(self, x):
+        x_A = x[:, self.mask == 1]
+        x_B = x[:, self.mask == 0]
+        
+        s = self.scale_net(x_A)
+        t = self.shift_net(x_A)
+        
+        z_B = (x_B - t) * torch.exp(-s)
+        
+        z = x.clone()
+        z[:, self.mask == 0] = z_B
+        
+        return z
+```
 
-| Tiêu chí | Coupling (RealNVP) | Autoregressive (MAF/IAF) |
-|----------|--------------------|---------------------------|
-| Forward tốc độ | Rất nhanh (song song) | Chậm (tuần tự) |
-| Inverse tốc độ | Chậm (giải phương trình) | Rất nhanh |
-| Ứng dụng điển hình | Generative sampling | Density estimation |
+### 4.2. Xen kẽ masks
 
-RealNVP được chọn vì forward sampling cần nhanh, huấn luyện có thể dùng mini-batch lớn.
+Để tất cả chiều đều được biến đổi, người thợ gốm **xen kẽ các coupling layers với masks khác nhau**:
 
-## 5. Ví dụ toán học: Coupling 2D tối giản
+```
+Layer 1: mask = [1,1,0,0] → Giữ 2 đầu, biến 2 cuối
+Layer 2: mask = [0,0,1,1] → Giữ 2 cuối, biến 2 đầu
+Layer 3: mask = [1,0,1,0] → Checkerboard pattern
+...
+```
 
-Xét base distribution $z = [z_1, z_2]^\top \sim \mathcal{N}(\mathbf{0}, I)$ và mặt nạ `m = [1, 0]`. Ta đặt:
+**Kết quả:** Sau 3-4 layers, tất cả chiều đều được biến đổi phụ thuộc vào nhau!
+
+### 4.3. Multi-scale Architecture
+
+Với ảnh lớn, RealNVP dùng **squeeze** và **split**:
+
+```
+Input: (batch, 3, 64, 64)
+  ↓ Squeeze
+(batch, 12, 32, 32)  # 4x channels, 0.5x resolution
+  ↓ 4 coupling layers
+  ↓ Split: Half to latent
+Latent z1: (batch, 6, 32, 32)
+Continue: (batch, 6, 32, 32)
+  ↓ Squeeze
+(batch, 24, 16, 16)
+  ↓ 4 coupling layers
+  ↓ Split: Half to latent
+Latent z2: (batch, 12, 16, 16)
+...
+```
+
+**Lợi ích:** Model tập trung vào chi tiết ở các scale khác nhau.
+
+## 5. Ví dụ toán học: Coupling 2D
+
+### Setup đơn giản
+
+Cho $z = [z_1, z_2]^T \sim \mathcal{N}(0, I)$ và mask $m = [1, 0]$.
+
+**Networks:**
 
 $$
 s(z_1) = 0.8 z_1, \quad t(z_1) = 0.5 z_1
 $$
 
-Forward:
+### Forward transform
 
 $$
 \begin{aligned}
 x_1 &= z_1 \\
-x_2 &= z_2 \exp(0.8 z_1) + 0.5 z_1
+x_2 &= z_2 \cdot \exp(0.8 z_1) + 0.5 z_1
 \end{aligned}
 $$
 
-**Chú thích:** $z_1, z_2$ là hai chiều của biến latent gốc; $x_1, x_2$ là hai chiều sau biến đổi; $\exp(\cdot)$ là hàm mũ; hệ số $0.5$ là dịch chuyển (translation) còn $0.8$ là hệ số scale sinh ra bởi mạng $s(\cdot)$.
+**Ví dụ số:**
 
-Inverse:
+```python
+z = [1.0, 0.5]  # Gaussian sample
+
+# Forward
+x1 = 1.0
+x2 = 0.5 * exp(0.8 * 1.0) + 0.5 * 1.0
+   = 0.5 * 2.226 + 0.5
+   = 1.113 + 0.5
+   = 1.613
+
+x = [1.0, 1.613]
+```
+
+### Inverse transform
 
 $$
 \begin{aligned}
-z_1 &= x_1 \\
-z_2 &= \left(x_2 - 0.5 x_1\right) \exp(-0.8 x_1)
+z_1 &= x_1 = 1.0 \\
+z_2 &= (x_2 - 0.5 z_1) \cdot \exp(-0.8 z_1) \\
+    &= (1.613 - 0.5) \cdot \exp(-0.8) \\
+    &= 1.113 \cdot 0.449 \\
+    &= 0.5 \quad \checkmark
 \end{aligned}
 $$
 
-**Chú thích:** Công thức tìm lại $z_2$ dùng đúng hệ số đã áp dụng ở bước forward, chỉ khác dấu ở lũy thừa (nhân với $\exp(-s)$). Tính khả nghịch nằm ở chỗ mọi thao tác đều dùng nhân/chia không làm mất thông tin.
-
-Log-det Jacobian:
+### Log-det Jacobian
 
 $$
-\log\lvert\det J\rvert = 0.8 x_1
+\log|\det J| = 0.8 z_1 = 0.8 \times 1.0 = 0.8
 $$
 
-**Chú thích:** $J$ là Jacobian của phép biến đổi; $\det J$ đo mức co giãn thể tích; ký hiệu $\lvert\cdot\rvert$ lấy giá trị tuyệt đối; $\log$ là logarit tự nhiên.
-
-Log-likelihood của điểm $x$:
+### Log-likelihood
 
 $$
-\log p_X(x) = \log p_Z(z) - 0.8 x_1
+\begin{aligned}
+\log p_X(x) &= \log p_Z(z) - \log|\det J| \\
+            &= -\frac{1}{2}(z_1^2 + z_2^2) - \log(2\pi) - 0.8 \\
+            &= -\frac{1}{2}(1.0 + 0.25) - 1.838 - 0.8 \\
+            &= -0.625 - 1.838 - 0.8 \\
+            &= -3.263
+\end{aligned}
 $$
 
-**Chú thích:** $p_X$ là mật độ của dữ liệu sau biến đổi, $p_Z$ là mật độ cơ sở (Gaussian). Phần $-0.8x_1$ chính là hiệu chỉnh từ log-determinant ở trên.
-
-Với $p_Z$ là Gaussian chuẩn, ta có:
-
-$$
-\log p_X(x) = -\frac{1}{2}\left(x_1^2 + \big(x_2 - 0.5 x_1\big)^2 \exp(-1.6 x_1)\right) - \log (2\pi) - 0.8 x_1
-$$
-
-**Chú thích:** $-\frac{1}{2}(\cdot)$ đến từ log mật độ Gaussian chuẩn; $2\pi$ là hằng số trong phân phối chuẩn 2 chiều; hệ số $1.6 = 2 \times 0.8$ do bình phương hệ số scale.
-
-Ví dụ số trong Python:
+**Code PyTorch:**
 
 ```python
 import torch
 
-x = torch.tensor([[1.2, -0.7]])
-x1, x2 = x[:, 0], x[:, 1]
-z1 = x1
-z2 = (x2 - 0.5 * x1) * torch.exp(-0.8 * x1)
+x = torch.tensor([[1.0, 1.613]])
+z1 = x[:, 0]
+z2 = (x[:, 1] - 0.5 * z1) * torch.exp(-0.8 * z1)
 
-log_p_z = -0.5 * (z1**2 + z2**2) - torch.log(torch.tensor(2 * torch.pi))
-log_det = -0.8 * x1  # Dấu trừ vì từ x -> z
-log_p_x = log_p_z + log_det
-print(float(log_p_x))  # ~ -1.967
+# Log p_Z(z)
+log_pz = -0.5 * (z1**2 + z2**2) - torch.log(torch.tensor(2 * torch.pi))
+
+# Log |det J|
+log_det = 0.8 * z1
+
+# Log p_X(x)
+log_px = log_pz - log_det
+print(float(log_px))  # ≈ -3.263
 ```
 
-Nhờ coupling layer, việc tính log-likelihood chỉ là vài phép cộng nhân thay vì xử lý ma trận lớn.
+## 6. Glow: Kỹ thuật nâng cao
 
-## 6. Glow: Khi RealNVP học được “điệu nhảy” 1x1
+### Ngày thứ 5: Người thợ gốm học Glow
 
-Glow (Kingma & Dhariwal, 2018) kế thừa RealNVP nhưng thêm ba ý tưởng giúp mẫu ảnh sắc nét:
+Sau khi thành thạo RealNVP, người thợ gốm học ba kỹ thuật mới từ **Glow** (Kingma & Dhariwal, 2018):
 
-1. **ActNorm**: mỗi channel có scale $s$ và bias $b$ được khởi tạo theo mini-batch đầu tiên để đảm bảo zero-mean, unit-var. Biến đổi:
-   
-   $$
-   y = s \odot (x - b), \quad \log\lvert\det J\rvert = HW \sum_c \log \lvert s_c\rvert
-   $$
-   
-   **Chú thích:** $s$ và $b$ là vectơ scale/bias theo channel; $\odot$ là nhân theo phần tử; $H, W$ là chiều cao, chiều rộng của ảnh; tổng $\sum_c$ chạy qua các channel.
+### 6.1. ActNorm - "Chuẩn hóa tự động"
 
-2. **Invertible 1x1 Convolution**: thay permutation cố định bằng ma trận khả nghịch $W \in \mathbb{R}^{c \times c}$. Với ảnh hình $H \times W$:
-   
-   $$
-   \log\lvert\det J\rvert = HW \cdot \log\lvert\det W\rvert
-   $$
-   
-   **Chú thích:** $\det W$ là định thức của ma trận vuông $W$ kích thước $c \times c$; nhân với $HW$ vì phép nhân 1x1 áp dụng tại mỗi vị trí pixel. Phân rã $PLU$ giúp tính $\det W$ nhanh qua tích các phần tử đường chéo trên ($u_{ii}$).
-   
-   Để tính nhanh, Glow lưu decomposition $W = PLU$ ⇒ $\log\lvert\det W\rvert = \sum_i \log\lvert u_{ii}\rvert$, trong đó $P$ là ma trận hoán vị, $L$ tam giác dưới, $U$ tam giác trên.
+**Vấn đề:** Batch Normalization không invertible!
 
-3. **Multi-scale architecture**: sau $K$ bước, “tách” một nửa channel thành latent, phần còn lại tiếp tục đi qua các scale tiếp theo. Điều này giúp mô hình tập trung vào chi tiết nhỏ ở những tầng sâu.
+**Giải pháp:** ActNorm = Affine transformation học được:
 
-### 6.1 Quy trình một flow step của Glow
+$$
+y = s \odot (x - b)
+$$
 
+- $s, b$ khởi tạo từ mini-batch đầu tiên → zero mean, unit variance
+- Sau đó học như tham số thông thường
+
+**Log-det (với ảnh $H \times W \times C$):**
+
+$$
+\log|\det J| = HW \sum_{c=1}^C \log|s_c|
+$$
+
+**Code:**
+
+```python
+class ActNorm(nn.Module):
+    def __init__(self, num_channels):
+        super().__init__()
+        self.scale = nn.Parameter(torch.ones(num_channels))
+        self.bias = nn.Parameter(torch.zeros(num_channels))
+        self.initialized = False
+    
+    def forward(self, x):
+        # x: (B, C, H, W)
+        if not self.initialized:
+            # Initialize from first batch
+            with torch.no_grad():
+                mean = x.mean(dim=[0, 2, 3])
+                std = x.std(dim=[0, 2, 3])
+                self.bias.copy_(-mean)
+                self.scale.copy_(1.0 / (std + 1e-6))
+            self.initialized = True
+        
+        B, C, H, W = x.shape
+        y = self.scale.view(1, C, 1, 1) * (x + self.bias.view(1, C, 1, 1))
+        
+        log_det = H * W * torch.sum(torch.log(torch.abs(self.scale)))
+        return y, log_det
+    
+    def inverse(self, y):
+        x = y / self.scale.view(1, -1, 1, 1) - self.bias.view(1, -1, 1, 1)
+        return x
 ```
-x ──► ActNorm ──► Invertible1x1Conv ──► Affine Coupling ──► x_next
-             │                            │
-             └── log|det J| contributions ┴──
+
+### 6.2. Invertible 1x1 Convolution
+
+**Vấn đề:** Permutation cố định giới hạn expressiveness.
+
+**Giải pháp:** Học ma trận khả nghịch $W \in \mathbb{R}^{C \times C}$ cho 1x1 conv:
+
+$$
+y = W x
+$$
+
+**Log-det:**
+
+$$
+\log|\det J| = HW \cdot \log|\det W|
+$$
+
+**Tối ưu:** Dùng PLU decomposition:
+
+$$
+W = P L U
+$$
+
+- $P$: Permutation (cố định)
+- $L$: Lower triangular
+- $U$: Upper triangular
+
+→ $\det W = \prod_{i} u_{ii}$
+
+**Code:**
+
+```python
+class InvConv1x1(nn.Module):
+    def __init__(self, num_channels):
+        super().__init__()
+        # Initialize as orthogonal matrix
+        W = torch.qr(torch.randn(num_channels, num_channels))[0]
+        self.W = nn.Parameter(W)
+    
+    def forward(self, x):
+        # x: (B, C, H, W)
+        B, C, H, W = x.shape
+        
+        # Apply 1x1 conv
+        y = F.conv2d(x, self.W.unsqueeze(-1).unsqueeze(-1))
+        
+        # Log-det
+        log_det = H * W * torch.slogdet(self.W)[1]
+        return y, log_det
+    
+    def inverse(self, y):
+        W_inv = torch.inverse(self.W)
+        x = F.conv2d(y, W_inv.unsqueeze(-1).unsqueeze(-1))
+        return x
 ```
 
-Sau vài flow step, Glow thực hiện `split`, đưa một phần tensor vào danh sách latent $\{z^{(1)}, z^{(2)}, \dots\}$, phần còn lại tiếp tục qua scale kế tiếp.
+### 6.3. Glow Block - Kết hợp toàn bộ
 
-### 6.2 Ưu & nhược điểm thực tế
+```python
+class GlowBlock(nn.Module):
+    def __init__(self, num_channels, hidden_dim=512):
+        super().__init__()
+        self.actnorm = ActNorm(num_channels)
+        self.invconv = InvConv1x1(num_channels)
+        self.coupling = AffineCoupling(num_channels, hidden_dim)
+    
+    def forward(self, x):
+        y, logdet1 = self.actnorm(x)
+        y, logdet2 = self.invconv(y)
+        y, logdet3 = self.coupling(y)
+        
+        total_logdet = logdet1 + logdet2 + logdet3
+        return y, total_logdet
+    
+    def inverse(self, y):
+        x = self.coupling.inverse(y)
+        x = self.invconv.inverse(x)
+        x = self.actnorm.inverse(x)
+        return x
+```
 
-- **Ưu**: mẫu ảnh 256×256 sắc nét, latent edit trực quan (nắn nụ cười, ánh sáng).
-- **Nhược**: tiêu tốn bộ nhớ (nhất là ActNorm), slow sampling hơn GAN/Diffusion hiện đại, độ sâu lớn dễ gây underflow log-det ⇒ cần mixed-precision cẩn thận.
+### Glow vs RealNVP
 
-## 7. Code thú vị: Mini RealNVP + Glow block với PyTorch
+| Aspect | RealNVP | Glow |
+|--------|---------|------|
+| Normalization | Batch Norm (không invertible) | ActNorm (invertible) |
+| Mixing | Fixed permutation | Learned 1x1 conv |
+| Coupling | Affine | Affine (same) |
+| Image quality | Good | Better |
+| Training | Easier | Harder (more params) |
 
-Đoạn code dưới đây mô phỏng:
+## 7. Implementation PyTorch
 
-- `MiniRealNVP`: 8 coupling layer cho dữ liệu 2D (ví dụ 8-Gaussians).
-- `GlowBlock`: block ActNorm + invertible 1x1 conv + affine coupling dành cho ảnh nhỏ.
+### 7.1. Complete RealNVP for 2D data
 
 ```python
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
-def glorot_linear(in_dim, out_dim):
-    w = torch.empty(in_dim, out_dim)
-    nn.init.xavier_uniform_(w)
-    return nn.Parameter(w)
-
-class TwoLayerNN(nn.Module):
-    def __init__(self, in_dim, hidden, out_dim):
+class MLP(nn.Module):
+    def __init__(self, in_dim, hidden_dim, out_dim):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(in_dim, hidden), nn.ReLU(),
-            nn.Linear(hidden, hidden), nn.ReLU(),
-            nn.Linear(hidden, out_dim)
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim)
         )
-
+    
     def forward(self, x):
         return self.net(x)
 
-class RealNVPCoupling(nn.Module):
-    def __init__(self, dim, hidden):
+class RealNVP(nn.Module):
+    def __init__(self, dim, num_layers=8, hidden_dim=128):
         super().__init__()
-        self.scale = TwoLayerNN(dim // 2, hidden, dim // 2)
-        self.shift = TwoLayerNN(dim // 2, hidden, dim // 2)
-
-    def forward(self, z):
-        z1, z2 = torch.chunk(z, 2, dim=1)
-        s = self.scale(z1)
-        t = self.shift(z1)
-        x1 = z1
-        x2 = z2 * torch.exp(s) + t
-        log_det = s.sum(dim=1)
-        return torch.cat([x1, x2], dim=1), log_det
-
-    def inverse(self, x):
-        x1, x2 = torch.chunk(x, 2, dim=1)
-        s = self.scale(x1)
-        t = self.shift(x1)
-        z1 = x1
-        z2 = (x2 - t) * torch.exp(-s)
-        log_det = -s.sum(dim=1)
-        return torch.cat([z1, z2], dim=1), log_det
-
-class MiniRealNVP(nn.Module):
-    def __init__(self, dim=2, num_flows=8, hidden=128):
-        super().__init__()
-        self.flows = nn.ModuleList([RealNVPCoupling(dim, hidden) for _ in range(num_flows)])
-        self.perms = nn.ParameterList([
-            nn.Parameter(torch.randperm(dim), requires_grad=False)
-            for _ in range(num_flows)
+        self.dim = dim
+        
+        # Create alternating masks
+        masks = []
+        for i in range(num_layers):
+            mask = torch.zeros(dim)
+            mask[i % dim::2] = 1
+            masks.append(mask)
+        
+        self.masks = nn.ParameterList([
+            nn.Parameter(m, requires_grad=False) for m in masks
         ])
-
+        
+        # Create scale and shift networks
+        self.scale_nets = nn.ModuleList()
+        self.shift_nets = nn.ModuleList()
+        
+        for mask in masks:
+            dim_A = int(mask.sum())
+            dim_B = dim - dim_A
+            
+            self.scale_nets.append(MLP(dim_A, hidden_dim, dim_B))
+            self.shift_nets.append(MLP(dim_A, hidden_dim, dim_B))
+    
     def forward(self, z):
-        log_det = 0
+        """z -> x, return x and log_det"""
         x = z
-        for flow, perm in zip(self.flows, self.perms):
-            x = x[:, perm]
-            x, det = flow(x)
-            log_det += det
-        return x, log_det
-
+        sum_log_det = 0
+        
+        for mask, scale_net, shift_net in zip(
+            self.masks, self.scale_nets, self.shift_nets
+        ):
+            x_A = x * mask
+            x_B = x * (1 - mask)
+            
+            s = scale_net(x_A)
+            t = shift_net(x_A)
+            
+            # Transform B part
+            x_B_new = x_B * torch.exp(s) + t
+            x = x_A + x_B_new
+            
+            sum_log_det = sum_log_det + s.sum(dim=1)
+        
+        return x, sum_log_det
+    
     def inverse(self, x):
-        log_det = 0
+        """x -> z"""
         z = x
-        for flow, perm in zip(reversed(self.flows), reversed(self.perms)):
-            z, det = flow.inverse(z)
-            inv_perm = torch.argsort(perm)
-            z = z[:, inv_perm]
-            log_det += det
-        return z, log_det
-
-class ActNorm(nn.Module):
-    def __init__(self, num_channels):
-        super().__init__()
-        self.log_s = nn.Parameter(torch.zeros(1, num_channels, 1, 1))
-        self.bias = nn.Parameter(torch.zeros(1, num_channels, 1, 1))
-        self.initialized = False
-
-    def initialize(self, x):
-        with torch.no_grad():
-            mean = x.mean(dim=[0, 2, 3], keepdim=True)
-            std = x.std(dim=[0, 2, 3], keepdim=True)
-            self.bias.data.copy_(-mean)
-            self.log_s.data.copy_(torch.log(1.0 / (std + 1e-6)))
-        self.initialized = True
-
-    def forward(self, x):
-        if not self.initialized:
-            self.initialize(x)
-        log_det = torch.sum(self.log_s) * x.size(2) * x.size(3)
-        return torch.exp(self.log_s) * (x + self.bias), log_det
-
-    def inverse(self, y):
-        x = y * torch.exp(-self.log_s) - self.bias
-        log_det = -torch.sum(self.log_s) * y.size(2) * y.size(3)
-        return x, log_det
-
-class Invertible1x1Conv(nn.Module):
-    def __init__(self, num_channels):
-        super().__init__()
-        W = torch.qr(torch.randn(num_channels, num_channels)).Q
-        self.weight = nn.Parameter(W)
-
-    def forward(self, x):
-        b, c, h, w = x.shape
-        weight = self.weight.view(c, c, 1, 1)
-        z = F.conv2d(x, weight)
-        log_det = h * w * torch.logdet(self.weight)
-        return z, log_det
-
-    def inverse(self, z):
-        b, c, h, w = z.shape
-        weight_inv = torch.inverse(self.weight).view(c, c, 1, 1)
-        x = F.conv2d(z, weight_inv)
-        log_det = -h * w * torch.logdet(self.weight)
-        return x, log_det
-
-class GlowBlock(nn.Module):
-    def __init__(self, channels, hidden_channels=512):
-        super().__init__()
-        self.actnorm = ActNorm(channels)
-        self.invconv = Invertible1x1Conv(channels)
-        self.coupling = RealNVPCoupling(channels * 2, hidden_channels)
-
-    def forward(self, x):
-        x, det1 = self.actnorm(x)
-        x, det2 = self.invconv(x)
-        b, c, h, w = x.shape
-        x = x.view(b, c, h * w).permute(0, 2, 1).reshape(b * h * w, c)
-        x, det3 = self.coupling(x)
-        x = x.view(b, h * w, c).permute(0, 2, 1).reshape(b, c, h, w)
-        det3 = det3.view(b, h * w).sum(dim=1)
-        return x, det1 + det2 + det3
-
-    def inverse(self, x):
-        b, c, h, w = x.shape
-        z = x.view(b, c, h * w).permute(0, 2, 1).reshape(b * h * w, c)
-        z, det3 = self.coupling.inverse(z)
-        z = z.view(b, h * w, c).permute(0, 2, 1).reshape(b, c, h, w)
-        z, det2 = self.invconv.inverse(z)
-        z, det1 = self.actnorm.inverse(z)
-        det3 = det3.view(b, h * w).sum(dim=1)
-        return z, det1 + det2 + det3
+        
+        for mask, scale_net, shift_net in reversed(list(zip(
+            self.masks, self.scale_nets, self.shift_nets
+        ))):
+            z_A = z * mask
+            z_B = z * (1 - mask)
+            
+            s = scale_net(z_A)
+            t = shift_net(z_A)
+            
+            # Inverse transform
+            z_B_new = (z_B - t) * torch.exp(-s)
+            z = z_A + z_B_new
+        
+        return z
+    
+    def log_prob(self, x):
+        """Compute log p(x)"""
+        z, log_det = self.inverse(x), 0  # Need to track log_det in inverse too
+        
+        # For simplicity, compute log_det via forward
+        z_temp = self.inverse(x)
+        _, log_det = self.forward(z_temp)
+        
+        # Gaussian log prob
+        log_pz = -0.5 * (z ** 2).sum(dim=1) - 0.5 * self.dim * torch.log(
+            torch.tensor(2 * torch.pi)
+        )
+        
+        log_px = log_pz - log_det
+        return log_px
 ```
 
-**Gợi ý sử dụng nhanh:**
+### 7.2. Training loop
 
 ```python
-def target_distribution(n):
-    # tám gaussian xếp vòng tròn
-    angles = torch.linspace(0, 2 * torch.pi, 9)[:-1]
-    centers = torch.stack([torch.cos(angles), torch.sin(angles)], dim=1) * 3.0
-    ids = torch.randint(0, 8, (n,))
-    noise = 0.2 * torch.randn(n, 2)
-    return centers[ids] + noise
+def train_realnvp(model, data_loader, epochs=100, lr=1e-3):
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    
+    model.train()
+    for epoch in range(epochs):
+        epoch_loss = 0
+        
+        for x_batch in data_loader:
+            # Compute negative log-likelihood
+            log_px = model.log_prob(x_batch)
+            loss = -log_px.mean()
+            
+            # Backprop
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+            epoch_loss += loss.item()
+        
+        if (epoch + 1) % 10 == 0:
+            avg_loss = epoch_loss / len(data_loader)
+            print(f"Epoch {epoch+1}/{epochs} | NLL: {avg_loss:.4f}")
+    
+    return model
 
-flow = MiniRealNVP()
-optimizer = torch.optim.Adam(flow.parameters(), lr=1e-3)
+# Usage
+model = RealNVP(dim=2, num_layers=8)
+# Assuming you have data_loader
+# model = train_realnvp(model, data_loader, epochs=100)
 
-for step in range(5000):
-    x = target_distribution(512)
-    z, log_det = flow.inverse(x)
-    log_pz = -0.5 * (z**2).sum(dim=1) - torch.log(torch.tensor(2 * torch.pi))
-    loss = -(log_pz + log_det).mean()
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
+# Sampling
+z = torch.randn(100, 2)
 with torch.no_grad():
-    samples, _ = flow.forward(torch.randn(2048, 2))
+    x_samples, _ = model(z)
 ```
 
-## 8. Gợi ý thực nghiệm & các bẫy thường gặp
+## 8. Kinh nghiệm thực nghiệm
 
-- **Warm-up log-scale**: clamp đầu ra của `s(z_A)` trong khoảng `[-5, 5]` để tránh underflow.
-- **Permutation học được**: Glow dùng invertible conv, nhưng RealNVP cổ điển chỉ cần shuffle channel/feature — hãy kết hợp random permutation cố định để tăng mixing.
-- **Gradient clipping**: log-det lớn khiến gradient exploding; clip ở mức `1.0` hoặc `5.0`.
-- **Mixed precision**: nếu huấn luyện Glow FP16, hãy lưu `logdet` ở FP32 để tránh mất chính xác khi cộng.
-- **Regularize latent**: thêm term $\lambda \|z\|_2^2$ nhỏ giúp sampling ổn định khi multi-scale sâu.
+### 8.1. Hyperparameter tuning
 
-## 9. Kết luận & tài liệu
+Người thợ gốm học được:
 
-### Key takeaways
+1. **Số layers:** 
+   - 2D data: 6-8 layers
+   - Images: 32-48 layers (với multi-scale)
 
-- RealNVP là “người nghệ nhân” với thao tác giữ-nặn, mang lại Jacobian tuyến tính và log-likelihood chính xác.
-- Glow thêm ActNorm + invertible 1x1 conv + multi-scale giúp mẫu ảnh sắc nét và latent editing trực quan.
-- Combo RealNVP/Glow vẫn là baseline mạnh cho các bài toán cần invertibility (nén ảnh, anomaly detection, controllable generation).
+2. **Hidden dim:**
+   - Nhỏ (64-128) cho 2D
+   - Lớn (512-1024) cho images
 
-Từ đây, chúng ta tiếp tục dõi theo xưởng pha lê khi họ kết hợp các kỹ thuật mới như Rectified Flows, Flow Matching và Schrödinger Bridge (đã hé lộ ở các bài tiếp nối trong repo) để tối ưu tốc độ và chất lượng cho pipeline generative.
+3. **Coupling type:**
+   - Additive: $x_B = z_B + t$ (đơn giản nhưng yếu)
+   - Affine: $x_B = z_B \cdot \exp(s) + t$ (standard)
 
-### Tài liệu khuyến nghị
+4. **Regularization:**
+   - Weight decay: 1e-5
+   - Gradient clipping: 5.0
 
-1. Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2017). *Density Estimation using Real NVP*. ICLR.
-2. Kingma, D. P., & Dhariwal, P. (2018). *Glow: Generative Flow with Invertible 1x1 Convolutions*. NeurIPS.
-3. Papamakarios, G., et al. (2021). *Normalizing Flows for Probabilistic Modeling*. JMLR.
-4. Rezende, D. J., & Mohamed, S. (2015). *Variational Inference with Normalizing Flows*. ICML.
-5. Ho, J., et al. (2019). *Flow++: Improving Flow-Based Generative Models with Variational Dequantization and Architecture Design*. ICML.
+### 8.2. Common issues
+
+**Issue 1: Exploding log_det**
+
+```python
+# Bad: log_det becomes too large
+s = scale_net(x_A)  # No constraint
+
+# Good: Bound scale
+s = torch.tanh(scale_net(x_A)) * 3  # s ∈ [-3, 3]
+```
+
+**Issue 2: Mode collapse**
+
+- Add noise to data: `x_noisy = x + 0.01 * torch.randn_like(x)`
+- Use dequantization for images
+
+**Issue 3: Slow convergence**
+
+- Use ActNorm instead of BatchNorm
+- Warm-up learning rate
+- Use multi-scale architecture
+
+### 8.3. Evaluation metrics
+
+```python
+# 1. Negative log-likelihood (lower is better)
+nll = -model.log_prob(test_data).mean()
+
+# 2. Bits per dimension
+bpd = nll / (np.log(2) * np.prod(data_shape))
+
+# 3. Sample quality (visual inspection)
+z = torch.randn(64, dim)
+samples = model(z)[0]
+plot_samples(samples)
+```
+
+## 9. Kết luận
+
+### Bài học của người thợ gốm
+
+Sau vài ngày học RealNVP và Glow, người thợ gốm ghi vào sổ tay:
+
+> **RealNVP & Glow: Nghệ thuật khả nghịch**
+>
+> 1. **Coupling layers:** Giữ nửa - biến đổi nửa → Jacobian đơn giản
+> 2. **Invertibility:** Mọi bước đều có công thức đảo ngược rõ ràng
+> 3. **Exact likelihood:** Tính $\log p(x)$ chính xác qua change of variables
+> 4. **Glow improvements:** ActNorm + 1x1 conv + multi-scale
+
+### So sánh tổng hợp
+
+| Method | Pros | Cons | Use case |
+|--------|------|------|----------|
+| **RealNVP** | Simple, exact likelihood | Many layers needed | Density estimation |
+| **Glow** | Better quality, flexible | More complex | High-res generation |
+| **vs GAN** | Exact likelihood, stable training | Slower, less sharp | When likelihood matters |
+| **vs VAE** | No approximation | More constrained arch | Exact generation |
+| **vs Diffusion** | Exact, invertible | Less flexible | Fast exact sampling |
+
+### Hướng tiếp theo
+
+"RealNVP và Glow đã dạy tôi về **khả nghịch**," anh nghĩ. "Nhưng vẫn còn một vấn đề: Training bằng likelihood rất **chậm và khó**. Liệu có cách nào học nhanh hơn không?"
+
+→ Dẫn đến **FFJORD** và **Flow Matching** (các bài tiếp theo)
 
 ---
+
+## Tài liệu tham khảo
+
+1. **Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2017)** - "Density estimation using Real NVP" _(ICLR 2017)_
+
+2. **Kingma, D. P., & Dhariwal, P. (2018)** - "Glow: Generative Flow using Invertible 1x1 Convolutions" _(NeurIPS 2018)_
+
+3. **Rezende, D. J., & Mohamed, S. (2015)** - "Variational Inference with Normalizing Flows" _(ICML 2015)_
+
+4. **Papamakarios, G., Nalisnick, E., Rezende, D. J., Mohamed, S., & Lakshminarayanan, B. (2021)** - "Normalizing Flows for Probabilistic Modeling and Inference" _(JMLR)_
+
+---
+
+**Series:** [Generative AI Overview](/posts/2025/generative-ai-overview)
+
+**Bài tiếp theo:** [FFJORD: Continuous Flows với Neural ODE](/posts/2025/ffjord-continuous-flows)
 
 <script src="/assets/js/katex-init.js"></script>
